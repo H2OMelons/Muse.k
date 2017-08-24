@@ -1,0 +1,74 @@
+.videoList{
+  width: inherit;
+  height: inherit;
+  position: absolute;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.videoList.container{
+  position: relative;
+  height: 25px;
+}
+
+.videoList.imageContainer{
+  width: 50px;
+  top: 0;
+  left: 0;
+}
+
+.videoList.titleContainer{
+  width: 400px;
+  top: 0;
+  left: 50px;
+  text-align: left;
+}
+
+.videoList.channelContainer{
+  width: 200px;
+  top: 0;
+  left: 450px;
+  text-align: left;
+}
+
+.videoList.durationContainer{
+  width: 40px;
+  top: 0;
+  left: 650px;
+}
+
+.videoList.settingsContainer{
+  width: 35px;
+  top: 0;
+  left: 690px;
+  cursor: pointer;
+}
+
+.botBorder{
+  border-bottom: 1px solid lightgray;
+}
+
+.rightBorder{
+  border-right: 2px solid black;
+}
+
+.leftBorder{
+  border-left: 2px solid black;
+}
+
+.blue.rightBorder{
+  border-right-color: blue;
+}
+
+.blue.leftBorder{
+  border-left-color: blue;
+}
+
+.green.rightBorder{
+  border-right-color: green;
+}
+
+.green.leftBorder{
+  border-left-color: green;
+}

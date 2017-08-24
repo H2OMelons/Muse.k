@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <style>
+      body{
+        min-height: 575px;
+        min-width: 780px;
+        margin: 0px;
+        user-select: none;
+      }
+      #topContainer{
+        position: absolute;
+        min-height: 60px;
+        min-width: 780px;
+        background-color: dodgerblue;
+        
+      }
+      #homeButton{
+        position: absolute;
+        width:35px;
+        height: 35px;
+        top: 10px;
+        left: 20px;
+        display: none;
+      }
+      #searchBar{
+        position: relative;
+        width: 50%;
+        height: 35px;
+        border: 2px solid black;
+        top: 10px;
+        left: 21.5%;
+        background-color: white;
+      }
+      #searchButton{
+        position: absolute;
+        width: 45px;
+        height: 35px;
+        background-color: white;
+        border: 2px solid black;
+        top: -2px;
+        left: 100%;
+      }
+      #searchInput{
+        position: absolute;
+        top: 0px;
+        width: 394px;
+        height: 29px;
+        font-size: 20px;
+      }
+      #profileIconDiv{
+        position: absolute;
+        max-width:35px;
+        max-height:35px;
+        top: 10px;
+        left: 727px;
+        cursor: pointer;
+      }
+      #optionsPageDiv{
+        position: absolute;
+        /*top: 48px;
+        left: 545px;*/
+        top: 40px;
+        left: -185px;
+        display: none;
+        background-color: white;
+        /*border: 1px solid black;*/
+        box-shadow: 0 0 1em rgba(0,0,0,0.24);
+        width: 225px;
+        height: 300px;
+        overflow: hidden;
+      }
+      #optionsPageButtonContainer{
+        position: relative;
+        height: 90%;
+      }
+      #usernameDiv{
+        position: relative;
+        text-align: center;
+        font-weight: bold;
+        line-height: 75%;
+        background-color: #F5F5F5;
+        color: black;
+        font-size: 20px;
+        overflow-wrap: break-word;
+        overflow: hidden;
+        padding-top: 15px;
+        padding-bottom: 15px;
+      }
+      #botContainer{
+        position: absolute;
+        top: 60px;
+        background-color: white;
+        min-width: 780px;
+        min-height: 515px;
+        overflow: hidden;
+      }
+      #playlistContainer{
+        min-width: inherit;
+        min-height: inherit;
+        position: absolute;
+        padding-right: 20px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+      #playlistPage{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        display: none;
+        overflow-y: scroll;
+        padding-right: 10px;
+      }
+      #playlistPageImageContainer{
+        border: 1px solid lightgray;
+        position: absolute;
+        width: 426px;
+        height: 240px;
+        top: 10px;
+        left: 25px;
+      }
+      #playlistPageImage{
+        position: absolute;
+        width: inherit;
+        height: inherit;
+        overflow: hidden;
+      }
+      #playlistPageIframe{
+        position: absolute;
+        width: inherit;
+        height: inherit;
+        display: none;
+      }
+      #playlistPageAddVideoButton{
+        position: relative;
+        width: 50px;
+        height: 25px;
+        text-align: center;
+        cursor: pointer;
+        float: left;
+      }
+      #addVideoModal{
+        background-color: white;
+        z-index: 10;
+        position: absolute;
+        border: 2px solid black;
+        width: 75%;
+        height: 390px;
+        top: 12.5%;
+        left: 12.5%;
+        display: none;
+      }
+      #addVideoViaUrlTab{
+        border-bottom: 2px solid dodgerblue;
+        position: absolute;
+        width: 10%;
+        height: 10%;
+        text-align: center;
+        cursor: pointer;
+      }
+      #urlInput{
+        position: absolute;
+        width: 50%;
+        height: 5%;
+        top: 15%;
+        left: 25%;
+        font-size: 16px;
+      }
+      #videoModalResultDisplay{
+        position: absolute;
+        width: 426px;
+        height: 240px;
+        top: 26.5%;
+        left: 12.5%;
+        display: none;
+      }
+      #urlResultPreviewiframe{
+        width: 99%;
+        height: 99%;
+      }
+      #addVideoConfirmButton{
+        position: absolute;
+        border: 2px solid black;
+        width: 100px;
+        height: 25px;
+        top: 90%;
+        left: 52.5%;
+        text-align: center;
+        cursor: pointer;
+      }
+      #addVideoCancelButton{
+        position: absolute;
+        border: 2px solid black;
+        width: 100px;
+        height: 25px;
+        top: 90%;
+        left: 32.5%;
+        text-align: center;
+        cursor: pointer;
+      }
+      #stopVideoButton{
+        position: absolute;
+        border: 2px solid black;
+        width: 100px;
+        height: 25px;
+        top: 90%;
+        left: 10%;
+      }
+      #playlistPageDeletePlaylistButton{
+        border-bottom: 2px solid black;
+        position: relative;
+        width: inherit;
+        height: 25px;
+        text-align: center;
+      }
+      #playlistPageEditPlaylistButton{
+        border-bottom: 2px solid black;
+        position: relative;
+        width: inherit;
+        height: 25px;
+        text-align: center;
+      }
+      #moreOptionsButton{
+        border: 1px solid lightgray;
+        position: absolute;
+        width: 75px;
+        height: 25px;
+        top: 200px;
+        left: 625px;
+        text-align: center;
+        cursor: pointer;
+      }
+      #moreOptionsPopup{
+        border: 2px solid black;
+        position: absolute;
+        width: 100px;
+        height: 175px;
+        top: 30px;
+        display: none;
+        z-index: 10;
+        background-color: white;
+      }
+      #descriptionBox{
+        border: 1px solid lightgray;
+        position: absolute;
+        width: 280px;
+        height: 150px;
+        top: 10px;
+        left: 470px;
+        text-align: left;
+        word-wrap: break-word;
+        overflow: hidden;
+      }
+      #descriptionBoxTitle{
+        position: relative;
+        width: inherit;
+        height: 40px;
+        text-align: center;
+      }
+      #descriptionBoxContent{
+        position: relative;
+        width: inherit;
+        height: 110px;
+        overflow-y: scroll;
+        padding-right: 20px;
+      }
+      #playPlaylistButton{
+        border: 1px solid lightgray;
+        position: absolute;
+        width: 100px;
+        height: 50px;
+        top: 175px;
+        left: 500px;
+        text-align: center;
+        cursor: pointer;
+      }
+      #videoListContainer{
+        /*border: 2px solid black;
+        border-bottom: none;*/
+        position: absolute;
+        width: 725px;
+        height: 250px;
+        top: 260px;
+        left: 25px;
+      }
+      #videoListBar{
+        border-bottom: 1px solid lightgray;
+        position: absolute;
+        width: inherit;
+        height: 25px;
+      }
+      #videoList{
+        position: absolute;
+        width: 100%;
+        height: 90%;
+        top: 25px;
+      }
+      #deletePlaylistPopup{
+        border: 2px solid black;
+        background-color: white;
+        position: absolute;
+        width: 250px;
+        height: 100px;
+        display: none;
+        top: 150px;
+        left: 250px;
+        z-index: 10;
+        cursor: default;
+      }
+      #deletePlaylistPopupConfirmButton{
+        border: 2px solid black;
+        position: absolute;
+        width: 75px;
+        height: 25px;
+        top: 50px;
+        left: 145px;
+        z-index: inherit;
+        cursor: pointer;
+      }
+      #deletePlaylistPopupCancelButton{
+        border: 2px solid black;
+        position: absolute;
+        width: 75px;
+        height: 25px;
+        top: 50px;
+        left: 25px;
+        z-index: inherit;
+        cursor: pointer;
+      }
+      
+      #addPlaylistButton{
+        width: 170px;
+        height: 30px;
+        position: absolute;
+        top: 25px;     
+        left: 300px;
+        line-height: 25px;
+        border: 2px solid black;
+        background-color: dodgerblue;
+        cursor: pointer;
+        text-align: center;
+      }
+      addPlaylistText{
+        font-size: 23px;
+        font-weight: bold;
+        color: white;
+      }
+      #playlistPopup{
+        top: 75px;
+        left: 150px;
+        /*width: 250px;
+        height: 100px;*/
+        width: 500px;
+        height: 300px;
+        border: 1px solid gray;
+        position: absolute;
+        display: none;
+        cursor: default;
+        background-color: white;
+        z-index: 99;
+      }
+      #artistContainer{
+        min-width: inherit;
+        min-height: inherit;
+        position: absolute;
+        
+        padding-right: 20px;
+        overflow-y: scroll;
+        display: none;
+      }
+      #playlistTextbox{
+        position: absolute;
+        top: 0px;
+        left: 37px;
+        width:75px;
+        height: 25px;
+      }
+      #playlistTextboxCharCount{
+        position: absolute;
+        top: 0px;
+        left: 410px;
+        width: 50px;
+        height: 25px;
+      }
+      #playlistInput{
+        position: absolute;
+        top: 25px;
+        left: 37px;
+        width:425px;
+        height: 25px;
+        font-size: 20px;
+      }
+      #playlistDescriptionTextbox{
+        position: absolute;
+        top: 60px;
+        left: 200px;
+        width: 100px;
+        height: 25px;
+      }
+      #playlistDescriptionTextboxCharCount{
+        position: absolute;
+        top: 60px;
+        left: 410px;
+        width: 50px;
+        height: 25px;
+      }
+      #playlistDescriptionInput{
+        position: absolute;
+        border: 1px solid lightgray;
+        top: 80px;
+        left: 200px;
+        width: 260px;
+        height: 150px;
+        resize: none;
+        font-size: 16px;
+      }
+      #playlistSetImageTextbox{
+        position: absolute;
+        top: 60px;
+        left: 35px;
+        width: 50px;
+        height: 25px;
+      }
+      #playlistSetImageDisplay{
+        border: 1px solid lightgray;
+        position: absolute;
+        top: 80px;
+        left: 35px;
+        width: 160px;
+        height: 90px;
+        overflow: hidden;
+      }
+      #playlistSetImageImage{
+        width: inherit;
+        position: absolute;
+        /*top: -15px;*/
+      }
+      #playlistSetImageButton{
+        position: absolute;
+        /*top: 190px;
+        left: 55px;*/
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        /*width: 125px;
+        height: 25px;*/
+        text-align: center;
+        cursor: pointer;
+      }
+      #playlistSetImageButtonLabel{
+        border: 1px solid lightgray;
+        position: absolute;
+        display: inline-block;
+        top: 190px;
+        left: 55px;
+        width: 125px;
+        height: 25px;
+        text-align: center;
+        cursor: pointer;
+      }
+      #createPlaylistButton{
+        text-align: center;
+        border: 1px solid gray;
+        position: absolute;
+        top: 260px;
+        left: 255px;
+        width: 75px;
+        height: 25px;
+        cursor: pointer;
+      }
+      #cancelPlaylistCreateButton{
+        text-align: center;
+        border: 1px solid gray;
+        position: absolute;
+        top: 260px;
+        left: 170px;
+        width: 75px;
+        height: 25px;
+        cursor: pointer;
+      }
+      #overlay{
+        position: fixed;
+        background-color: black;
+        opacity: 0.6;
+        width: 100%;
+        height: 100%; 
+        display: none;
+      }
+      #controls{
+        position: absolute;
+        border-top: 1px solid black;
+        width: 780px;
+        height: 50px;
+        top: 515px;
+        text-align: center;
+        cursor: pointer;
+        background-color: white;
+      }
+      #controlsPlayButton{
+        position: absolute;
+        border: 1px solid black;
+        width: 35px;
+        height: 35px;
+        top: 5px;
+        left: 50%;
+      }
+      #controlsFastForwardButton{
+        position: absolute;
+        border: 1px solid black;
+        width: 35px;
+        height: 35px;
+        top: 5px;
+        left: 58%;
+      }
+      #controlsRewindButton{
+        position: absolute;
+        border: 1px solid black;
+        width: 35px;
+        height: 35px;
+        top: 5px;
+        left: 42%;
+      }
+      #controlsRepeatToggle{
+        position: absolute;
+        border: 1px solid black;
+        width: 45px;
+        height: 35px;
+        top: 5px;
+        left: 70%;
+        line-height: 110%;
+      }
+      #controlsShuffleToggle{
+        position: absolute;
+        border: 1px solid black;
+        width: 45px;
+        height: 35px;
+        top: 5px;
+        left: 30%;
+        line-height: 110%;
+      }
+      #controlsVolumeAdjuster{
+        position: absolute;
+        width: 35px;
+        height: 35px;
+        top: 5px;
+        left: 80%;
+      }
+      #controlsVolumeBar{
+        border: 1px solid black;
+        border-radius: 25px;
+        position: absolute;
+        overflow: hidden;
+        width: 75px;
+        height: 10px;
+        top: 17px;
+        left: 85%;
+      }
+      #controlsVolumeBarVolumeDisplay{
+        background-color: royalblue;
+        position: absolute;
+        height: inherit;
+        top: 0;
+        left: 0;
+      }
+      .controlAnimation{
+        animation-name: controlsAnimation;
+        animation-duration: .5s;
+        animation-iteration-count: 1;
+        animation-fill-mode: forwards;
+      }
+      @keyframes controlsAnimation{
+        from {top: 515px;}
+        to {top: 465px;}
+      }
+      #videoSettingsModal{
+        position: absolute;
+        border: 1px solid black;
+        width: 75px;
+        height: 75px;
+        background-color: white;
+        display: none;
+        left: 625px;
+        cursor: pointer;
+      }
+      #deleteVideoButton{
+        position: relative;
+        border-bottom: 1px solid black;
+        width: inherit;
+        height: 25px;
+      }
+      #editVideoButton{
+        position: relative;
+        border-bottom: 1px solid black;
+        width: inherit;
+        height: 25px;
+      }
+      #controlsImage{
+        position: relative;
+        /*border-right: 1px solid black;*/
+        width: 75px;
+        height: inherit;
+        overflow: hidden;
+        float: left;
+      }
+      #controlsInfo{
+        position: relative;
+        float: left;
+        width: 150px;
+        height: 100%;
+        border-right: 1px solid black;
+        text-align: left;
+        overflow: hidden;
+      }
+      #controlsVideoTitle{
+        position: relative;
+        width: inherit;
+        height: 60%;
+        font-size: 16px;
+        overflow: hidden;
+        line-height: 150%;
+        white-space: nowrap;
+      }
+      #controlsArtistTitle{
+        position: relative;
+        width: inherit;
+        height: 40%;
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      #controlsTimeDisplay{
+        
+      }
+      #currentTime{
+        
+      }
+      #endTime{
+        
+      }
+      #timeProgressBar{
+        
+      }
+      #playlistList{
+        width: 100%;
+        height: 85%;
+        top: 15%;
+        position: absolute;
+      }
+      #playlistPageTitleBar{
+        width: 400px;
+        position: relative;
+        float: left;
+        height: inherit;
+        text-align: left;
+      }
+      #playlistPageArtistBar{
+        width: 200px;
+        position: relative;
+        float: left;
+        height: inherit;
+        text-align: left;
+      }
+      #changeQualityButton{
+        position: relative;
+        width: inherit;
+        height: 25px;
+        margin-top: 10px;
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+        text-align: center;
+        cursor: pointer;
+      }
+      #qualitySelectionContainer{
+        position: relative;
+        width: inherit;
+        height: 90%;
+        display: none;
+      }
+      #qualitySelectionTextBox{
+        position: absolute;
+        width: 50px;
+        height: inherit;
+        border-right: 1px solid black;
+        text-align: center;
+      }
+      #changeQualityBackButton{
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        top: 75%;
+        left: 25%;
+        border: 1px solid gray;
+        text-align: center;
+        cursor: pointer;
+      }
+      #smallQualitySelection{
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        top: 5%;
+        left: 25%;
+        border: 1px solid gray;
+        text-align: center;
+        cursor: pointer;
+      }
+      #mediumQualitySelection{
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        top: 15%;
+        left: 25%;
+        border: 1px solid gray;
+        text-align: center;
+        cursor: pointer;
+      }
+      #largeQualitySelection{
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        top: 25%;
+        left: 25%;
+        border: 1px solid gray;
+        text-align: center;
+        cursor: pointer;
+      }
+      #hd720QualitySelection{
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        top: 35%;
+        left: 25%;
+        border: 1px solid gray;
+        text-align: center;
+        cursor: pointer;
+      }
+      #defaultQualitySelection{
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        top: 45%;
+        left: 25%;
+        border: 1px solid gray;
+        text-align: center;
+        cursor: pointer;
+      }
+    </style>
+     <script type="text/javascript" src="https://apis.google.com/js/client.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+     <script src="account_main_page.js"></script>
+  </head>
+  <body>
+    
+    <div id="botContainer">
+      
+      <div id="playlistPage">
+        <div id="addVideoModal">
+          <div id="addVideoViaUrlTab">Url</div>
+          <input id="urlInput" autofocus/>
+          <div id="videoModalResultDisplay">
+          </div>
+          <div id="addVideoCancelButton">Cancel</div>
+          <div id="addVideoConfirmButton">Confirm</div>
+        </div>
+        
+        <div id="deletePlaylistPopup">
+          <div id="deletePlaylistPopupConfirmButton">Confirm</div>
+          <div id="deletePlaylistPopupCancelButton">Cancel</div>
+          Delete this playlist forever
+        </div>
+        <div id="playlistPageImageContainer">
+          <div id="playlistPageImage"></div>
+          <div id ="playlistPageIframe"></div>
+        </div>
+        <div id="descriptionBox">
+          <div id="descriptionBoxTitle"></div>
+          <div id="descriptionBoxContent"></div>
+        </div>
+        <div id="playPlaylistButton" class="playButton">Play</div>
+        <div id="moreOptionsButton">
+          <div id="moreOptionsPopup">
+            <div id="playlistPageDeletePlaylistButton">Delete Playlist</div>
+            <div id="playlistPageEditPlaylistButton">Edit Playlist</div>
+          </div>  
+          ...
+        </div>
+        <div id="videoListContainer">
+          <div id="videoListBar">
+            <div id="playlistPageAddVideoButton">+</div>
+            <div id="playlistPageTitleBar">Title</div>
+            <div id="playlistPageArtistBar">Artist</div>
+          </div>
+          
+          <div id="videoList"></div>
+          <div id="videoSettingsModal">
+            <div id="deleteVideoButton">Delete</div>
+            <div id="editVideoButton">Edit</div>
+          </div>
+        </div>
+        
+      </div>
+      <div id="playlistContainer">
+        <div id="addPlaylistButton">
+          <addPlaylistText>+ Playlist</addPlaylistText>
+        </div>
+        
+        <div id="playlistList"></div>
+      </div>
+      <div id="playlistPopup">
+        <div id=playlistTextbox>Name</div>
+        <div id="playlistTextboxCharCount">12/50</div>
+        <input type="text" maxlength="50" id="playlistInput" value="New Playlist"/>
+        <div id="playlistDescriptionTextbox">Description</div>
+        <div id="playlistDescriptionTextboxCharCount">0/125</div>
+        <textarea placeholder="Optional description" maxlength="125" id="playlistDescriptionInput"></textarea>
+        <div id="playlistSetImageTextbox">Image</div>
+        <div id="playlistSetImageDisplay">
+          <img src="images/default_playlist_img.png" id="playlistSetImageImage"/>
+        </div>
+        <label id="playlistSetImageButtonLabel">Choose Image
+          <input type="file" id="playlistSetImageButton"/>
+        </label>
+        <div id="createPlaylistButton">Create</div>
+        <div id="cancelPlaylistCreateButton">Cancel</div>
+      </div>
+      <div id="controls">
+        <div id="controlsImage"></div>
+        <div id="controlsInfo">
+          <div id="controlsVideoTitle"></div>
+          <div id="controlsArtistTitle"></div>
+        </div>
+        <div id="controlsPlayButton" class="playButton">Play</div>
+        <div id="controlsFastForwardButton">&gt;&gt;</div>
+        <div id="controlsRewindButton">&lt;&lt;</div>
+        <div id="controlsRepeatToggle">Repeat Off</div>
+        <div id="controlsShuffleToggle">Shuffle</div>
+        <div id="controlsTimeDisplay">
+          <div id="currentTime"></div>
+          <div id="endTime"></div>
+          <div id="timeProgressBar"></div>
+        </div>
+        <div id="controlsVolumeAdjuster">
+          <img src="images/volume.png" style="width:inherit" id="controlsVolumeImage"/>
+          
+        </div>
+        <div id="controlsVolumeBar">
+          <div id="controlsVolumeBarVolumeDisplay"></div>
+        </div>
+      </div>
+      <div id="artistContainer"></div>
+    </div>
+    <div id="topContainer">
+      <button id="homeButton">&lt;=</button>
+      <div id="searchBar">
+        <input type="text" id="searchInput"/>
+        <div id="searchButton"></div>
+      </div>
+      <div id="profileIconDiv">
+        <div id="optionsPageDiv">
+          <div id="usernameDiv"></div>
+          <div id="optionsPageButtonContainer">
+            <div id="changeQualityButton">Change Default Quality</div>
+          </div>
+          <div id="qualitySelectionContainer">
+            <div id="smallQualitySelection">low</div>
+            <div id="mediumQualitySelection">medium</div>
+            <div id="largeQualitySelection">high</div>
+            <div id="hd720QualitySelection">hd</div>
+            <div id="defaultQualitySelection">auto</div>
+            <div id="changeQualityBackButton">Back</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="overlay"></div>
+  </body>
+</html>

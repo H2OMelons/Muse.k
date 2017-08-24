@@ -1,0 +1,41 @@
+{
+  "manifest_version": 2,
+
+  "name": "Youtube Music Player",
+  "description": "Plays music from youtube without having to dedicate a tab to it",
+  "version": "1.0",
+
+  "browser_action":{
+    "default_icon": "images/icon.png",
+    "default_popup": "account_main_page.html",//"determine_landing_page.html",
+    "default_title": "Youtube Music Player"
+  },
+
+  
+  "background":{
+    "persistent": true,
+    "page": "background.html"
+  },
+  
+  "oauth2": {
+    "client_id": "576480493485-2n1g5vls00m3tt5vgj465nj93eicdd01.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/youtube.force-ssl"
+    ]
+  },
+  
+  "permissions":[
+    "activeTab",
+    "identity",
+    "storage",
+    "tabs",
+    "https://ajax.googleapis.com/",
+    "https://www.youtube.com/iframe_api",
+    "https://www.googleapis.com/auth/youtubepartner",
+    "https://www.google.com/accounts/OAuthGetRequestToken",
+    "https://www.google.com/accounts/OAuthAuthorizeToken",
+    "https://www.google.com/accounts/OAuthGetAccessToken"
+  ],
+  
+  "content_security_policy": "script-src 'self' https://apis.google.com https://www.youtube.com/iframe_api https://s.ytimg.com https://code.jquery.com; object-src 'self'"
+}

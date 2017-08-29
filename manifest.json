@@ -1,14 +1,14 @@
 {
   "manifest_version": 2,
 
-  "name": "Youtube Music Player",
-  "description": "Plays music from youtube without having to dedicate a tab to it",
-  "version": "1.0",
+  "name": "Muse.k",
+  "description": "Stream youtube videos",
+  "version": "0.0.0.2",
 
   "browser_action":{
     "default_icon": "images/icon.png",
-    "default_popup": "account_main_page.html",//"determine_landing_page.html",
-    "default_title": "Youtube Music Player"
+    "default_popup": "account_main_page.html",
+    "default_title": "Muse.k"
   },
 
   
@@ -25,16 +25,9 @@
   },
   
   "permissions":[
-    "activeTab",
     "identity",
     "storage",
-    "tabs",
-    "https://ajax.googleapis.com/",
-    "https://www.youtube.com/iframe_api",
-    "https://www.googleapis.com/auth/youtubepartner",
-    "https://www.google.com/accounts/OAuthGetRequestToken",
-    "https://www.google.com/accounts/OAuthAuthorizeToken",
-    "https://www.google.com/accounts/OAuthGetAccessToken"
+    "https://www.youtube.com/iframe_api"
   ],
   
   "content_security_policy": "script-src 'self' https://apis.google.com https://www.youtube.com/iframe_api https://s.ytimg.com https://code.jquery.com; object-src 'self'"

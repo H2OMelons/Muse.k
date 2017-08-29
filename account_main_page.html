@@ -126,8 +126,11 @@
         height: inherit;
         overflow: hidden;
       }
+      #playlistPageImageImage{
+        width: inherit;
+        margin-top: -40px;
+      }
       #playlistPageIframe{
-        position: absolute;
         width: inherit;
         height: inherit;
         display: none;
@@ -746,14 +749,14 @@
         cursor: pointer;
       }
     </style>
-     <script type="text/javascript" src="https://apis.google.com/js/client.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
-     <script src="account_main_page.js"></script>
+    <script src="account_main_page.js"></script>
+    <!--<script type="text/javascript" src="https://apis.google.com/js/client.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>-->
+    
   </head>
   <body>
     
     <div id="botContainer">
-      
       <div id="playlistPage">
         <div id="addVideoModal">
           <div id="addVideoViaUrlTab">Url</div>
@@ -770,7 +773,9 @@
           Delete this playlist forever
         </div>
         <div id="playlistPageImageContainer">
-          <div id="playlistPageImage"></div>
+          <div id="playlistPageImage">
+            <img id="playlistPageImageImage"/>
+          </div>
           <div id ="playlistPageIframe"></div>
         </div>
         <div id="descriptionBox">
@@ -825,7 +830,9 @@
         <div id="cancelPlaylistCreateButton">Cancel</div>
       </div>
       <div id="controls">
-        <div id="controlsImage"></div>
+        <div id="controlsImage">
+          <img id="controlsImageImage" style="height: inherit"/>
+        </div>
         <div id="controlsInfo">
           <div id="controlsVideoTitle"></div>
           <div id="controlsArtistTitle"></div>
@@ -874,5 +881,6 @@
       </div>
     </div>
     <div id="overlay"></div>
+    
   </body>
 </html>

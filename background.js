@@ -67,12 +67,12 @@ function onBackgroundPlayerReady(event){
   
   chrome.storage.sync.get("volume", function(item){
     if(typeof item.volume == "undefined"){
-      volume = 25;
+      volume = {"volume": 25, "mute": false};
     }
     else{
       volume = item.volume;
     }
-    player.setVolume(volume);
+    player.setVolume(volume.volume);
   });
 }
 
@@ -465,7 +465,9 @@ function executeRequest(request, type, callback){
                    duration: response.items[0].contentDetails.duration};
       callback(video);
     }
-    
+    else{
+      callback(response);
+    }
   });
 }
 
@@ -513,6 +515,20 @@ function requestPlaylists(callback){
        "part": "snippet,contentDetails",
        "onBehalfOfContentOwner" : "",
        "onBehalfOfContentOwnerChannel": ""}));
+  });
+}
+
+function search(keywords, callback){
+  gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
+  executeRequest(buildApiRequest(
+    "GET",
+    "/youtube/v3/search",
+    {"maxResults": "25",
+     "part": "snippet",
+     "q": keywords,
+     "type": 'video'
+  }), "", function(response){
+    callback(response);
   });
 }
 
@@ -610,10 +626,10 @@ function onStart(){
   });
   chrome.storage.sync.get("volume", function(item){
     if(typeof item.volume == "undefined"){
-      volume = 25;
+      volume = {"volume": 25, "mute": false};
     }
     else{
-      volume = item.volume;
+      volume = {"volume": item.volume.volume, "mute": item.volume.mute};
     }
   });
   chrome.storage.sync.get("quality", function(item){
@@ -686,6 +702,10 @@ chrome.runtime.onInstalled.addListener(function(details){
   }
   else if(details.reason == "update"){
     //userSetup();
+    /*var obj = {"volume": 25, "mute": false};
+    chrome.storage.sync.set({"volume": obj}, function(){
+      onStart();
+    });*/
     onStart();
     //resetAccount();
   }
@@ -716,8 +736,6 @@ chrome.runtime.onConnect.addListener(function(port){
   });
 });
 
-
-
 function setCurrPlaylistPage(playlistNum){
   playlistInfo.viewingPlaylist = playlistNum;
 }
@@ -738,8 +756,13 @@ function setShuffle(status){
 
 function setVolume(vol){
   volume = vol;
-  player.setVolume(vol);
-  chrome.storage.sync.set({"volume":volume}, undefined);
+  if(vol.mute){
+    player.setVolume(0);
+  }
+  else{
+    player.setVolume(vol.volume);
+  }
+  chrome.storage.sync.set({"volume": vol}, undefined);
 }
 
 function getPlaylistImage(playlistIndex, type){
@@ -789,6 +812,10 @@ function getPlaylistLength(playlistIndex){
   return length;
 }
 
+function getPlaylist(playlistIndex){
+  return playlistCollection.get(playlistUids[playlistIndex]);
+}
+
 function setQuality(qual){
   quality = qual;
   chrome.storage.sync.set({"quality":qual},undefined);
@@ -832,7 +859,7 @@ function getCurrentTime(){
 }
 
 function getVolume(){
-  return player.getVolume();
+  return volume;
 }
 
 /**

@@ -5,11 +5,50 @@
   text-align: center;
   cursor: pointer;
   margin-top: 2px;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 .videoList.container{
+  width: 480px;
   position: relative;
   height: 25px;
+}
+
+.video-settings{
+  position: absolute;
+  background-color: white;
+  left: 395px;
+  height: 25px;
+  width: 25px;
+  opacity: 0;
+}
+
+.playlist-settings{
+  position: absolute;
+  background-color: white;
+  top: 0;
+  right: 0;
+  width: 70px;
+  margin-top: 2px;
+  margin-left: 20px;
+  opacity: 0;
+}
+
+.video-settings-modal{
+  position: absolute;
+  background-color: white;
+  left: 365px;
+  height: 25px;
+  width: 30px;
+  transition: 0.5s ease;
+  opacity: 0;
+}
+
+.video-image-container{
+  position: absolute;
+  top: 3.5px;
+  left: 20px;
 }
 
 .videoList.imageContainer{
@@ -19,17 +58,19 @@
 }
 
 .videoList.titleContainer{
-  width: 400px;
+  width: 250px;
   top: 0;
   left: 50px;
   text-align: left;
+  overflow: hidden;
 }
 
 .videoList.channelContainer{
   width: 200px;
   top: 0;
-  left: 450px;
+  left: 300px;
   text-align: left;
+  overflow: hidden;
 }
 
 .videoList.durationContainer{
@@ -45,8 +86,20 @@
   cursor: pointer;
 }
 
+.border{
+  border: 1px solid lightgray;
+}
+
 .botBorder{
   border-bottom: 1px solid lightgray;
+}
+
+.border-bottom{
+  border-bottom: 1px solid lightgray;
+}
+
+.border-top{
+  border-top: 1px solid lightgray;
 }
 
 .rightBorder{
@@ -71,4 +124,306 @@
 
 .green.leftBorder{
   border-left-color: green;
+}
+
+.left-align{
+  left: 0;
+}
+
+.right-align{
+  right: 0;
+}
+
+.button{
+  cursor: pointer;
+  position: absolute;
+}
+
+.small-square-button{
+  top: 1.5px;
+  width: 15px;
+}
+
+
+.player{
+  position: absolute; 
+  right: 0px; 
+  width: 420px; 
+  height: 240px;
+}
+
+.player.iframe{
+  display: none;
+}
+
+.player.image-container{
+  
+}
+
+.image-image{
+  
+}
+
+.search-results-display{
+  position: absolute;
+  top: 45px;
+  width: 100%;
+  height: 470px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.left-column{
+  position: absolute;
+  border-right: 1px solid lightgray;
+  left: 0px; 
+  width: 359px; 
+  height: 100%;
+}
+
+.right-column{
+  position: absolute;
+  right: 0;
+  width: 420px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.button-container{
+  position: absolute;
+  text-align: center;
+  font-size: 20px;
+}
+
+.button-container-buffer{
+  width: 25%;
+  height: 28px;
+}
+
+.left-column.button-container{
+  height: 5%;
+}
+
+.left-column.playlist-container{
+  top: 28px;
+  height: 90%;
+  overflow: hidden;
+}
+
+.left-column.search-container{
+  top: 28px;
+  height: 90%;
+  display: none;
+}
+
+.left-column.settings-container{
+  height: 200px;
+  width: 300px;
+  border: 1px solid lightgray;
+  top: 330px;
+  left: 28px;
+  display: none;
+}
+
+.left-column.settings-button{
+  top: 95%;
+  text-align: center;
+  font-size: 20px;
+  border-top: 1px solid lightgray;
+}
+
+.playlist-button{
+  border-bottom: none;
+  border-right: none;
+  left: 90px;
+  width: 25%;
+}
+
+.search-button{
+  right: 88px;
+  width: 25%;
+}
+
+.search-results-container{
+  position: relative;
+  width: 100%;
+  height: 50px;
+}
+
+.search-results-img{
+  position: absolute;
+  width: 60px;
+  height: 45px;
+}
+
+.search-results-title{
+  position: absolute;
+  width: 300px;
+  height: 22px;
+  left: 61px;
+  overflow: hidden;
+  font-size: 16px;
+}
+
+.search-results-artist{
+  position: absolute;
+  width: 300px;
+  height: 15px;
+  left: 61px;
+  top: 30px;
+  overflow: hidden;
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+.add-playlist-button{
+  position: absolute;
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  width: 200px;
+  height: 35px;
+  line-height: 170%;
+  left: 75px;
+}
+
+.playlist-display{
+  position: absolute;
+  top: 45px;
+  margin-top: 10px;
+
+  width: 100%;
+  height: 460px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-right: 20px;
+}
+
+.playlist-div{
+  position: relative;
+  height: 45px;
+  width: 360px;
+}
+
+.video-container{
+  position: absolute;
+  top: 240px;
+  height: 307px;
+  width: 420px;
+  overflow: hidden;
+}
+
+.videos{
+  position: absolute;
+  width: 420px;
+  height: 275px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-right: 20px;
+}
+
+.video-bar{
+  position: relative;
+  height: 25px;
+  width: 420px;
+}
+
+.video-bar.button{
+  width: 50px;
+  text-align: center;
+}
+
+.video-bar.artist{
+  width: 50px;
+}
+
+.video-bar.title{
+  width: 250px;
+}
+
+.volume-container{
+  width: 100px;
+  height: 28px;
+  position: absolute;
+}
+
+.volume-bar{
+  position: absolute;
+  width: 50px;
+  height: 5px;
+  border: 1px solid lightgray;
+  top: 12px;
+  left: 25px;
+}
+
+.volume-bar-fill{
+  height: inherit;
+  background: gray;
+}
+
+.control{
+  position: absolute;
+  width: 100%;
+  height: 28px;
+  bottom: 0;
+  border-top: 1px solid lightgray;
+}
+
+.control-button{
+  line-height: 190%;
+}
+
+.control-play-pause-button{
+  left: 200px;
+}
+
+.control-rewind-button{
+  left: 175px;
+}
+
+.control-fast-forward-button{
+  left: 233px;
+}
+
+.control-repeat-button{
+  line-height: 200%;
+  left: 155px;
+}
+
+.control-shuffle-button{
+  line-height: 200%;
+  left: 260px;
+}
+
+.image{
+  position: absolute;
+  overflow: hidden;
+  width: inherit;
+  height: inherit;
+  left: 0;
+}
+
+.playlist-div-image.image{
+  height: 50px;
+}
+
+.playlist-div-info{
+  position: relative;
+  height: 25px;
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.regular-font{
+  font-size: 20px;
+}
+
+.tiny-font{ 
+  font-size: 12px;
+}
+
+.float-left{
+  float: left;
 }

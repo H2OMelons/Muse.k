@@ -32,8 +32,6 @@ var searchButton;
 
 var homeButton;
 
-var deletePlaylistButton;
-
 var overlay;
 
 var moreOptionsButton;
@@ -44,7 +42,6 @@ var deletePlaylistPopup;
 var playPlaylistButton;
 var deletePlaylistPopupConfirmButton;
 var deletePlaylistPopupCancelButton;
-var editPlaylistButton;
 
 var videoList;
 var addVideoButton;
@@ -70,12 +67,13 @@ var setImageButton;
 var currPlaylistLoaded;
 
 var controlLoaded = false;
-
-var volumeAdjuster;
+var controlPlayButton, controlPauseButton, controlRewindButton, controlFastForwardButton,
+    controlShuffleButton, controlRepeatButton;
 var volumeBar;
 var quality;
 
 var qualityCheck = false;
+var pagePlayerReady = false;
 
 var playlistInfo = {playingPlaylist: -1,
                     viewingPlaylist: -1,
@@ -86,11 +84,11 @@ var videoListPlayButtons = [];
 var tag = document.createElement('script');
 
 
-function setupAPIs(){
-  tag.src = "https://www.youtube.com/iframe_api";
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-}
+
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
 
 var modalPlayer = undefined;
 var pagePlayer = undefined;
@@ -110,7 +108,7 @@ function onYouTubeIframeAPIReady() {
   var id = chrome.extension.getBackgroundPage().getCurrVideoId();
   if(state >= 0 && state < 5 && typeof id != "undefined"){
     qualityCheck = true;
-    pagePlayer = new YT.Player('playlistPageIframe', {
+    pagePlayer = new YT.Player('player', {
       videoId: id,
       playerVars: {
         "controls": 0,
@@ -127,7 +125,7 @@ function onYouTubeIframeAPIReady() {
     });
   }
   else{
-    pagePlayer = new YT.Player('playlistPageIframe', {
+    pagePlayer = new YT.Player('player', {
       playerVars: {
         "controls": 0,
         "showinfo": 0,
@@ -191,7 +189,6 @@ function onPagePlayerStateChange(event){
     }
     else{
       chrome.extension.getBackgroundPage().playVideo();
-      updatePlayPlaylistButton(true);
       updateControlPanelPlayButton(true);
       if(playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
         updateVideoListPlayButtons(undefined, chrome.extension.getBackgroundPage().getCurrVideoIndex());
@@ -233,12 +230,11 @@ function loadVideoPreview(videoId){
 }
 
 function onModalPlayerReady(event){
-
+  
 }
 
 function onPagePlayerReady(){
-  var volume = chrome.extension.getBackgroundPage().getVolume();
-  pagePlayer.setVolume(volume);
+  pagePlayerReady = true;
   if(qualityCheck){
     quality = chrome.extension.getBackgroundPage().getInfo({id:"quality"});
     pagePlayer.setPlaybackQuality(quality);
@@ -246,85 +242,75 @@ function onPagePlayerReady(){
   }
 }
 
-/**
- * Loads the user's profile icon and username
- */
-function loadUserInfo(){
-  var image = document.createElement("IMG");
-  image.id = "profileIconDivImage"
-  image.src = chrome.extension.getBackgroundPage().getInfo({id:"profileIcon"});
-  image.style.borderRadius = "100%";
-  image.style.width="35px";
-  profileIconDiv.appendChild(image);
-  usernameDiv.innerHTML = chrome.extension.getBackgroundPage().getInfo({id:"username"});
-}
+
 
 function initListeners(){
-  // Brings up the options page when the user clicks on the profile icon
-  // and closes the options page when the user clicks on the icon again
-  profileIconDiv.onclick = function(target){
-    if(target.path[0].id == "profileIconDivImage"){
-      if(window.getComputedStyle(optionsPageDiv).display == "none"){
-        optionsPageDiv.style.display = "block"; 
-      }
-      else{
-        optionsPageDiv.style.display = "none";
-        document.getElementById("qualitySelectionContainer").style.display = "none";
-        document.getElementById("optionsPageButtonContainer").style.display = "block";
-      }
-    }
-  };
   // Opens a window for the user to add a playlist and closes the window 
   // if clicked again
   addPlaylistButton.onclick = function(){
-    displayPlaylistPopup(false);
+    displayPlaylistPopup(false, undefined);
   };
-  // Clicks the create playlist button when user hits enter key
-  searchInput.onkeyup = function(){
-    if(event.keyCode == 13){
-      searchButton.click();
-    }
-  };
-  homeButton.onclick = function(){
-    if(window.getComputedStyle(playlistContainer).display == "none"){
-      playlistContainer.style.display = "block"; 
-    }
-    if(window.getComputedStyle(playlistPage).display != "none"){
-      playlistPage.style.display = "none";     
-      if(document.getElementById("playlistPageImage").style.display == "none"){
-        document.getElementById("playlistPageImage").style.display = "block";
-        document.getElementById("playlistPageIframe").style.display = "none";
-      }
-      else{
-        document.getElementById("playlistPageImage").style.display = "block";
-        currPlaylistPage = -1;
-        
-        document.getElementById("playlistPageIframe").style.display = "none";
-      }
-      
-    }
-    
-    for(i = 0; i < videoListPlayButtons.length; i++){
-      if(videoListPlayButtons[i] != null){
-        videoListPlayButtons[i].parentNode.parentNode.removeChild(videoListPlayButtons[i].parentNode);
-      }
-    }
-    
-    playlistInfo.viewingPlaylist = -1;
-    videoListPlayButtons = [];
-    
-    homeButton.style.display = "none";
-  };
-  deletePlaylistButton.onclick = function(){
-    if(window.getComputedStyle(deletePlaylistPopup).display == "none"){
+  addVideoButton.onclick = function(){
+    if(window.getComputedStyle(addVideoModal).display == "none"){
+      addVideoModal.style.display = "block";
       overlay.style.display = "block";
-      deletePlaylistPopup.style.display = "block"; 
+      videoUrlInput.focus();
     }
     else{
+      addVideoModal.style.display = "none";
       overlay.style.display = "none";
-      deletePlaylistPopup.style.display = "none";
     }
   };
+  addVideoConfirmButton.onclick = function(){
+    var enteredUrl = videoUrlInput.value;
+    var key = "watch?v=";
+    var start = enteredUrl.indexOf(key);
+    if(start != -1){
+      start += key.length;
+      var end = start + 11;
+      var videoId = enteredUrl.slice(start, end);
+      chrome.extension.getBackgroundPage().addVideoToPlaylist(playlistInfo.viewingPlaylist, videoId);
+    }
+    addVideoCancelButton.click();
+  };
+  addVideoCancelButton.onclick = function(){
+    addVideoModal.style.display = "none";
+    videoUrlInput.value = "";
+    modalPlayer.stopVideo();
+    document.getElementById("videoModalResultDisplay").style.display = "none";
+    overlay.style.display = "none";
+  };
+  videoUrlInput.onkeyup = function(){
+    var enteredUrl = videoUrlInput.value;
+    var key = "watch?v=";
+    var start = enteredUrl.indexOf(key);
+    if(start != -1){
+      start += key.length;
+      var end = start + 11;
+      var videoId = enteredUrl.slice(start, end);
+      if(videoId.length == 11){
+        loadVideoPreview(videoId);
+      }
+    }
+  };
+  playlistInputField.onkeyup = function(){
+    var numChars = playlistInputField.value.length;
+    document.getElementById("playlistTextboxCharCount").innerHTML = numChars + "/50";
+  };
+  setImageButton.addEventListener("change", function(){
+    var file = setImageButton.files[0];
+    var reader = new FileReader();
+    reader.onloadend = function(){
+      document.getElementById("playlistSetImageImage").src = reader.result;  
+    }
+    if(file){
+      reader.readAsDataURL(file);
+    }
+    else{
+      document.getElementById("playlistSetImageImage").src = defaultPlaylistImage;
+    }
+  }, true);
+  
   deletePlaylistPopupCancelButton.onclick = function(){
     overlay.style.display = "none";
     deletePlaylistPopup.style.display = "none";
@@ -343,12 +329,6 @@ function initListeners(){
       currPlaylistId = undefined;
       playlistInfo.viewingPlaylist = -1;
       
-      if(retVal == 0){
-        document.getElementById("controls").classList.remove("controlAnimation");
-        controls.top = "515px";
-        controlLoaded = false;
-      }
-      
       for(i = 0; i < videoListPlayButtons.length; i++){
         videoListPlayButtons[i].parentNode.parentNode.removeChild(videoListPlayButtons[i].parentNode);
       }
@@ -356,101 +336,56 @@ function initListeners(){
       
       
       deletePlaylistPopup.style.display = "none";
-      playlistPage.style.display = "none";
-      playlistContainer.style.display = "block";
-      overlay.style.display = "none";
-      homeButton.style.display = "none";
-      
-      
-    }
-  }
-  
-  moreOptionsButton.onclick = function(){
-    if(window.getComputedStyle(moreOptionsPopup).display == "none"){
-      moreOptionsPopup.style.display = "block";
-    }
-    else{
-      moreOptionsPopup.style.display = "none";
-    }
-  }
-  addVideoButton.onclick = function(){
-    if(window.getComputedStyle(addVideoModal).display == "none"){
-      addVideoModal.style.display = "block";
-      overlay.style.display = "block";
-      videoUrlInput.focus();
-    }
-    else{
-      addVideoModal.style.display = "none";
       overlay.style.display = "none";
     }
   }
   
-  videoUrlInput.onkeyup = function(){
-    var enteredUrl = videoUrlInput.value;
-    var key = "watch?v=";
-    var start = enteredUrl.indexOf(key);
-    if(start != -1){
-      start += key.length;
-      var end = start + 11;
-      var videoId = enteredUrl.slice(start, end);
-      if(videoId.length == 11){
-        loadVideoPreview(videoId);
+  // Clicks the create playlist button when user hits enter key
+  searchInput.onkeyup = function(){
+    if(event.keyCode == 13){
+      searchButton.click();
+    }
+  };
+  
+  searchButton.onclick = function(){
+    var keywords = searchInput.value;
+    if(keywords.length != 0 && keywords.replace(/\s/g, '').length != 0){
+      keywords = keywords.replace(/\s/g, '')
+      chrome.extension.getBackgroundPage().search(keywords, function(item){
+        for(i = 0; i < item.items.length; i++){
+          createSearchResultDiv(item.items[i]);
+        }
+      });
+    }
+  }
+
+  controlPlayButton.onclick = function(){
+    if(pagePlayerStatus != "waitingForSync" && 
+      (pagePlayer.getPlayerState() == YT.PlayerState.PAUSED ||
+       chrome.extension.getBackgroundPage().getInfo({id:"playerState"}) == YT.PlayerState.PAUSED)){
+      if(pagePlayer.getPlayerState() != YT.PlayerState.PAUSED){
+        chrome.extension.getBackgroundPage().playVideo();
+        updateControlPanelPlayButton(true);
+      }
+      else{
+        pagePlayer.playVideo();
       }
     }
   }
-  
-  addVideoConfirmButton.onclick = function(){
-    var enteredUrl = videoUrlInput.value;
-    var key = "watch?v=";
-    var start = enteredUrl.indexOf(key);
-    if(start != -1){
-      start += key.length;
-      var end = start + 11;
-      var videoId = enteredUrl.slice(start, end);
-      chrome.extension.getBackgroundPage().addVideoToPlaylist(playlistInfo.viewingPlaylist, videoId);
-    }
-    addVideoCancelButton.click();
-  }
-  addVideoCancelButton.onclick = function(){
-    addVideoModal.style.display = "none";
-    videoUrlInput.value = "";
-    modalPlayer.stopVideo();
-    document.getElementById("videoModalResultDisplay").style.display = "none";
-    overlay.style.display = "none";
-  }
-  
-  
-  document.getElementById("controlsPlayButton").onclick = function(){
-    if(document.getElementById("controlsPlayButton").innerHTML == "Play"){
-      if(pagePlayerStatus != "waitingForSync" && 
-        (pagePlayer.getPlayerState() == YT.PlayerState.PAUSED ||
-         chrome.extension.getBackgroundPage().getInfo({id:"playerState"}) == YT.PlayerState.PAUSED)){
-        if(pagePlayer.getPlayerState() != YT.PlayerState.PAUSED){
-          chrome.extension.getBackgroundPage().playVideo();
-          updateControlPanelPlayButton(true);
-          updatePlayPlaylistButton(true);
-        }
-        else{
-          pagePlayer.playVideo();
-        }
+  controlPauseButton.onclick = function(){
+    if(pagePlayerStatus != "waitingForSync" &&
+       (pagePlayer.getPlayerState() == YT.PlayerState.PLAYING ||
+        chrome.extension.getBackgroundPage().getInfo({id:"playerState"}) == YT.PlayerState.PLAYING)){
+      if(pagePlayer.getPlayerState() != YT.PlayerState.PLAYING){
+        chrome.extension.getBackgroundPage().pauseVideo();
+        updateControlPanelPlayButton(false);
       }
-    }
-    else{
-      if(pagePlayerStatus != "waitingForSync" &&
-         (pagePlayer.getPlayerState() == YT.PlayerState.PLAYING ||
-          chrome.extension.getBackgroundPage().getInfo({id:"playerState"}) == YT.PlayerState.PLAYING)){
-        if(pagePlayer.getPlayerState() != YT.PlayerState.PLAYING){
-          chrome.extension.getBackgroundPage().pauseVideo();
-          updateControlPanelPlayButton(false);
-          updatePlayPlaylistButton(false);
-        }
-        else{
-          pagePlayer.pauseVideo();
-        }
+      else{
+        pagePlayer.pauseVideo();
       }
     }
   }
-  document.getElementById("controlsFastForwardButton").onclick = function(){
+  controlFastForwardButton.onclick = function(){
     if(chrome.extension.getBackgroundPage().getInfo({id:"playerState"}) == YT.PlayerState.PAUSED){
       if(chrome.extension.getBackgroundPage().queueHasNext()){
         updateControlPanelPlayButton(true);
@@ -458,11 +393,74 @@ function initListeners(){
     }
     chrome.extension.getBackgroundPage().playNextInQueue();
   }
-  document.getElementById("controlsRewindButton").onclick = function(){
+  controlRewindButton.onclick = function(){
     chrome.extension.getBackgroundPage().playPrevInQueue();
   }
   
-  playPlaylistButton.onclick = function(){
+  controlRepeatButton.onclick = function(){
+    var repeatOn = chrome.extension.getBackgroundPage().getInfo({id:"repeatStatus"});
+    if(repeatOn){
+      controlRepeatButton.style.color = "black";
+    }
+    else{
+      controlRepeatButton.style.color = "green"
+    }
+    chrome.extension.getBackgroundPage().setRepeat(!repeatOn);
+  }
+  controlShuffleButton.onclick = function(){
+    var shuffleOn = chrome.extension.getBackgroundPage().getInfo({id:"shuffleStatus"});
+    if(shuffleOn){
+      controlShuffleButton.style.color = "black";
+    }
+    else{
+      controlShuffleButton.style.color = "green";
+    }
+    chrome.extension.getBackgroundPage().setShuffle(!shuffleOn);
+  }
+  
+  document.getElementById("settings-button").onclick = function(){
+    if(window.getComputedStyle(document.getElementById("settings-container")).display == "none"){
+      document.getElementById("settings-container").style.display = "block";
+      if(quality == "small"){
+        document.getElementById("smallQualitySelection").style.backgroundColor = "green";
+      }
+      else if(quality == "medium"){
+        document.getElementById("mediumQualitySelection").style.backgroundColor = "green";
+      }
+      else if(quality == "large"){
+        document.getElementById("largeQualitySelection").style.backgroundColor = "green";
+      }
+      else if(quality == "hd720"){
+        document.getElementById("hd720QualitySelection").style.backgroundColor = "green";
+      }
+      else{
+        document.getElementById("defaultQualitySelection").style.backgroundColor = "green";
+      }
+    }
+    else{
+      document.getElementById("settings-container").style.display = "none"; 
+    }
+  }
+  
+  document.getElementById("playlist-tab").onclick = function(){
+    if(window.getComputedStyle(document.getElementById("playlist-container")).display == "none"){
+      document.getElementById("playlist-container").style.display = "block";
+      document.getElementById("playlist-tab").style.borderBottom = "none";
+      document.getElementById("search-container").style.display = "none";
+      document.getElementById("search-tab").style.borderBottom = "1px solid lightgray";
+    }
+  }
+  
+  document.getElementById("search-tab").onclick = function(){
+    if(window.getComputedStyle(document.getElementById("search-container")).display == "none"){
+      document.getElementById("playlist-container").style.display = "none";
+      document.getElementById("playlist-tab").style.borderBottom = "1px solid lightgray";
+      document.getElementById("search-container").style.display = "block";
+      document.getElementById("search-tab").style.borderBottom = "none";
+    }
+  }
+  
+/*  playPlaylistButton.onclick = function(){
     if(playPlaylistButton.innerHTML == "Play"){
       var length = chrome.extension.getBackgroundPage().getPlaylistLength(playlistInfo.viewingPlaylist);
       var backgroundPlayerStatus = chrome.extension.getBackgroundPage().getInfo({id:"playerState"});
@@ -494,89 +492,33 @@ function initListeners(){
       err("playPlaylistButton inner html is spelled wrong");
     }
   }
-  playlistInputField.onkeyup = function(){
-    var numChars = playlistInputField.value.length;
-    document.getElementById("playlistTextboxCharCount").innerHTML = numChars + "/50";
-  }
-  document.getElementById("playlistDescriptionInput").onkeyup = function(){
-    var numChars = document.getElementById("playlistDescriptionInput").value.length;
-    document.getElementById("playlistDescriptionTextboxCharCount").innerHTML = numChars + "/125";
-  }
-  setImageButton.addEventListener("change", function(){
-    var file = setImageButton.files[0];
-    var reader = new FileReader();
-    reader.onloadend = function(){
-      document.getElementById("playlistSetImageImage").src = reader.result;  
-    }
-    if(file){
-      reader.readAsDataURL(file);
-    }
-    else{
-      document.getElementById("playlistSetImageImage").src = defaultPlaylistImage;
-    }
-  }, true);
-  editPlaylistButton.onclick = function(){
-    displayPlaylistPopup(true);
-  }
-  document.getElementById("controlsRepeatToggle").onclick = function(){
-    var repeatOn = chrome.extension.getBackgroundPage().getInfo({id:"repeatStatus"});
-    if(repeatOn){
-      document.getElementById("controlsRepeatToggle").innerHTML = "Repeat Off";
-    }
-    else{
-      document.getElementById("controlsRepeatToggle").innerHTML = "Repeat On";
-    }
-    chrome.extension.getBackgroundPage().setRepeat(!repeatOn);
-  }
-  document.getElementById("controlsShuffleToggle").onclick = function(){
-    var shuffleOn = chrome.extension.getBackgroundPage().getInfo({id:"shuffleStatus"});
-    if(shuffleOn){
-      document.getElementById("controlsShuffleToggle").innerHTML = "Shuffle Off";
-    }
-    else{
-      document.getElementById("controlsShuffleToggle").innerHTML = "Shuffle On";
-    }
-    chrome.extension.getBackgroundPage().setShuffle(!shuffleOn);
-  }
-  volumeAdjuster.onclick = function(){
-    
-  }
+  */
   volumeBar.onclick = function(e){
     var volume = e.offsetX;
 
-    // Round volume up to the nearest number divisible by 5 unless volume is less than 5
-    if(volume < 5){
-      volume = 0;
-    }
-    document.getElementById("controlsVolumeBarVolumeDisplay").style.width = volume + "px";
+    document.getElementById("volume-bar-fill").style.width = volume + "px";
     // Convert volume to be in range 0-100
-    volume = Math.round((volume / 75) * 100);
-    pagePlayer.setVolume(volume);
-    chrome.extension.getBackgroundPage().setVolume(volume);
+    volume = Math.round((volume / 50) * 100);
+    //pagePlayer.setVolume(volume);
+    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
   }
-  document.getElementById("changeQualityButton").onclick = function(){
-    document.getElementById("optionsPageButtonContainer").style.display = "none";
-    document.getElementById("qualitySelectionContainer").style.display = "block";
-    if(quality == "small"){
-      document.getElementById("smallQualitySelection").style.backgroundColor = "green";
-    }
-    else if(quality == "medium"){
-      document.getElementById("mediumQualitySelection").style.backgroundColor = "green";
-    }
-    else if(quality == "large"){
-      document.getElementById("largeQualitySelection").style.backgroundColor = "green";
-    }
-    else if(quality == "hd720"){
-      document.getElementById("hd720QualitySelection").style.backgroundColor = "green";
-    }
-    else{
-      document.getElementById("defaultQualitySelection").style.backgroundColor = "green";
-    }
+  
+  document.getElementById("volume-on").onclick = function(){
+    document.getElementById("volume-on").style.display = "none";
+    document.getElementById("volume-off").style.display = "block";
+    document.getElementById("volume-bar-fill").style.width = "0px";
+    var volume = chrome.extension.getBackgroundPage().getVolume().volume;
+    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": true});
   }
-  document.getElementById("changeQualityBackButton").onclick = function(){
-    document.getElementById("qualitySelectionContainer").style.display = "none";
-    document.getElementById("optionsPageButtonContainer").style.display = "block";
+  
+  document.getElementById("volume-off").onclick = function(){
+    document.getElementById("volume-on").style.display = "block";
+    document.getElementById("volume-off").style.display = "none";
+    var volume = chrome.extension.getBackgroundPage().getVolume().volume;
+    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
+    document.getElementById("volume-bar-fill").style.width = (volume / 2) + "px";
   }
+  
   document.getElementById("smallQualitySelection").onclick = function(){
     if(document.getElementById("smallQualitySelection").style.backgroundColor != "green"){
       document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
@@ -619,54 +561,41 @@ function initListeners(){
   }
 }
 
-function loadDivs(){
-  profileIconDiv = document.getElementById("profileIconDiv");
-  optionsPageDiv = document.getElementById("optionsPageDiv");
-  usernameDiv = document.getElementById("usernameDiv");
-  addPlaylistButton = document.getElementById("addPlaylistButton");
-  playlistPopup = document.getElementById("playlistPopup");
-  createPlaylistButton = document.getElementById("createPlaylistButton");
-  cancelCreateButton = document.getElementById("cancelPlaylistCreateButton");
-  playlistInputField = document.getElementById("playlistInput");
-  playlistContainer = document.getElementById("playlistContainer");
-  searchInput = document.getElementById("searchInput");
-  searchButton = document.getElementById("searchButton");
-  homeButton = document.getElementById("homeButton");
-  playlistPage = document.getElementById("playlistPage");
-  deletePlaylistButton = document.getElementById("playlistPageDeletePlaylistButton");
-  deletePlaylistPopup = document.getElementById("deletePlaylistPopup");
-  deletePlaylistPopupCancelButton = document.getElementById("deletePlaylistPopupCancelButton");
-  deletePlaylistPopupConfirmButton = document.getElementById("deletePlaylistPopupConfirmButton");
-  overlay = document.getElementById("overlay");
-  videoList = document.getElementById("videoList");
-  moreOptionsButton = document.getElementById("moreOptionsButton");
-  moreOptionsPopup = document.getElementById("moreOptionsPopup");
-  addVideoButton = document.getElementById("playlistPageAddVideoButton");
-  addVideoModal = document.getElementById("addVideoModal");
-  videoUrlInput = document.getElementById("urlInput");
-  addVideoCancelButton = document.getElementById("addVideoCancelButton");
-  addVideoConfirmButton = document.getElementById("addVideoConfirmButton");
-  playPlaylistButton = document.getElementById("playPlaylistButton");
-  setImageButton = document.getElementById("playlistSetImageButton");
-  editPlaylistButton = document.getElementById("playlistPageEditPlaylistButton");
-  volumeAdjuster = document.getElementById("controlsVolumeAdjuster");
-  volumeBar = document.getElementById("controlsVolumeBar");
+function createSearchResultDiv(videoInfo){
+  var searchResultsContainer = document.createElement("div");
+  searchResultsContainer.classList.add("search-results-container");
+  var searchResultsTitle = document.createElement("div");
+  searchResultsTitle.innerHTML = videoInfo.snippet.title;
+  searchResultsTitle.classList.add("search-results-title");
+  var searchResultsArtist = document.createElement("div");
+  searchResultsArtist.innerHTML = videoInfo.snippet.channelTitle;
+  searchResultsArtist.classList.add("search-results-artist", "tiny-font");
+  var searchResultsImgContainer = document.createElement("div");
+  searchResultsImgContainer.classList.add("search-results-img")
+  var searchResultsImg = document.createElement("img");
+  searchResultsImg.classList.add("image");
+  searchResultsImg.src = videoInfo.snippet.thumbnails.default.url;
+  searchResultsContainer.appendChild(searchResultsImgContainer);
+  searchResultsImgContainer.appendChild(searchResultsImg);
+  searchResultsContainer.appendChild(searchResultsTitle);
+  searchResultsContainer.appendChild(searchResultsArtist);
+  document.getElementById("search-results-display").appendChild(searchResultsContainer);
 }
 
-function displayPlaylistPopup(edit){
+function displayPlaylistPopup(edit, playlistIndex){
   playlistPopup.style.display = "block"; 
   overlay.style.display = "block";
   playlistInputField.focus();
   if(edit){
-    if(currPlaylistLoaded.videos.length > 0 && currPlaylistLoaded.image.slice(-31) == defaultPlaylistImage){
+    var playlist = chrome.extension.getBackgroundPage().getPlaylist(playlistIndex);
+    if(playlist.videos.length > 0 && playlist.image.slice(-31) == defaultPlaylistImage){
       document.getElementById("playlistSetImageImage").src = 
-        "https://img.youtube.com/vi/"+currPlaylistLoaded.videos[0].videoId+"/mqdefault.jpg";
+        "https://img.youtube.com/vi/"+playlist.videos[0].videoId+"/mqdefault.jpg";
     }
     else{
-      document.getElementById("playlistSetImageImage").src = currPlaylistLoaded.image;
+      document.getElementById("playlistSetImageImage").src = playlist.image;
     }
-    playlistInputField.value = currPlaylistLoaded.name;
-    document.getElementById("playlistDescriptionInput").value = currPlaylistLoaded.description;
+    playlistInputField.value = playlist.name;
     createPlaylistButton.addEventListener("click", editPlaylistCreate);
     cancelCreateButton.addEventListener("click", addPlaylistCancel);
   }
@@ -685,21 +614,15 @@ function editPlaylistCreate(){
   if(name != currPlaylistLoaded.name){
     playlistUpdated = true;
     currPlaylistLoaded.name = name;
-    document.getElementById("descriptionBoxTitle").innerHTML = name;
-    document.getElementById(currPlaylistId).childNodes[1].innerHTML = name;
-  }
-  if(description != currPlaylistLoaded.description){
-    playlistUpdated = true;
-    currPlaylistLoaded.description = description;
-    document.getElementById("descriptionBoxContent").innerHTML = description;
+    document.getElementById(currPlaylistId).childNodes[0].innerHTML = name;
   }
   if(image != currPlaylistLoaded.image && currPlaylistLoaded.videos.length > 0 &&
      image != "https://img.youtube.com/vi/"+currPlaylistLoaded.videos[0].videoId+"/mqdefault.jpg"){
     playlistUpdated = true;
     currPlaylistLoaded.image = image;
     currPlaylistLoaded.usingDefaultImage = false;
-    if(document.getElementById("playlistPageImageImage")){
-      document.getElementById("playlistPageImageImage").src = image;
+    if(document.getElementById("player-image-image")){
+      document.getElementById("player-image-image").src = image;
     }
     
     document.getElementById(currPlaylistId).childNodes[0].childNodes[0].src = image;
@@ -733,98 +656,7 @@ function addPlaylistCancel(){
   cancelCreateButton.removeEventListener("click", addPlaylistCancel);
 }
 
-/**
- * After a user clicks on a playlist, load the page associated with that playlist
- * 1. Load the current video being played. If none load the playlist image
- * 2. Hide the page containing the playlists
- * 3. Unhide the playlist page
- * 3. Load the description 
- * 4. Load the videos in the playlist
- * Information that needs to be set when loading playlist page
- * 1. The current playlist number on this page and background page
- */
 
-function loadPlaylistPage(playlistNumber){
-  // Get info about the current video being played from the background page
-  var playlistLength = chrome.extension.getBackgroundPage().getQueueLength();
-  var backgroundPlayerState = chrome.extension.getBackgroundPage().getInfo({id: "playerState"});
-  if(playlistInfo.playingPlaylist != playlistInfo.viewingPlaylist){
-    playPlaylistButton.innerHTML =  "Play";
-  }
-  else{
-    if(backgroundPlayerState == YT.PlayerState.PLAYING){
-      document.getElementById("playPlaylistButton").innerHTML = "Pause";
-    }
-    else if(backgroundPlayerState == YT.PlayerState.PAUSED){
-      document.getElementById("playPlaylistButton").innerHTML = "Play";
-    }
-  }
-  
-  var playlist = chrome.extension.getBackgroundPage().getInfo({id:"playlist", playlistNumber: playlistNumber});
-  currPlaylistLoaded = playlist;
-  
-  var botContainer = document.getElementById("botContainer");
-  if(typeof playlist != "undefined"){
-    chrome.extension.getBackgroundPage().setCurrPlaylistPage(playlistNumber);
-    var videos = playlist.videos;
-    var state = playlistLength > 0 && (backgroundPlayerState >= 0 && backgroundPlayerState < 5) &&
-                (playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist);
-    if(state){
-      document.getElementById("playlistPageIframe").style.display = "block";
-      document.getElementById("playlistPageImage").style.display = "hidden";
-      var playerState = chrome.extension.getBackgroundPage().getInfo({id:"playerState"});
-      if(playerState == YT.PlayerState.PLAYING &&
-         pagePlayer.getPlayerState() != YT.PlayerState.PLAYING){
-        pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());    
-      }
-      else if(playerState == YT.PlayerState.PLAYING &&
-              pagePlayer.getPlayerState() == YT.PlayerState.PLAYING){
-        
-      }
-      else if(playerState == YT.PlayerState.PAUSED && 
-              pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
-        
-      }
-      else if(playerState >= 0 && playerState < 5){
-        pagePlayerStatus = "seeking";
-        pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());
-      }
-      setPlayingPlaylist();
-    }
-    else{
-      var img = document.getElementById("playlistPageImageImage");
-      /*
-      if(videos.length > 0){
-        if(playlist.image.slice(-31) == defaultPlaylistImage){
-          img.src = "https://img.youtube.com/vi/"+videos[0].videoId+"/sddefault.jpg";
-        }
-        else{
-          img.src = playlist.image;
-        }
-      }
-      else{
-        img.src = playlist.image;
-      }*/
-      img.src = chrome.extension.getBackgroundPage().getPlaylistImage(playlistNumber, SD_DEFAULT_IMG);
-      //document.getElementById("playlistPageImage").appendChild(img);
-      document.getElementById("playlistPageIframe").style.display = "none";
-      document.getElementById("playlistPageImage").style.display = "block";
-    }
-    playlistContainer.style.display = "none";
-    playlistPage.style.display = "block";
-    document.getElementById("descriptionBoxTitle").innerHTML = playlist.name;
-    if(typeof playlist.description != "undefined"){
-      document.getElementById("descriptionBoxContent").innerHTML = playlist.description;
-    }
-    else{
-      document.getElementById("descriptionBoxContent").innerHTML = "";
-    }
-    displayPlaylistVideoThumbnails(playlist);
-  }
-  else{
-    chrome.extension.getBackgroundPage().setCurrPlaylistPage(undefined);
-  }
-}
 
 
 var videoIndexes = []; // Array to keep track of the indexes of the videos for when users want to delete videos from playlists
@@ -864,7 +696,7 @@ function startPlaylist(startingVideo, playlistIndex){
   chrome.extension.getBackgroundPage().initQueue(startingVideo, playlistIndex);
   if(typeof videoBeingPlayed == "undefined"){
     var index = chrome.extension.getBackgroundPage().getCurrVideoIndex();
-    var list = document.getElementById("videoList");
+    var list = document.getElementById("videos");
     var listChildren = list.childNodes;
     videoBeingPlayed = listChildren[index].childNodes[0];
   }
@@ -875,7 +707,6 @@ function startPlaylist(startingVideo, playlistIndex){
     setupVideo(queue.playlist[queue.current].video, undefined, queue.playlist[queue.current].index);
   }
   else{
-    //setupVideo(queue.playlist[queue.current].video, undefined, startingVideo);
     setupVideo(queue.playlist[queue.current].video, undefined, queue.playlist[queue.current].index);
   }
 }
@@ -886,59 +717,69 @@ function createVideoDiv(video, index){
   var container = document.createElement("div");
   container.classList.add("videoList", "container", "botBorder", "video");
   
-  var imageContainer = document.createElement("div");
-  imageContainer.classList.add("videoList", "imageContainer");
+  var playButton = document.createElement("div");
+  playButton.classList.add("videoList", "imageContainer");
 
+  var play = document.createElement("div");
+  play.tag = "i";
+  play.classList.add("fa", "fa-play-circle-o", "fa-lg", "video-image-container");
+  play.setAttribute("aria-hidden", "true");
+  
+  var pause = document.createElement("div");
+  pause.tag = "i";
+  pause.classList.add("fa", "fa-pause-circle-o", "fa-lg", "video-image-container");
+  pause.setAttribute("aria-hidden", "true");
+  
+  playButton.appendChild(play);
+  playButton.appendChild(pause);
+  
   if(videoIndex == index && playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
     if(chrome.extension.getBackgroundPage().getInfo({id:"playerState"}) == YT.PlayerState.PLAYING){
-      imageContainer.innerHTML = "Pause";
+      play.style.display = "none";
+      pause.style.display = "block";
     }
     else{
-      imageContainer.innerHTML = "Play";
+      play.style.display = "block";
+      pause.style.display = "none";
     }
-    videoBeingPlayed = imageContainer;
+    videoBeingPlayed = playButton;
   }
   else{
-    imageContainer.innerHTML = "Play";
+    play.style.display = "block";
+    pause.style.display = "none";
   }
   
-  imageContainer.onclick = function(){
-    if(imageContainer.innerHTML == "Play"){
-      setPlayingPlaylist();
-      if(typeof videoBeingPlayed != "undefined"){
-        // If another video is currently playing then change the button status
-        videoBeingPlayed.innerHTML = "Play";
-      }
-      
-      if(videoBeingPlayed == this && pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
-        pagePlayer.playVideo();  
-      }
-      else{
-        startPlaylist(index, playlistInfo.viewingPlaylist);
-        videoBeingPlayed = imageContainer;
-      }
-      imageContainer.innerHTML = "Pause";
-      
-      
+  play.onclick = function(){
+    setPlayingPlaylist();
+    if(typeof videoBeingPlayed != "undefined"){
+      // If another video is currently playing then change the button status
+      videoBeingPlayed.childNodes[0].style.display = "block";
+      videoBeingPlayed.childNodes[1].style.display = "none";
+    }
 
-      if(!controlLoaded){
-        document.getElementById("controls").classList.add("controlAnimation");
-        controlLoaded = true;
-      }
+    if(videoBeingPlayed == this && pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
+      pagePlayer.playVideo();  
     }
     else{
-      if(pagePlayer.getPlayerState() == YT.PlayerState.BUFFERING){
-        imageContainer.innerHTML = "Play";
-        pagePlayerStatus = "stopAfterBuffering";
-      }
-      else{
-        pagePlayer.pauseVideo();
-      }
+      startPlaylist(index, playlistInfo.viewingPlaylist);
+      videoBeingPlayed = playButton;
     }
-    
+    play.style.display = "none";
+    pause.style.display = "block";
   };
   
-  videoListPlayButtons.push(imageContainer);
+  pause.onclick = function(){
+    if(pagePlayer.getPlayerState() == YT.PlayerState.BUFFERING){
+      play.style.display = "block";
+      pause.style.display = "none";
+      pagePlayerStatus = "stopAfterBuffering";
+    }
+    else{
+      pagePlayer.pauseVideo();
+    }
+  }
+  
+  videoListPlayButtons.push(playButton);
   
   var title = document.createElement("div");
   title.classList.add("videoList", "titleContainer");
@@ -957,48 +798,90 @@ function createVideoDiv(video, index){
   }
   duration.innerHTML = min + ":" + sec;
   var settings = document.createElement("div");
-  settings.classList.add("videoList", "settingsContainer");
-  settings.innerHTML = "s";
+  settings.classList.add("video-settings");
+  settings.id = "videoSettings";
+  var img = document.createElement("img");
+  img.classList.add("image");
+  img.src = "images/settings-cog.png";
+  
+  settings.appendChild(img);
+
+  var settingsModal = document.createElement("div");
+  settingsModal.classList.add("video-settings-modal");
+  var deleteButton = document.createElement("div");
+  deleteButton.classList.add("small-square-button", "left-align", "button");
+  var deleteButtonImg = document.createElement("div");
+  deleteButtonImg.tag = "i";
+  deleteButtonImg.setAttribute("aria-hidden", "true");
+  deleteButtonImg.classList.add("fa", "fa-trash-o");
+  deleteButton.appendChild(deleteButtonImg);
+  var editButton = document.createElement("div");
+  editButton.classList.add("small-square-button", "right-align", "button");
+  var editButtonImg = document.createElement("div");
+  editButtonImg.classList.add("fa", "fa-pencil-square-o");
+  editButton.style.top = "2px";
+  editButton.appendChild(editButtonImg);
+  settingsModal.appendChild(deleteButton);
+  settingsModal.appendChild(editButton);
+  
+  
+  
   settings.onclick = function(){
-    var settingsDiv = document.getElementById("videoSettingsModal");
-    if(window.getComputedStyle(settingsDiv).display == "none"){
+    if(window.getComputedStyle(settingsModal).opacity == "0"){
+      settingsModal.style.opacity = "1";
       settingsIndex = index;
-      settingsDiv.style.top = (-40 + (25*index))+"px";
-      settingsDiv.style.display = "block";
       containerToRemove = container;
       videoIndexToRemove = index;
-      document.getElementById("deleteVideoButton").addEventListener("click", removeVideo);
-      document.getElementById("editVideoButton").addEventListener("click", editVideo);
+      deleteButton.addEventListener("click", removeVideo);
+      editButton.addEventListener("click", editVideo);
     }
     else{
+      settingsModal.style.opacity = "0";
       if(settingsIndex == index){
-        settingsDiv.style.display = "none";
         containerToRemove = undefined;
         videoIndexToRemove = undefined;
       }
       else{
-        settingsDiv.style.top = (-40 + (25*index))+"px";
         settingsIndex = index;
         videoIndexToRemove = index;
         containerToRemove = container;
       }
     }
   }
-  settings.id = "videoSettings";
-  container.appendChild(imageContainer);
+  
+  
+  
+  
+  
+  
+  container.appendChild(playButton);
   container.appendChild(title);
   container.appendChild(channel);
   container.appendChild(duration);
   container.appendChild(settings);
+  container.appendChild(settingsModal);
+  
+  container.onmouseenter = function(){
+    settings.style.opacity = "1";
+  }
+  
+  container.onmouseleave = function(){
+    settings.style.opacity = "0";
+    if(window.getComputedStyle(settingsModal).opacity == "1"){
+      settingsModal.style.opacity = "0";
+    }
+  }
+  
+  
+  
   videoList.appendChild(container);
 }
 
 function removeVideo(){
-  //var playlist = chrome.extension.getBackgroundPage().getInfo({id:"playlist",playlistNumber: playlistInfo.viewingPlaylist});
   var length = chrome.extension.getBackgroundPage().getPlaylistLength(playlistInfo.viewingPlaylist);
   if(length == 1){
     if(!chrome.extension.getBackgroundPage().getPlaylistUsingDefaultImage(playlistInfo.viewingPlaylist)){
-      document.getElementById("playlistPageImageImage").src = defaultPlaylistImage;
+      document.getElementById("player-image-image").src = defaultPlaylistImage;
       document.getElementById("playlistList").childNodes[playlistInfo.viewingPlaylist].childNodes[0].childNodes[0].src = defaultPlaylistImage
     }
   }
@@ -1034,7 +917,6 @@ function removeVideo(){
 
 function editVideo(){
   overlay.style.display = "block";
-  document.getElementById("videoSettingsModal").style.display = "none";
   var video = chrome.extension.getBackgroundPage().getInfo({id:"video",               
                                                             playlistNumber:playlistInfo.viewingPlaylist,
                                                             videoNumber:videoIndexToRemove});
@@ -1042,49 +924,61 @@ function editVideo(){
   editVideoDiv.style.position = "absolute";
   editVideoDiv.style.border = "1px solid black";
   editVideoDiv.style.width = "500px";
-  editVideoDiv.style.height = "500px";
+  editVideoDiv.style.height = "350px";
   editVideoDiv.style.top = "100px";
-  editVideoDiv.style.left = "50px";
+  editVideoDiv.style.left = "125px";
   editVideoDiv.style.backgroundColor = "white";
   editVideoDiv.style.zIndex = "1000";
-  //editVideoDiv.style.pointerEvents = "all";
+  var titleText = document.createElement("div");
+  titleText.innerHTML = "Title";
+  titleText.style.position = "absolute";
+  titleText.style.top = "10px";
+  titleText.style.left = "25px";
   var titleInput = document.createElement("input");
   titleInput.style.position = "absolute";
   titleInput.style.border = "1px solid black";
   titleInput.style.width = "300px";
-  titleInput.style.height = "50px";
-  titleInput.style.top = "50px";
+  titleInput.style.height = "25px";
+  titleInput.style.top = "30px";
   titleInput.style.left = "25px";
   titleInput.value = video.videoTitle;
+  titleInput.maxlength = 100;
+  var artistText = document.createElement("div");
+  artistText.innerHTML = "Artist";
+  artistText.style.position = "absolute";
+  artistText.style.top = "80px";
+  artistText.style.left = "25px";
   var artistInput = document.createElement("input");
   artistInput.style.position = "absolute";
   artistInput.style.border = "1px solid black";
-  artistInput.style.height = "50px";
+  artistInput.style.height = "25px";
   artistInput.style.width = "300px";
   artistInput.style.top = "100px";
   artistInput.style.left = "25px";
   artistInput.value = video.channelTitle;
+  artistInput.maxlength = 100;
   var cancelButton = document.createElement("div");
   cancelButton.style.position = "absolute";
   cancelButton.style.border = "1px solid black";
-  cancelButton.style.height = "50px";
+  cancelButton.style.height = "30px";
   cancelButton.style.width = "75px";
-  cancelButton.style.top = "375px";
+  cancelButton.style.top = "300px";
   cancelButton.style.left = "150px";
   cancelButton.innerHTML = "Cancel";
   cancelButton.onclick = function(){
-    playlistPage.removeChild(editVideoDiv);
+    document.body.removeChild(editVideoDiv);
     containerToRemove = undefined;
     videoIndexToRemove = undefined;
     settingsIndex = undefined;
     overlay.style.display = "none";
   }
+  cancelButton.classList.add("button");
   var confirmButton = document.createElement("div");
   confirmButton.style.position = "absolute";
   confirmButton.style.border = "1px solid black";
-  confirmButton.style.height = "50px";
+  confirmButton.style.height = "30px";
   confirmButton.style.width = "75px";
-  confirmButton.style.top = "375px";
+  confirmButton.style.top = "300px";
   confirmButton.style.left = "250px";
   confirmButton.innerHTML = "Confirm";
   confirmButton.onclick = function(){
@@ -1094,17 +988,20 @@ function editVideo(){
                                                    artistInput.value, 
                                                    videoIndexes[videoIndexToRemove], 
                                                    playlistInfo.viewingPlaylist);
-    playlistPage.removeChild(editVideoDiv);
+    document.body.removeChild(editVideoDiv);
     containerToRemove = undefined;
     videoIndexToRemove = undefined;
     settingsIndex = undefined;
     overlay.style.display = "none";
   }
+  confirmButton.classList.add("button");
   editVideoDiv.appendChild(titleInput);
+  editVideoDiv.appendChild(titleText);
   editVideoDiv.appendChild(artistInput);
+  editVideoDiv.appendChild(artistText);
   editVideoDiv.appendChild(cancelButton);
   editVideoDiv.appendChild(confirmButton);
-  playlistPage.appendChild(editVideoDiv);
+  document.body.appendChild(editVideoDiv);
 }
 
 function createPlaylistDiv(playlistObj){
@@ -1115,19 +1012,6 @@ function createPlaylistDiv(playlistObj){
     name = playlistObj.playlist.name;
     index = playlistObj.index;
     pic = chrome.extension.getBackgroundPage().getPlaylistImage(index, MQ_DEFAULT_IMG);
-    /*
-    if(playlistObj.playlist.videos.length > 0){
-      if(playlistObj.playlist.image.slice(-31) == defaultPlaylistImage){
-        pic = "https://img.youtube.com/vi/"+playlistObj.playlist.videos[0].videoId+"/mqdefault.jpg";
-      }
-      else{
-        pic = playlistObj.playlist.image;
-      }
-      
-    }
-    else{
-      pic = playlistObj.playlist.image;
-    }*/
   }
   else{
     name = playlistObj.name;
@@ -1135,65 +1019,109 @@ function createPlaylistDiv(playlistObj){
     pic = playlistObj.image;
   }
   
-  
   var div = document.createElement("div");
   var tag = "Playlist " + index + ":" + name;
   div.id = tag;
-  div.style.height = playlistDivHeight;
-  div.style.width = playlistDivWidth;
-  div.style.border = "1px solid black";
-  div.style.position = "relative";
-  div.style.float = "left";
-
-  div.style.marginTop = "10px";
-  div.style.marginLeft = "10px";
-  if(index % 3 == 0){
-    div.style.marginLeft = "15px";
-  }
+  div.classList.add("border-bottom", "playlist-div", "button");
   
-  div.style.overflow = "hidden";
   var imgContainer = document.createElement("div");
-  imgContainer.style.height = playlistDivImgHeight;
-  imgContainer.style.width = playlistDivWidth;
-  imgContainer.style.overflow = "hidden";
+  imgContainer.classList.add("image","playlist-div-image");
   var img = document.createElement("img");
   img.src = pic;
-  img.style.position = "relative";
-  img.style.width = "110%";
-  img.style.top = "-5%";
-  img.style.left = "-5%";
+  img.style.height = "50px";
   var titleContainer = document.createElement("div");
-  titleContainer.style.height = "20px";
-  titleContainer.style.width = playlistDivWidth;
-  titleContainer.style.textAlign = "center";
-  titleContainer.style.overflow = "hidden";
+  titleContainer.classList.add("regular-font", "playlist-div-info");
+  var infoContainer = document.createElement("div");
+  infoContainer.classList.add("tiny-font", "playlist-div-info");
   if(playlistObj.containsPlaylist){
     titleContainer.innerHTML = playlistObj.playlist.name;
+    infoContainer.innerHTML = playlistObj.playlist.videos.length + " Videos";
   }
   else{
     titleContainer.innerHTML = playlistObj.name;
+    infoContainer.innerHTML = "0 Videos";
   }
-  if((playlistObj.containsPlaylist && playlistObj.playlist.videos.length == 0) ||
-      !playlistObj.containsPlaylist){
-    img.style.position = "relative";
-    img.style.top = "-16.75%";
-  }
-  imgContainer.appendChild(img);
-  div.appendChild(imgContainer);
-  div.appendChild(titleContainer);
+  infoContainer.style.lineHeight = "150%";
   
   div.onclick = function(e){
     currPlaylistId = tag;
-    var playlistStr = "Playlist ";
-    var start = playlistStr.length;
-    var end = currPlaylistId.indexOf(":");
 
-    playlistInfo.viewingPlaylist = index;
-    loadPlaylistPage(playlistInfo.viewingPlaylist);
-    homeButton.style.display = "block";
+    if(index != playlistInfo.viewingPlaylist){
+      for(i = 0; i < videoListPlayButtons.length; i++){
+        if(videoListPlayButtons[i] != null){
+          videoListPlayButtons[i].parentNode.parentNode.removeChild(videoListPlayButtons[i].parentNode);
+        }
+      }
+
+      videoListPlayButtons = [];
+      playlistInfo.viewingPlaylist = index;
+      loadPlaylistPage(playlistInfo.viewingPlaylist);
+    } 
   }
-
-  document.getElementById("playlistList").appendChild(div);
+  imgContainer.appendChild(img);
+  
+  var settings = document.createElement("div");
+  settings.classList.add("playlist-settings", "list-group");
+  var deleteContainer = document.createElement("div");
+  deleteContainer.classList.add("list-group-item");
+  var deleteButtonImg = document.createElement("div");
+  deleteButtonImg.tag = "i";
+  deleteButtonImg.classList.add("fa", "fa-trash-o", "fa-fw");
+  deleteButtonImg.setAttribute("aria-hidden", "true");
+  deleteContainer.appendChild(deleteButtonImg);
+  var deleteButtonText = document.createElement("div");
+  deleteButtonText.style.right = "5px";
+  deleteButtonText.innerHTML = "Delete";
+  deleteButtonText.style.position = "absolute";
+  deleteButtonText.style.top = "0";
+  deleteContainer.appendChild(deleteButtonText);
+  settings.appendChild(deleteContainer);
+  deleteContainer.onclick = function(){
+    if(window.getComputedStyle(deletePlaylistPopup).display == "none"){
+      overlay.style.display = "block";
+      deletePlaylistPopup.style.display = "block"; 
+    }
+    else{
+      overlay.style.display = "none";
+      deletePlaylistPopup.style.display = "none";
+    }
+  };
+  
+  var editContainer = document.createElement("div");
+  editContainer.classList.add("list-group-item");
+  var editButtonImg = document.createElement("div");
+  editButtonImg.tag = "i";
+  editButtonImg.classList.add("fa", "fa-pencil-square-o", "fa-fw");
+  editButtonImg.setAttribute("aria-hidden", "true");
+  editContainer.appendChild(editButtonImg);
+  var editButtonText = document.createElement("div");
+  editButtonText.style.right = "18px";
+  editButtonText.innerHTML = "Edit";
+  editButtonText.style.position = "absolute";
+  editButtonText.style.top = "20px";
+  editContainer.appendChild(editButtonText);
+  settings.appendChild(editContainer);
+  
+  editContainer.onclick = function(e){
+    var start = "Playlist ".length;
+    var end = e.path[3].id.indexOf(":");
+    var playlistNum = parseInt(e.path[3].id.slice(start, end));
+    displayPlaylistPopup(true, playlistNum);
+  }
+  
+  div.onmouseenter = function(){
+    settings.style.opacity = "1";
+  }
+  
+  div.onmouseleave = function(){
+    settings.style.opacity = "0";
+  }
+  
+  div.appendChild(titleContainer);
+  div.appendChild(infoContainer);
+  div.appendChild(settings);
+  document.getElementById("playlist-display").appendChild(div);
+  
 }
 
 function addPlaylistDiv(name, description, image, usingDefaultImage){
@@ -1222,26 +1150,134 @@ function displayPlaylists(){
 function loadPlayerState(){
   var state = chrome.extension.getBackgroundPage().getInfo({id:"playerState"});
   if(state > 0 && state < 5){
-    //controlLoaded = true;
-    //document.getElementById("controls").classList.add("controlAnimation");
     var queue = chrome.extension.getBackgroundPage().getQueue();
-    updateControlPanel(queue.playlist[queue.current].video);
     
     if(state != 2){
-      document.getElementById("controlsPlayButton").innerHTML = "Pause";
+      controlPlayButton.style.display = "none";
+      controlPauseButton.style.display = "block";
     }
     else{
-      document.getElementById("controlsPlayButton").innerHTML = "Play";
+      controlPlayButton.style.display = "block";
+      controlPauseButton.style.display = "none";
     }
-    playlistInfo.playingPlaylist = chrome.extension.getBackgroundPage().getPlaylistInfo().playingPlaylist;
+    playlistInfo = chrome.extension.getBackgroundPage().getPlaylistInfo();
+    if(playlistInfo.playingPlaylist != typeof "undefined" && playlistInfo.playingPlaylist != -1){
+      loadPlaylistPage(playlistInfo.playingPlaylist);
+    }
   }
   quality = chrome.extension.getBackgroundPage().getInfo({id:"quality"});
 }
 
+/**
+ * Loads the user's profile icon and username
+ */
+function loadUserInfo(){
+  var image = document.createElement("IMG");
+  image.id = "profileIconDivImage"
+  image.src = chrome.extension.getBackgroundPage().getInfo({id:"profileIcon"});
+  image.style.borderRadius = "100%";
+  image.style.width="35px";
+  profileIconDiv.appendChild(image);
+  usernameDiv.innerHTML = chrome.extension.getBackgroundPage().getInfo({id:"username"});
+}
 
+function loadDivs(){
+  addPlaylistButton = document.getElementById("add-playlist-button");
+  addVideoButton = document.getElementById("add-video-button");
+  addVideoModal = document.getElementById("addVideoModal");
+  addVideoCancelButton = document.getElementById("addVideoCancelButton");
+  addVideoConfirmButton = document.getElementById("addVideoConfirmButton");
+  
+  playlistPopup = document.getElementById("playlistPopup");
+  createPlaylistButton = document.getElementById("createPlaylistButton");
+  cancelCreateButton = document.getElementById("cancelPlaylistCreateButton");
+  
+  playlistInputField = document.getElementById("playlistInput");
+  searchInput = document.getElementById("searchInput");
+  searchButton = document.getElementById("searchButton");
+  deletePlaylistPopup = document.getElementById("deletePlaylistPopup");
+  deletePlaylistPopupCancelButton = document.getElementById("deletePlaylistPopupCancelButton");
+  deletePlaylistPopupConfirmButton = document.getElementById("deletePlaylistPopupConfirmButton");
+  overlay = document.getElementById("overlay");
+  videoList = document.getElementById("videos");
+  
+  
+  videoUrlInput = document.getElementById("urlInput");
+  
+  playPlaylistButton = document.getElementById("playPlaylistButton");
+  setImageButton = document.getElementById("playlistSetImageButton");
+  controlPlayButton = document.getElementById("control-play-button");
+  controlPauseButton = document.getElementById("control-pause-button");
+  controlRewindButton = document.getElementById("control-rewind-button");
+  controlFastForwardButton = document.getElementById("control-fast-forward-button");
+  controlRepeatButton = document.getElementById("control-repeat-button");
+  controlShuffleButton = document.getElementById("control-shuffle-button");
+  volumeBar = document.getElementById("volume-bar");
+}
 
+/**
+ * After a user clicks on a playlist, load the page associated with that playlist
+ * 1. Load the current video being played. If none load the playlist image
+ * 2. Hide the page containing the playlists
+ * 3. Unhide the playlist page
+ * 3. Load the description 
+ * 4. Load the videos in the playlist
+ * Information that needs to be set when loading playlist page
+ * 1. The current playlist number on this page and background page
+ */
 
-
+function loadPlaylistPage(playlistNumber){
+  
+  if(window.getComputedStyle(document.getElementById("video-bar")).display == "none"){
+    document.getElementById("video-bar").style.display = "block";
+  }
+  
+  // Get info about the current video being played from the background page
+  var playlistLength = chrome.extension.getBackgroundPage().getQueueLength();
+  var backgroundPlayerState = chrome.extension.getBackgroundPage().getInfo({id: "playerState"});
+  
+  var playlist = chrome.extension.getBackgroundPage().getInfo({id:"playlist", playlistNumber: playlistNumber});
+  currPlaylistLoaded = playlist;
+  
+  if(typeof playlist != "undefined"){
+    chrome.extension.getBackgroundPage().setCurrPlaylistPage(playlistNumber);
+    var videos = playlist.videos;
+    var state = playlistLength > 0 && (backgroundPlayerState >= 0 && backgroundPlayerState < 5) &&
+                (playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist);
+    if(state){
+      document.getElementById("player").style.display = "block";
+      document.getElementById("playerImage").style.display = "none";
+      var playerState = chrome.extension.getBackgroundPage().getInfo({id:"playerState"});
+      if(playerState == YT.PlayerState.PLAYING &&
+         pagePlayer.getPlayerState() != YT.PlayerState.PLAYING){
+        pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());    
+      }
+      else if(playerState == YT.PlayerState.PLAYING &&
+              pagePlayer.getPlayerState() == YT.PlayerState.PLAYING){
+        
+      }
+      else if(playerState == YT.PlayerState.PAUSED && 
+              pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
+        
+      }
+      else if(playerState >= 0 && playerState < 5){
+        pagePlayerStatus = "seeking";
+        pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());
+      }
+      setPlayingPlaylist();
+    }
+    else{
+      var img = document.getElementById("player-image-image");
+      img.src = chrome.extension.getBackgroundPage().getPlaylistImage(playlistNumber, SD_DEFAULT_IMG);
+      document.getElementById("player").style.display = "none";
+      document.getElementById("playerImage").style.display = "block";
+    }
+    displayPlaylistVideoThumbnails(playlist);
+  }
+  else{
+    chrome.extension.getBackgroundPage().setCurrPlaylistPage(undefined);
+  }
+}
 
 
 
@@ -1264,70 +1300,77 @@ function setupVideo(video, prevVideoIndex, videoIndex){
 function displayIframe(on){
   if(on){
     if(playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist && 
-       window.getComputedStyle(document.getElementById("playlistPageIframe")).display == "none"){
-      document.getElementById("playlistPageImage").style.display = "none";
-      document.getElementById("playlistPageIframe").style.display = "block";
+       window.getComputedStyle(document.getElementById("player")).display == "none"){
+      document.getElementById("playerImage").style.display = "none";
+      document.getElementById("player").style.display = "block";
     }
   }
   else{
-    if(window.getComputedStyle(document.getElementById("playlistPageIframe")).display == "block"){
-      document.getElementById("playlistPageImage").style.display = "block";
-      document.getElementById("playlistPageIframe").style.display = "none";
+    if(window.getComputedStyle(document.getElementById("player")).display == "block"){
+      document.getElementById("playerImage").style.display = "block";
+      document.getElementById("player").style.display = "none";
     }
   }
 }
 
 function setupControlPanel(){
-  document.getElementById("controls").classList.add("controlAnimation");
-  playlistPage.style.height = (515-50)+"px";
-  
   var repeatOn = chrome.extension.getBackgroundPage().getInfo({id:"repeatStatus"});
   if(repeatOn){
-    document.getElementById("controlsRepeatToggle").innerHTML = "Repeat On";
+    controlRepeatButton.style.color = "green";
   }
   else{
-    document.getElementById("controlsRepeatToggle").innerHTML = "Repeat Off";
+    controlRepeatButton.style.color = "black";
   }
   var shuffleOn = chrome.extension.getBackgroundPage().getInfo({id:"shuffleStatus"});
   if(shuffleOn){
-    document.getElementById("controlsShuffleToggle").innerHTML = "Shuffle On";
+    controlShuffleButton.style.color = "green";
   }
   else{
-    document.getElementById("controlsShuffleToggle").innerHTML = "Shuffle Off";
+    controlShuffleButton.style.color = "black";
   }
   
   var volume = chrome.extension.getBackgroundPage().getVolume();
-  volume = (volume / 100) * 75;
-  document.getElementById("controlsVolumeBarVolumeDisplay").style.width = volume + "px";
-  
-  controlLoaded = true;
+  if(volume.mute){
+    document.getElementById("volume-on").style.display = "none";
+    document.getElementById("volume-off").style.display = "block";
+    document.getElementById("volume-bar-fill").style.width = "0px";
+  }
+  else{
+    document.getElementById("volume-on").style.display = "block";
+    document.getElementById("volume-off").style.display = "none";
+    document.getElementById("volume-bar-fill").style.width = (volume.volume / 2) + "px";
+  }
 }
 
 function updateVideoListPlayButtons(updateToPlay, updateToPause){
   if(typeof updateToPlay != "undefined"){
-    videoListPlayButtons[updateToPlay].innerHTML = "Play";
+    videoListPlayButtons[updateToPlay].childNodes[0].style.display = "block";
+    videoListPlayButtons[updateToPlay].childNodes[1].style.display = "none";
   }
   if(typeof updateToPause != "undefined"){
-    videoListPlayButtons[updateToPause].innerHTML = "Pause";
+    videoListPlayButtons[updateToPause].childNodes[0].style.display = "none";
+    videoListPlayButtons[updateToPause].childNodes[1].style.display = "block";
   }  
 }
 
 function updateControlPanelPlayButton(playing){
   if(playing){
-    document.getElementById("controlsPlayButton").innerHTML = "Pause";
+    controlPlayButton.style.display = "none";
+    controlPauseButton.style.display = "block";
   }
   else{
-    document.getElementById("controlsPlayButton").innerHTML = "Play";
+    controlPlayButton.style.display = "block";
+    controlPauseButton.style.display = "none";
   }
 }
 
 function updatePlayPlaylistButton(playing){
-  if(playing && playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
+ /* if(playing && playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
     playPlaylistButton.innerHTML = "Pause";
   }
   else{
     playPlaylistButton.innerHTML = "Play";
-  }
+  }*/
 }
 
 function updateControlPanel(video){
@@ -1335,17 +1378,11 @@ function updateControlPanel(video){
   if(!controlLoaded){
     setupControlPanel();
   }
-  
-  var videoImage = document.getElementById("controlsImageImage");
-  videoImage.src = "https://img.youtube.com/vi/"+video.videoId+"/default.jpg";
-  var title = document.getElementById("controlsVideoTitle");
-  title.innerHTML = video.videoTitle;
-  var artist = document.getElementById("controlsArtistTitle");
-  artist.innerHTML = video.channelTitle;
+
 }
 
 function updatePlayistPageImage(){
-  document.getElementById("playlistPageImageImage").src = 
+  document.getElementById("player-image-image").src = 
     chrome.extension.getBackgroundPage().getPlaylistImage(playlistInfo.viewingPlaylist, SD_DEFAULT_IMG);
 }
 
@@ -1369,13 +1406,25 @@ function play(video){
 }
 
 function onload(){
-  setupAPIs();
   loadDivs();
   initListeners();
-  loadUserInfo();
-  
-  loadPlayerState();
+  setupControlPanel();
+  if(pagePlayerReady){
+    loadPlayerState();
+  }
+  else{
+    setTimeout(checkPlayerLoaded, 100);
+  }
   displayPlaylists();
+}
+
+function checkPlayerLoaded(){
+  if(pagePlayerReady){
+    loadPlayerState();
+  }
+  else{
+    setTimeout(checkPlayerLoaded, 100);
+  }
 }
 
 function err(data){
@@ -1400,7 +1449,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
       chrome.extension.getBackgroundPage().addToQueue(message.video, videoListPlayButtons.length - 1);
     }
     if(chrome.extension.getBackgroundPage().getPlaylistLength(playlistInfo.viewingPlaylist) == 1){
-      document.getElementById("playlistPageImageImage").src = 
+      document.getElementById("player-image-image").src = 
         chrome.extension.getBackgroundPage().getPlaylistImage(playlistInfo.viewingPlaylist, SD_DEFAULT_IMG);
       document.getElementById("playlistList").childNodes[playlistInfo.viewingPlaylist].childNodes[0].childNodes[0].src = 
         chrome.extension.getBackgroundPage().getPlaylistImage(playlistInfo.viewingPlaylist, MQ_DEFAULT_IMG);

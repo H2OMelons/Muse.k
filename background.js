@@ -116,7 +116,7 @@ function seekTo(time){
   player.seekTo(time);
 }
 
-function createVideo(id){
+function loadVideo(id){
   backgroundPlayerStatus = "waitingForSync";
   player.loadVideoById(id, 0, "small");
 }
@@ -287,11 +287,11 @@ function addToQueue(video, index){
 
 
 
-function updateCurrPlaylist(playlist){
-  playlistCollection.delete(playlistUids[playlistInfo.viewingPlaylist]);
-  playlistCollection.set(playlistUids[playlistInfo.viewingPlaylist], playlist);
+function updatePlaylist(playlist, playlistIndex){
+  playlistCollection.delete(playlistUids[playlistIndex]);
+  playlistCollection.set(playlistUids[playlistIndex], playlist);
   var obj = {};
-  obj[playlistUids[playlistInfo.viewingPlaylist]] = playlist;
+  obj[playlistUids[playlistIndex]] = playlist;
   chrome.storage.local.set(obj, function(){
     if(chrome.runtime.lastError){
       console.warn(chrome.runtime.lastError.message);
@@ -352,6 +352,20 @@ function deletePlaylist(playlistIndex){
 }
 
 function addVideoToPlaylist(playlistIndex, videoId){
+  createVideo(videoId, function(videoInfo){
+    playlistCollection.get(playlistUids[playlistIndex]).videos.push(videoInfo);
+    var index = playlistCollection.get(playlistUids[playlistIndex]).videos.length - 1;
+    var video = playlistCollection.get(playlistUids[playlistIndex]).videos[index];
+    chrome.runtime.sendMessage({request: "finishedAddingVideo", video: video, index: index, playlistIndex: playlistIndex});
+    var obj = {};
+    obj[playlistUids[playlistIndex]] = playlistCollection.get(playlistUids[playlistIndex]);
+    chrome.storage.local.set(obj, function(){
+      if(chrome.runtime.lastError){
+        console.warn(chrome.runtime.lastError.message);
+      }
+    });
+  });
+  /*
   var apiRequestRetVal = buildApiRequest("GET",
                                          "/youtube/v3/videos",
                                          {"id": videoId,
@@ -368,6 +382,19 @@ function addVideoToPlaylist(playlistIndex, videoId){
         console.warn(chrome.runtime.lastError.message);
       }
     });
+  });*/
+}
+
+function createVideo(videoId, callback){
+  var apiRequestRetVal = buildApiRequest("GET",
+                                         "/youtube/v3/videos",
+                                         {"id": videoId,
+                                          "part": "snippet,contentDetails"});
+  executeRequest(apiRequestRetVal, "videoInfo", function(videoInfo){
+    if(callback){
+      callback(videoInfo);
+    }
+     
   });
 }
 
@@ -463,7 +490,10 @@ function executeRequest(request, type, callback){
                    tags: videoInfo.tags,
                    videoTitle: videoInfo.title,
                    duration: response.items[0].contentDetails.duration};
-      callback(video);
+      if(callback){
+        callback(video);
+      }
+      
     }
     else{
       callback(response);
@@ -559,7 +589,7 @@ function editVideo(newTitle, newArtist, videoIndex, playlistIndex){
   obj[playlistUids[playlistIndex]] = playlist;
   chrome.storage.local.set(obj, function(){
     if(chrome.runtime.lastError){
-      console.log(chrome.runtime.lastError.message);
+      console.error(chrome.runtime.lastError.message);
     }
   });
 }
@@ -679,13 +709,13 @@ function resetAccount(){
   chrome.storage.local.clear(function(){
     var error = chrome.runtime.lastError;
     if(error){
-      console.log(error.message);
+      console.error(error.message);
     }
   });
   chrome.storage.sync.clear(function(){
     var error = chrome.runtime.lastError;
     if(error){
-      console.log(error.message);
+      console.error(error.message);
     }
   });
 }
@@ -814,6 +844,27 @@ function getPlaylistLength(playlistIndex){
 
 function getPlaylist(playlistIndex){
   return playlistCollection.get(playlistUids[playlistIndex]);
+}
+
+function getPlaylistCollection(){
+  var tempArr = [];
+  for(i = 0; i < playlistUids.length; i++){
+    tempArr.push(playlistCollection.get(playlistUids[i]));
+  }
+  return tempArr;
+}
+
+function getUnfilteredPlaylistCollection(){
+  var tempArr = [];
+  for(i = 0; i < playlistUids.length; i++){
+    if(playlistUids[i] != -1){
+      tempArr.push(playlistCollection.get(playlistUids[i]));
+    }
+    else{
+      tempArr.push(-1);
+    }
+  }
+  return tempArr;
 }
 
 function setQuality(qual){

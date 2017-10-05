@@ -7,12 +7,14 @@
   margin-top: 2px;
   word-wrap: break-word;
   word-break: break-all;
+  
 }
 
 .videoList.container{
   width: 480px;
   position: relative;
   height: 25px;
+  display: block;
 }
 
 .video-settings{
@@ -63,6 +65,7 @@
   left: 50px;
   text-align: left;
   overflow: hidden;
+  height: 20px;
 }
 
 .videoList.channelContainer{
@@ -168,7 +171,7 @@
   position: absolute;
   top: 45px;
   width: 100%;
-  height: 470px;
+  height: 500px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -206,30 +209,31 @@
 
 .left-column.playlist-container{
   top: 28px;
-  height: 90%;
+  height: 100%;
   overflow: hidden;
 }
 
 .left-column.search-container{
   top: 28px;
-  height: 90%;
+  height: 100%;
   display: none;
 }
 
 .left-column.settings-container{
   height: 200px;
   width: 300px;
-  border: 1px solid lightgray;
-  top: 330px;
-  left: 28px;
+  background-color: white;
+  top: 25px;
+  left: 10px;
   display: none;
+  box-shadow: 0px 0px 30px #888888;
 }
 
 .left-column.settings-button{
-  top: 95%;
-  text-align: center;
   font-size: 20px;
-  border-top: 1px solid lightgray;
+  width: 20px;
+  height: 20px;
+  border: none;
 }
 
 .playlist-button{
@@ -276,6 +280,39 @@
   word-wrap: break-word;
 }
 
+.search-results-options{
+  position: absolute;
+  left: 315px;
+  height: 100%;
+  width: 50px;
+  line-height: 350%;
+  background-color: white;
+  display: none;
+}
+
+.playlist-selection-container{
+  position: absolute;
+  height: 200px;
+  width: 150px;
+  left: 330px;
+  border: 1px solid lightgray;
+  background-color: white;
+  z-index: 100;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  display: none;
+}
+
+.playlist-selection-container-div{
+  position: relative;
+  height: 25px;
+  width: 100%;
+  border-bottom: 1px solid lightgray;
+  overflow: hidden;
+  word-break: break-all;
+  line-height: 165%;
+}
+
 .add-playlist-button{
   position: absolute;
   text-align: center;
@@ -294,7 +331,7 @@
   margin-top: 10px;
 
   width: 100%;
-  height: 460px;
+  height: 490px;
   overflow-x: hidden;
   overflow-y: scroll;
   padding-right: 20px;
@@ -365,7 +402,8 @@
 .control{
   position: absolute;
   width: 100%;
-  height: 28px;
+  /*height: 28px;*/
+  height: 45px;
   bottom: 0;
   border-top: 1px solid lightgray;
 }
@@ -396,6 +434,48 @@
   left: 260px;
 }
 
+.control-time{
+  bottom: 0;
+  left: 115px;
+  position: absolute;
+  width: 225px;
+  height: 10px;
+}
+
+.control-time-bar-container{
+  border: 1px solid lightgray;
+  width: 145px;
+  height: 3px;
+  position: absolute;
+  left: 40px;
+}
+
+.control-time-bar{
+  background-color: lightgray;
+  width: 0;
+  height: inherit;
+}
+
+.control-time-curr{
+  line-height: 90%;
+  position: absolute;
+  width: 35px;
+  height: inherit;
+  text-align: right;
+}
+
+.control-time-end{
+  line-height: 90%;
+  position: absolute;
+  width: 35px;
+  height: inherit;
+  text-align: left;
+}
+
+.control-time-button{
+  
+}
+
 .image{
   position: absolute;
   overflow: hidden;
@@ -416,8 +496,40 @@
   overflow: hidden;
 }
 
+.import-container{
+  box-shadow: 0px 0px 15px #888888;
+}
+
+.import-playlist-button{
+  position: absolute;
+  left: 300px;
+  width: 150px;
+  text-align: center;
+  top: 125px;
+}
+
+.import-default-playlist{
+  margin-left: 5px;
+  border-bottom: 2px solid gray;
+  height: 100%;
+}
+
+.import-your-playlist{
+  margin-left: 30px;
+  height: 100%;
+}
+
+.import-other-playlist{
+  margin-left: 30px;
+  height: 100%;
+}
+
 .regular-font{
   font-size: 20px;
+}
+
+.small-font{
+  font-size: 16px;
 }
 
 .tiny-font{ 

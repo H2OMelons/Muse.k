@@ -12,23 +12,22 @@ var loadedParts = 0;
 var maxLoadedParts = 2;
 
 signInButton.onclick = function(){
-  
-  interactiveSignIn();
-  changeState(load);
+  //interactiveSignIn();
+  //changeState(load);
 }
 
-noAccountButton.onclick = function(){
+/*noAccountButton.onclick = function(){
   chrome.extension.getBackgroundPage().updateUserAccountStatus("false");
   changeState(noAccount);
-}
+}*/
 
 tryAgainButton.onclick = function(){
-  changeState(tryAgain);
+  //changeState(tryAgain);
 }
 
 function changeState(state){
   var loaderUI = document.getElementById("loadAnimation");
-  var signinUI = document.getElementById("signinUI");
+  var signinUI = document.getElementById("signin-ui");
   var tryAgainUI = document.getElementById("tryAgain");
   switch(state){
     case signInFail:
@@ -38,7 +37,7 @@ function changeState(state){
       
     case signInSuccess: 
       chrome.storage.sync.set({'account' : "true"}, function(){
-        location.replace("account_main_page.html");
+        //location.replace("account_main_page.html");
       });
       break;
       
@@ -53,11 +52,11 @@ function changeState(state){
       break;
       
     case noAccount:
-      location.replace("no_account_main_page.html");
+      //location.replace("no_account_main_page.html");
       break;
       
     case interactiveSignin:
-      location.replace("signin.html");
+      //location.replace("signin.html");
       break;
       
     default:
@@ -68,6 +67,13 @@ function changeState(state){
 function interactiveSignIn(){
   chrome.identity.getAuthToken({'interactive' : true}, function(token){
     if(chrome.runtime.lastError){
+      chrome.extension.getBackgroundPage().console.log("sign in unsuccessful");
+    }
+    else{
+      chrome.extension.getBackgroundPage().console.log("sign in success");
+    }
+    
+    /*if(chrome.runtime.lastError){
        chrome.identity.getAuthToken({'interactive' : false}, function(token){
         if(chrome.runtime.lastError){
           changeState(signInFail);
@@ -80,10 +86,10 @@ function interactiveSignIn(){
        });
     }
     else{
-      setUserInfo(token, function(){
+      /*setUserInfo(token, function(){
         changeState(signInSuccess);
       }); 
-    }
+    }*/
   });
 }
 
@@ -101,14 +107,14 @@ function revokeToken(){
 }
 
 function setUserInfo(token, callback){
-  chrome.extension.getBackgroundPage().requestUserInfo({token: token}, function(request){
-    request.execute(function(response){
+  //chrome.extension.getBackgroundPage().requestUserInfo({token: token}, function(request){
+  //  request.execute(function(response){
       // usage: response.items[0].whatever youre looking for
-      chrome.extension.getBackgroundPage().updateUserAccountStatus("true");
-      chrome.extension.getBackgroundPage().updateUsername(response.items[0].snippet.title);
-      chrome.extension.getBackgroundPage().updateProfileIcon(response.items[0].snippet.thumbnails.default.url);
-      chrome.extension.getBackgroundPage().setPlaylistCount(0);
-      callback();
-    });
-  });
+      //chrome.extension.getBackgroundPage().updateUserAccountStatus("true");
+      //chrome.extension.getBackgroundPage().updateUsername(response.items[0].snippet.title);
+      //chrome.extension.getBackgroundPage().updateProfileIcon(response.items[0].snippet.thumbnails.default.url);
+      //chrome.extension.getBackgroundPage().setPlaylistCount(0);
+      //callback();
+  //  });
+  //});
 }

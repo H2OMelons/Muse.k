@@ -3,7 +3,7 @@
   "key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqDs6purQOedCFZqtvCdXesEeKLGeKntr6Qcq3CPcK+4w67ccyzFMK7DzQXB6oQBrichimIYCwEIkTA3bEW/GW/g83jLsp0/SmNb9fN417sz8sK391kKuvGX9T0NTi1DYSGr4xWewcpP8KVVKN7OiG2YXJv1gCNB4uzm6YapM8lP2lMfITg0onpv08hvAzOgG8rJro36VJFJ2/qZhAd73aWvU7AsKEWmO5kXbSMR1Xh6TWfeywElwu7SP2sRBZ1Gg54WwUnuS4nshR0gLA4eWWdKhFIAIzS6/nzG0Qq82DiTs/pjBWRNZ3vqsekHnSvt9MEtm1iqokSO2thT5wniDbQIDAQAB",
   "name": "Muse.k",
   "description": "Stream youtube videos",
-  "version": "0.0.0.2",
+  "version": "0.0.0.3",
 
   "browser_action":{
     "default_icon": "images/icon.png",

@@ -1005,8 +1005,7 @@ function createVideoDiv(video, index){
       videoBeingPlayed.childNodes[0].style.display = "block";
       videoBeingPlayed.childNodes[1].style.display = "none";
     }
-
-    if(videoBeingPlayed == this && pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
+    if(videoBeingPlayed == this.parentNode && pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
       pagePlayer.playVideo();  
     }
     else{

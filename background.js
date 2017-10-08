@@ -78,6 +78,7 @@ function onBackgroundPlayerReady(event){
 
 function onPlayerStateChange(event) {
   videoIsPlaying = false;
+  
   if (event.data == YT.PlayerState.PLAYING) {
     if(backgroundPlayerStatus == "waitingForSync"){
       player.pauseVideo();
@@ -87,10 +88,23 @@ function onPlayerStateChange(event) {
     else if(backgroundPlayerStatus == "ready"){
       videoIsPlaying = true; 
     }
+    else if(backgroundPlayerStatus == "seeking"){
+      player.pauseVideo();
+      chrome.runtime.sendMessage({request: "finishedSeeking",
+                                  time: player.getCurrentTime()});
+      backgroundPlayerStatus = "ready";
+    }
   }
   else if(event.data == YT.PlayerState.BUFFERING){
-    if(backgroundPlayerStatus == "ready"){
+    if(backgroundPlayerStatus == "seeking"){
       
+    }
+  }
+  else if(event.data == YT.PlayerState.PAUSED){
+    if(backgroundPlayerStatus == "seeking"){
+      chrome.runtime.sendMessage({request: "finishedSeeking",
+                                  time: player.getCurrentTime()});
+      backgroundPlayerStatus = "ready";
     }
   }
   else if(event.data == YT.PlayerState.ENDED){
@@ -113,6 +127,7 @@ function pauseVideo(){
 }
 
 function seekTo(time){
+  backgroundPlayerStatus = "seeking";
   player.seekTo(time);
 }
 
@@ -878,6 +893,21 @@ function getQueue(){
 
 function getQueueLength(){
   return queue.playlist.length;
+}
+
+function getNumVideos(playlistIndex){
+  var playlist = playlistCollection.get(playlistUids[playlistIndex]);
+  if(playlistIndex < 0 || playlistIndex > playlistUids.length || typeof playlist.videos == "undefined"){
+    return -1;
+  }
+  
+  var numVideos = 0;
+  for(i = 0; i < playlist.videos.length; i++){
+    if(playlist.videos[i] != -1){
+      numVideos++;
+    }
+  }
+  return numVideos;
 }
 
 function getCurrVideo(){

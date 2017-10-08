@@ -246,7 +246,12 @@
         height: 100%; 
         display: none;
       }
-      
+      #transparent-overlay{
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        display: none;
+      }
       .controlAnimation{
         animation-name: controlsAnimation;
         animation-duration: .5s;
@@ -542,7 +547,7 @@
         </div>
       </div>
       
-      <div id="settings-container" class="left-column settings-container border">
+      <div id="settings-container" class="left-column settings-container border modal">
         <div id="qualitySelectionContainer">
           <div id="qualityTitle">Select Default Playing Quality For Your Videos</div>
           <div id="smallQualitySelection">low</div>
@@ -597,20 +602,22 @@
         <div id="control-time-container" class="control-time">
           <div id="control-time-curr" class="control-time-curr left-align tiny-font"></div>
           <div id="control-time-bar-container" class="control-time-bar-container">
-            <div id="control-time-bar" class="control-time-bar"></div>
+            <!--div id="control-time-bar" class="control-time-bar"></div-->
+            <input type="range" min="0" max="100" value="0" class="slider" id="control-time-bar"/>
           </div>
           <div id="control-time-end" class="control-time-end right-align tiny-font"></div>
         </div>
       </div>
     </div>
     
-    <div id="playlistPopup">
+    <div id="playlistPopup" class="modal">
       <div id="create-playlist-selections" class="import-container" style="height: 35px;">
         <div id="import-default-playlist" class="float-left import-default-playlist small-font">Default</div>
         <div id="import-your-playlist" class="float-left import-your-playlist small-font">Import Your Playlists</div>
         <div id="import-other-playlist" class="float-left import-other-playlist small-font">Import Public Playlists</div>
       </div>
       <div id="import-default-playlist-container">
+        <input id="hidden-submit-button" type="button" style="visibility: hidden"/>
         <div id=playlistTextbox>Name</div>
         <div id="playlistTextboxCharCount">12/50</div>
         <input type="text" maxlength="50" id="playlistInput" value="New Playlist"/>
@@ -680,7 +687,7 @@
       <div id="deletePlaylistPopupCancelButton">Cancel</div>
       Delete this playlist forever
     </div>
-    <div id="addVideoModal">
+    <div id="addVideoModal" class="modal">
       <div id="addVideoViaUrlTab">Url</div>
       <input id="urlInput" autofocus/>
       <div id="videoModalResultDisplay">
@@ -690,5 +697,6 @@
     </div>
     
     <div id="overlay"></div>
+    <div id="transparent-overlay"></div>
   </body>
 </html>

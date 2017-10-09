@@ -212,6 +212,18 @@ function onPagePlayerStateChange(event){
     else if(pagePlayerStatus == "stopAfterBuffering"){
       pagePlayer.pauseVideo();      
     }
+    else if(pagePlayerStatus == "pagePlayerSeeking"){
+      var pagePlayerTime = Math.floor(pagePlayer.getCurrentTime());
+      var backgroundPlayerTime = Math.floor(chrome.extension.getBackgroundPage().getCurrentTime());
+      if(pagePlayerTime >= backgroundPlayerTime){
+        //pagePlayer.playVideo();
+        pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());
+        pagePlayerStatus = "finalSeek";
+      }
+      else{
+        pagePlayer.seekTo(backgroundPlayerTime + 2);
+      }
+    }
     else{
       stopTimeBar();
       initTimeBar(pagePlayer.getCurrentTime(), pagePlayer.getDuration());
@@ -237,7 +249,10 @@ function onPagePlayerStateChange(event){
     updateControlPanelPlayButton(false);
   }
   else if(event.data == YT.PlayerState.BUFFERING){
-    if(pagePlayerStatus != "waitingForSync"){
+    if(pagePlayerStatus == "finalSeek"){
+      pagePlayerStatus = "ready";
+    }
+    else if(pagePlayerStatus != "waitingForSync" && pagePlayerStatus != "pagePlayerSeeking"){
       chrome.extension.getBackgroundPage().pauseVideo();
     }
   }
@@ -1653,25 +1668,30 @@ function loadPlaylistPage(playlistNumber){
     chrome.extension.getBackgroundPage().setCurrPlaylistPage(playlistNumber);
     var videos = playlist.videos;
     var state = playlistLength > 0 && (backgroundPlayerState >= 0 && backgroundPlayerState < 5);
-                //&& (playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist);
+    
+    // Check to see if there is a video playing/loaded in the background
     if(state){
       if(window.getComputedStyle(document.getElementById("player")).display != "block"){
         document.getElementById("player").style.display = "block";
         document.getElementById("playerImage").style.display = "none";
-        var playerState = chrome.extension.getBackgroundPage().getInfo({id:"playerState"});
-        if(playerState == YT.PlayerState.PLAYING &&
+        if(backgroundPlayerState == YT.PlayerState.PLAYING &&
            pagePlayer.getPlayerState() != YT.PlayerState.PLAYING){
-          pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());    
+          // If there is a video playing in the background and there is no video being played in the
+          // foreground then seek to the same position in the page player and play the video
+          pagePlayerStatus = "pagePlayerSeeking";
+          pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime() + 5);    
         }
-        else if(playerState == YT.PlayerState.PLAYING &&
+        else if(backgroundPlayerState == YT.PlayerState.PLAYING &&
                 pagePlayer.getPlayerState() == YT.PlayerState.PLAYING){
 
         }
-        else if(playerState == YT.PlayerState.PAUSED && 
+        else if(backgroundPlayerState == YT.PlayerState.PAUSED && 
                 pagePlayer.getPlayerState() == YT.PlayerState.PAUSED){
 
         }
-        else if(playerState >= 0 && playerState < 5){
+        else/*(backgroundPlayerState >= 0 && backgroundPlayerState < 5)*/{
+          // If there is a video loaded but not playing in the background and there is no video 
+          // loaded in the foreground then seek to the same position in the foreground
           pagePlayerStatus = "seeking";
           pagePlayer.seekTo(chrome.extension.getBackgroundPage().getCurrentTime());
         }
@@ -1679,6 +1699,7 @@ function loadPlaylistPage(playlistNumber){
       }
     }
     else{
+      // If there is no video being played then display the image for the playlist
       var img = document.getElementById("player-image-image");
       img.src = chrome.extension.getBackgroundPage().getPlaylistImage(playlistNumber, SD_DEFAULT_IMG);
       document.getElementById("player").style.display = "none";

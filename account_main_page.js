@@ -789,7 +789,7 @@ function initTimeBar(curr, end){
   timeBar.addEventListener("input", updateTimeBarValue);
   
   timeInterval = setInterval(function(){
-    if(!timeSliderDown && pagePl.getPlayerState() != YT.PlayerState.PAUSED){
+    if(!timeSliderDown && pagePlayer.getPlayerState() != YT.PlayerState.PAUSED){
       var timeElapsed = pagePlayer.getCurrentTime();
       currMins = Math.floor(timeElapsed / 60);
       currSecs = Math.floor(timeElapsed % 60);
@@ -871,7 +871,8 @@ function createSearchResultDiv(videoInfo){
   addIcon.onclick = function(e){
     currSearchResultId = videoInfo.id.videoId;
     selectedSearchResults = {resultsContainer: searchResultsContainer,
-                             resultsOptions: searchResultOptions};
+                             resultsOptions: searchResultOptions,
+                             addIcon: addIcon};
     if(window.getComputedStyle(document.getElementById("playlist-selection-container")).display == "none"){
       
       var offsetY = e.y - 40;
@@ -1725,6 +1726,7 @@ function setupPlaylistSelectionContainer(){
     if(typeof selectedSearchResults != "undefined"){
       selectedSearchResults.resultsContainer.style.backgroundColor = "white";
       selectedSearchResults.resultsOptions.style.backgroundColor = "white";
+      selectedSearchResults.addIcon.style.display = "none";
       selectedSearchResults = undefined;
     }
   }
@@ -1747,6 +1749,7 @@ function setupPlaylistSelectionContainer(){
         if(typeof selectedSearchResults != "undefined"){
           selectedSearchResults.resultsContainer.style.backgroundColor = "white";
           selectedSearchResults.resultsOptions.style.backgroundColor = "white";
+          selectedSearchResults.addIcon.style.display = "none";
           selectedSearchResults = undefined;
         }
       }

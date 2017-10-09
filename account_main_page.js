@@ -739,14 +739,19 @@ function initListeners(){
   timeBar.onmouseup = function(){
     timeSliderDown = false; 
     //pagePlayer.seekTo(this.value, true);
-    chrome.extension.getBackgroundPage().seekTo(this.value);
-    var currMins = Math.floor(this.value / 60);
-    var currSecs = Math.floor(this.value % 60);
-    if(currSecs < 10){
-      currTime.innerHTML = currMins + ":0" + currSecs;
+    if(pagePlayer.getPlayerState() != -1 && pagePlayer.getVideoUrl() != "https://www.youtube.com/watch"){
+      chrome.extension.getBackgroundPage().seekTo(this.value);
+      var currMins = Math.floor(this.value / 60);
+      var currSecs = Math.floor(this.value % 60);
+      if(currSecs < 10){
+        currTime.innerHTML = currMins + ":0" + currSecs;
+      }
+      else{
+        currTime.innerHTML = currMins + ":" + currSecs;
+      }
     }
     else{
-      currTime.innerHTML = currMins + ":" + currSecs;
+      timeBar.value = 0;
     }
   }
 }
@@ -777,7 +782,7 @@ function initTimeBar(curr, end){
   }
   var endTimeStr = endMins + ":" + endSecs;
   if(endSecs < 10){
-    endTimeStr = endMinds + ":0" + endSecs;
+    endTimeStr = endMins + ":0" + endSecs;
   }
   var timeBarLength = ((curr / end) * 100);
   

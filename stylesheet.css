@@ -534,6 +534,89 @@
   font-size: 16px;
 }
 
+.import-other-url-input{
+  position: absolute;
+  height: 20px;
+  width: 300px;
+  left: 95px;
+  top: 60px;
+}
+
+#import-other-results-container{
+  position: absolute;
+  height: 200px;
+  width: 400px;
+  left: 50px;
+  top: 90px;
+  
+}
+
+#import-other-results{
+  position: absolute;
+  border: 1px solid lightgray;
+  height: 175px;
+  width: 100%;
+  overflow-y: scroll;
+  overflow-x: none;
+}
+
+#import-other-success{
+  position: absolute;
+  border: 1px solid lightgray;
+  height: 175px;
+  width: 100%;
+  display: none;
+}
+
+.import-other-button{
+  position: absolute;
+  border: 1px solid lightgray;
+  height: 25px;
+  width: 75px;
+  text-align: center;
+  top: 102%;
+}
+
+.import-other-button.left{
+  left: 25%;
+}
+
+.import-other-button.right{
+  right: 25%;
+}
+
+.import-other-button.results{
+  display: none;
+  top: 90%;
+}
+
+.import-other-results-display-container{
+  position: relative;
+  height: 20px;
+  width: 100%;
+  border-bottom: 1px solid lightgray;
+}
+
+.import-other-success-text{
+  position: absolute;
+  top: 30%;
+  color: green;
+  left: 15%;
+}
+
+#import-other-load{
+  position: absolute;
+  height: 150px;
+  width: 150px;
+  top: 25px;
+  left: 125px;
+}
+
+#import-other-api-error-msg{
+  position: absolute;
+  left: 15px;
+}
+
 .slider{
   -webkit-appearance: none;
   width: 100%;

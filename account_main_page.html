@@ -371,7 +371,7 @@
         height: 150px;
         width: 140px;
         font-family: sans-serif; 
-        display: none;
+        
       }
       .loader{
         height: 150px;
@@ -476,7 +476,7 @@
         margin: auto;
       }
       .loader--text:after{
-        content: "Autherizing";
+        content: "Loading";
         font-weight: bold;
         color: dodgerblue;
         animation-name: loading-text;
@@ -499,16 +499,16 @@
       }
       @keyframes loading-text{
         0%{
-          content: "Autherizing";
+          content: "Loading";
         }
         25%{
-          content: "Autherizing.";
+          content: "Loading.";
         }
         50%{
-          content: "Autherizing..";
+          content: "Loading..";
         }
         75%{
-          content: "Autherizing..."
+          content: "Loading..."
         }
       }
     </style>
@@ -602,7 +602,6 @@
         <div id="control-time-container" class="control-time">
           <div id="control-time-curr" class="control-time-curr left-align tiny-font"></div>
           <div id="control-time-bar-container" class="control-time-bar-container">
-            <!--div id="control-time-bar" class="control-time-bar"></div-->
             <input type="range" min="0" max="100" value="0" class="slider" id="control-time-bar"/>
           </div>
           <div id="control-time-end" class="control-time-end right-align tiny-font"></div>
@@ -659,7 +658,7 @@
             <button class = "AccountButton" id="try-again-button">TRY AGAIN</button>
           </div>
         </div>
-        <!--script src="authentication.js"></script-->
+        <!--script src="authentication.js"></script>
         <div class="container" id="loadAnimation">
           <div class="loader">
             <div class="sk-circle">
@@ -678,9 +677,52 @@
             </div>
             <div class="loader--text"></div>
          </div>
+        </div-->
+      </div>
+      <div id="import-other-playlist-container" style="display: none">
+        <input id="import-other-url-input" autofocus class="import-other-url-input"/>
+        <div id="import-other-results-container">
+          <div id="import-other-error" style="display: none;">
+            <div id="invalid-url-error">
+              <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
+              Invalid URL. Please enter a playlist URL.
+            </div>
+            <div id="import-other-api-error">
+              <i class="fa fa-exclamation-circle" aria-hidden="true" style="float: left; line-height: 145%;"></i>
+              <div id="import-other-api-error-msg" style="float:left"></div>
+            </div>
+          </div>
+          <div id="import-other-load" style="display: none;">
+            <div class="container" id="loadAnimation">
+              <div class="loader">
+                <div class="sk-circle">
+                  <div class="sk-circle1 sk-child"></div>
+                  <div class="sk-circle2 sk-child"></div>
+                  <div class="sk-circle3 sk-child"></div>
+                  <div class="sk-circle4 sk-child"></div>
+                  <div class="sk-circle5 sk-child"></div>
+                  <div class="sk-circle6 sk-child"></div>
+                  <div class="sk-circle7 sk-child"></div>
+                  <div class="sk-circle8 sk-child"></div>
+                  <div class="sk-circle9 sk-child"></div>
+                  <div class="sk-circle10 sk-child"></div>
+                  <div class="sk-circle11 sk-child"></div>
+                  <div class="sk-circle12 sk-child"></div>
+                </div>
+                <div class="loader--text"></div>
+             </div>
+            </div>
+          </div>
+          <div id="import-other-results" style="display: none;"></div>
+          <div id="import-other-results-button" class="small-font import-other-button results right button">Import</div>
+          <div id="import-other-results-cancel-button" class="small-font import-other-button results left button">Cancel</div>
+          <div id="import-other-success">
+            <i class="fa fa-check fa-5x import-other-success-text" aria-hidden="true">Success!</i>
+            <div id="import-other-success-import-again-button" class="small-font import-other-button right button">Again</div>
+            <div id="import-other-success-exit-button" class="small-font import-other-button left button">Exit</div>
+          </div>
         </div>
       </div>
-      <div id="import-other-playlist-container" style="display: none"></div>
     </div>
     <div id="deletePlaylistPopup">
       <div id="deletePlaylistPopupConfirmButton">Confirm</div>

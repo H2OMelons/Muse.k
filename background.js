@@ -498,17 +498,21 @@ function removeEmptyParams(params){
 function executeRequest(request, type, callback){
   request.execute(function(response){
     if(type == "videoInfo"){
-      var videoInfo = response.items[0].snippet;
-      var video = {videoId: response.items[0].id,
-                   channelId: videoInfo.channelId,
-                   channelTitle: videoInfo.channelTitle,
-                   tags: videoInfo.tags,
-                   videoTitle: videoInfo.title,
-                   duration: response.items[0].contentDetails.duration};
-      if(callback){
-        callback(video);
+      if(typeof response.items[0] != "undefined"){
+        var videoInfo = response.items[0].snippet;
+        var video = {videoId: response.items[0].id,
+                     channelId: videoInfo.channelId,
+                     channelTitle: videoInfo.channelTitle,
+                     tags: videoInfo.tags,
+                     videoTitle: videoInfo.title,
+                     duration: response.items[0].contentDetails.duration};
+        if(callback){
+          callback(video);
+        }
       }
-      
+      else{
+        callback(undefined);
+      }
     }
     else{
       callback(response);
@@ -563,6 +567,35 @@ function requestPlaylists(callback){
   });
 }
 
+function getPlaylistById(id, callback){
+  executeRequest(buildApiRequest(
+    "GET",
+    "/youtube/v3/playlistItems",
+    {
+      "maxResults": "50",
+      "part": "snippet,contentDetails",
+      "playlistId": id
+    }
+  ), "", function(response){
+    callback(response);
+  });
+}
+
+function getPlaylistByIdNextPage(id, nextPageToken, callback){
+  executeRequest(buildApiRequest(
+    "GET",
+    "/youtube/v3/playlistItems",
+    {
+      "maxResults": "50",
+      "pageToken": nextPageToken,
+      "part": "snippet,contentDetails",
+      "playlistId": id
+    }
+  ), "", function(response){
+    callback(response);
+  });
+}
+
 function search(keywords, callback){
   gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
   executeRequest(buildApiRequest(
@@ -572,7 +605,8 @@ function search(keywords, callback){
      "part": "snippet",
      "q": keywords,
      "type": 'video'
-  }), "", function(response){
+    }
+  ), "", function(response){
     callback(response);
   });
 }

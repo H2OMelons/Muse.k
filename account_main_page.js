@@ -80,6 +80,7 @@ var importUser;
 var importUserContainer;
 var importOther;
 var importOtherContainer;
+var importOtherUrlInput;
 
 var qualityCheck = false;
 var pagePlayerReady = false;
@@ -722,6 +723,196 @@ function initListeners(){
     }
   }
   
+  function nextPlaylistPage(results, id){
+    chrome.extension.getBackgroundPage().getPlaylistByIdNextPage(id, 
+                                                                 results[results.length - 1].nextPageToken,
+                                                                 function(response){
+      if(response.error){
+        document.getElementById("import-other-load").style.display = "none";
+      }
+      else{
+        results.push(response);
+        if(response.nextPageToken){
+          nextPlaylistPage(results, id);
+        }
+        else{
+          displayPlaylistResults(results);
+        }
+      }
+    });
+  }
+  
+  var importList = [];
+  var resultsList = [];
+  function displayPlaylistResults(results){
+    // Reset the importList and resultsList
+    importList = [];
+    resultsList = [];
+    // Reset the results container so that the previous results aren't shown with the current results
+    var container = document.getElementById("import-other-results");
+    while(container.firstChild){
+      container.removeChild(container.firstChild);
+    }
+    // Display the names of the videos along with a checkbox for the user to include it in the import or not
+    for(i = 0; i < results.length; i++){
+      var j;
+      for(j = 0; j < results[i].items.length; j++){
+        importList.push(true);
+        resultsList.push(results[i].items[j]);
+        var id = importList.length - 1;
+        createResultDisplay(id, results[i].items[j].snippet.title);
+      }
+      
+    }
+    // Turn off the loading animation when done displaying the results
+    container.style.display = "block";
+    document.getElementById("import-other-results-button").style.display = "block";
+    document.getElementById("import-other-results-cancel-button").style.display = "block";
+    document.getElementById("import-other-load").style.display = "none";
+  }
+  
+  function createResultDisplay(id, videoTitle){
+    var resultsDisplay = document.createElement("div");
+    var checkBox = document.createElement("input");
+    var title = document.createElement("div");
+    
+    resultsDisplay.classList.add("import-other-results-display-container");
+    checkBox.classList.add("float-left");
+    title.classList.add("float-left");
+    checkBox.type = "checkbox";
+    checkBox.id = id;
+    checkBox.checked = true;
+    checkBox.onchange = function(){
+      if(checkBox.checked){
+        importList[parseInt(checkBox.id)] = true;
+      }
+      else{
+        importList[parseInt(checkBox.id)] = false;
+      }
+    }
+    resultsDisplay.appendChild(checkBox);
+    title.innerHTML = videoTitle;
+    resultsDisplay.appendChild(title);
+    document.getElementById("import-other-results").appendChild(resultsDisplay);
+    
+    resultsDisplay.onclick = function(e){
+      if(e.path[0] == this){
+        checkBox.click();
+      }
+    }
+    
+  }
+  
+  document.getElementById("import-other-results-button").onclick = function(){
+    document.getElementById("import-other-load").style.display = "block";
+    document.getElementById("import-other-results-button").style.display = "none";
+    document.getElementById("import-other-results-cancel-button").style.display = "none";
+    document.getElementById("import-other-results").style.display = "none";
+    var videos = [];
+    var numFinishedCalls = 0;
+    for(i = 0; i < resultsList.length; i++){
+      if(importList[i]){
+        chrome.extension.getBackgroundPage().createVideo(resultsList[i].snippet.resourceId.videoId, function(video){
+          if(typeof video != "undefined"){
+            videos.push(video);
+          }
+          
+          numFinishedCalls++;
+          if(numFinishedCalls == resultsList.length){
+            var playlistObj = addPlaylistToPlaylistCollection("New Playlist", "images/default_playlist_img.png", true, videos);
+            createPlaylistDiv({containsPlaylist: true,
+                               index: chrome.extension.getBackgroundPage().getInfo({id:"playlistCount"}) - 1,
+                               name: "New Playlist",
+                               playlist: playlistObj,
+                               numVideos: playlistObj.videos.length
+                               });
+            document.getElementById("import-other-load").style.display = "none";
+            document.getElementById("import-other-success").style.display = "block";
+            document.getElementById("import-other-url-input").style.display = "none";
+          }
+        }); 
+      }
+    }
+  }
+  
+  document.getElementById("import-other-results-cancel-button").onclick = function(){
+    var container = document.getElementById("import-other-results");
+    while(container.firstChild){
+      container.removeChild(container.firstChild);
+    }
+    this.style.display = "none";
+    document.getElementById("import-other-results-button").style.display = "none";
+    container.style.display = "none";
+    playlistPopup.dispatchEvent(cancelEvent);
+  }
+  
+  document.getElementById("import-other-success-exit-button").onclick = function(){
+    playlistPopup.dispatchEvent(cancelEvent);
+  }
+  
+  document.getElementById("import-other-success-import-again-button").onclick = function(){
+    var urlInput = document.getElementById("import-other-url-input");
+    urlInput.style.display = "block";
+    urlInput.value = "";
+    urlInput.focus();
+    document.getElementById("import-other-success").style.display = "none";
+  }
+  
+  importOtherUrlInput.onkeyup = function(){
+    if(event.keyCode == KEYCODE_ENTER){
+      var input = importOtherUrlInput.value;
+      var type = "list=";
+      var startIndex = input.indexOf(type) + type.length;
+      var id = input.slice(startIndex, startIndex + 34);
+      if(startIndex != -1 && id.length == 34 && !id.includes("&")){
+        if(window.getComputedStyle(document.getElementById("import-other-error")).display != "none"){
+          document.getElementById("import-other-error").style.display = "none";
+        }
+        
+        // Start the loading animation
+        document.getElementById("import-other-load").style.display = "block";
+        
+        // If the given url is valid then make an api call for it
+        chrome.extension.getBackgroundPage().getPlaylistById(id, function(response){
+          // If there is an error, then display the error message for the user
+          if(response.error){
+            document.getElementById("import-other-error").style.display = "block";
+            document.getElementById("invalid-url-error").style.display = "none";
+            document.getElementById("import-other-api-error").style.display = "block";
+            document.getElementById("import-other-load").style.display = "none";
+            if(response.error.code == 403){
+              document.getElementById("import-other-api-error-msg").innerHTML = "You do not have access to this private playlist";
+            }
+            else{
+              document.getElementById("import-other-api-error-msg").innerHTML = response.error.message;
+            }
+            
+          }
+          // If there is no error then obtain all the videos in the playlist in order to display them for the
+          // user to select 
+          else{
+            var results = [];
+            results.push(response);
+            if(response.nextPageToken){
+              nextPlaylistPage(results, id);
+            }
+            else{
+              displayPlaylistResults(results);
+              
+            }
+            
+          }
+        });
+      }
+      else{
+        // If the given url is invalid then display an error message
+        document.getElementById("import-other-error").style.display = "block";
+        document.getElementById("invalid-url-error").style.display = "block";
+        document.getElementById("import-other-api-error").style.display = "none";
+      }
+    }
+  }
+  
   function hideModals(){
     var modals = document.getElementsByClassName("modal");
     for(i = 0; i < modals.length; i++){
@@ -736,6 +927,10 @@ function initListeners(){
   document.getElementById("transparent-overlay").onclick = hideModals;
   
   playlistPopup.addEventListener("cancel", function(){
+    document.getElementById("import-other-url-input").style.display = "block";
+    document.getElementById("import-other-url-input").value = "";
+    document.getElementById("import-other-load").style.display = "none";
+    document.getElementById("import-other-success").style.display = "none";
     cancelCreateButton.click();
   });
   
@@ -1016,9 +1211,6 @@ function addPlaylistCancel(){
   createPlaylistButton.removeEventListener("click", editPlaylistCreate);
   cancelCreateButton.removeEventListener("click", addPlaylistCancel);
 }
-
-
-
 
 var videoIndexes = []; // Array to keep track of the indexes of the videos for when users want to delete videos from playlists
 function displayPlaylistVideoThumbnails(playlist){
@@ -1527,12 +1719,11 @@ function createPlaylistDiv(playlistObj){
   div.appendChild(infoContainer);
   div.appendChild(settings);
   document.getElementById("playlist-display").appendChild(div);
-  
 }
 
-function addPlaylistDiv(name, image, usingDefaultImage, videos){
+function addPlaylistToPlaylistCollection(name, image, usingDefaultImage, videos){
   var uid = new Date().getTime().toString();
-  createPlaylistDiv({containsPlaylist: false, name: name, image:image, videos: videos});
+  
   var videoCollection = [];
   if(typeof videos != "undefined"){
     videoCollection = videos;
@@ -1542,9 +1733,28 @@ function addPlaylistDiv(name, image, usingDefaultImage, videos){
     image: image,
     usingDefaultImage: usingDefaultImage,
     videos: videoCollection,
-    uid: uid,
-  };
+    uid: uid
+  }
   chrome.extension.getBackgroundPage().addPlaylist(playlistObj);
+  return playlistObj;
+}
+
+function addPlaylistDiv(name, image, usingDefaultImage, videos){
+  //var uid = new Date().getTime().toString();
+  createPlaylistDiv({containsPlaylist: false, name: name, image:image, videos: videos});
+  /*var videoCollection = [];
+  if(typeof videos != "undefined"){
+    videoCollection = videos;
+  }
+  var playlistObj = {
+    name: name,
+    image: image,
+    usingDefaultImage: usingDefaultImage,
+    videos: videoCollection,
+    uid: uid
+  };
+  chrome.extension.getBackgroundPage().addPlaylist(playlistObj);*/
+  addPlaylistToPlaylistCollection(name, image, usingDefaultImage, videos);
 }
 
 function displayPlaylists(){
@@ -1634,6 +1844,7 @@ function loadDivs(){
   importUserContainer = document.getElementById("import-your-playlist-container");
   importOther = document.getElementById("import-other-playlist");
   importOtherContainer = document.getElementById("import-other-playlist-container");
+  importOtherUrlInput = document.getElementById("import-other-url-input");
   
   currTime = document.getElementById("control-time-curr");
   endTime = document.getElementById("control-time-end");

@@ -891,6 +891,10 @@ function getPlaylistLength(playlistIndex){
   return length;
 }
 
+function getPlaylistCollectionLength(){
+  return playlistUids.length;
+}
+
 function getPlaylist(playlistIndex){
   return playlistCollection.get(playlistUids[playlistIndex]);
 }

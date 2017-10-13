@@ -372,13 +372,19 @@ function initListeners(){
         currVideoId = undefined;
         playlistInfo.playingPlaylist = -1;
       }
+      if(playlistInfo.viewingPlaylist == playlistInfo.editingPlaylist &&
+         window.getComputedStyle(document.getElementById("playerImage")).display != "none"){
+        document.getElementById("playerImage").style.display = "none";
+        document.getElementById("video-bar").style.display = "none";
+        for(i = 0; i < videoListPlayButtons.length; i++){
+          videoListPlayButtons[i].parentNode.parentNode.removeChild(videoListPlayButtons[i].parentNode);
+        }
+        videoListPlayButtons = [];
+      }
       editPlaylistId = undefined;
       playlistInfo.editingPlaylist = -1;
       
-      for(i = 0; i < videoListPlayButtons.length; i++){
-        videoListPlayButtons[i].parentNode.parentNode.removeChild(videoListPlayButtons[i].parentNode);
-      }
-      videoListPlayButtons = [];
+      
       
       deletePlaylistPopup.style.display = "none";
       overlay.style.display = "none";
@@ -821,7 +827,7 @@ function initListeners(){
           if(numFinishedCalls == resultsList.length){
             var playlistObj = addPlaylistToPlaylistCollection("New Playlist", "images/default_playlist_img.png", true, videos);
             createPlaylistDiv({containsPlaylist: true,
-                               index: chrome.extension.getBackgroundPage().getInfo({id:"playlistCount"}) - 1,
+                               index: chrome.extension.getBackgroundPage().getPlaylistCollectionLength() - 1,
                                name: "New Playlist",
                                playlist: playlistObj,
                                numVideos: playlistObj.videos.length
@@ -962,7 +968,14 @@ function initListeners(){
     }
     else{
       timeBar.value = 0;
+      document.getElementById("control-time-bar-progress").style.width = "0%";
     }
+  }
+  
+  timeBar.oninput = function(){
+    var timeBarLength = 145 - ((1 - (this.value / this.max)) * 145) - (15 * (this.value / this.max)) + "px";
+    
+    document.getElementById("control-time-bar-progress").style.width = timeBarLength;
   }
 }
 
@@ -994,11 +1007,11 @@ function initTimeBar(curr, end){
   if(endSecs < 10){
     endTimeStr = endMins + ":0" + endSecs;
   }
-  var timeBarLength = ((curr / end) * 100);
+  var timeBarLength = 145 - ((1 - (curr / end)) * 145) - (15 * (curr / end)) + "px";
   
   currTime.innerHTML = currTimeStr;
   endTime.innerHTML = endTimeStr;
-  //timeBar.style.width = timeBarLength + "%";
+  document.getElementById("control-time-bar-progress").style.width = timeBarLength;
   timeBar.max = end;
   timeBar.value = curr;
   timeBar.addEventListener("input", updateTimeBarValue);
@@ -1013,8 +1026,8 @@ function initTimeBar(curr, end){
         currTimeStr = currMins + ":0" + currSecs;
       }
       currTime.innerHTML = currTimeStr;
-      timeBarLength = ((timeElapsed / end) * 100);
-      //timeBar.style.width = timeBarLength + "%";
+      timeBarLength = 145 - ((1 - (timeElapsed / end)) * 145) - (15 * (timeElapsed / end)) + "px";
+      document.getElementById("control-time-bar-progress").style.width = timeBarLength;
       timeBar.value = timeElapsed;
     }
     

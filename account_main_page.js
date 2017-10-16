@@ -195,10 +195,19 @@ function onPagePlayerStateChange(event){
     // Set popup status, pause video, and seek to the beginning and wait for the 
     // background page to finish loading the video
     if(pagePlayerStatus == "waitingForSync"){
+      var video = chrome.extension.getBackgroundPage().getCurrVideo();
+      if(typeof video != "undefined" || typeof video.startTime != "undefined"){
+        pagePlayer.seekTo(video.startTime);
+        initTimeBar(video.startTime, pagePlayer.getDuration());
+      }
+      else{
+        pagePlayer.seekTo(0);
+        initTimeBar(0, pagePlayer.getDuration());
+      }
       pagePlayer.pauseVideo();
-      pagePlayer.seekTo(0);
+      
       stopTimeBar();
-      initTimeBar(0, pagePlayer.getDuration());
+      
     }
     else if(pagePlayerStatus == "seeking"){
       pagePlayer.pauseVideo();
@@ -246,7 +255,7 @@ function onPagePlayerStateChange(event){
       updateVideoListPlayButtons(index, undefined);
     }
     
-    updatePlayPlaylistButton(false);
+    //updatePlayPlaylistButton(false);
     updateControlPanelPlayButton(false);
   }
   else if(event.data == YT.PlayerState.BUFFERING){
@@ -842,14 +851,17 @@ function initListeners(){
   }
   
   document.getElementById("import-other-results-cancel-button").onclick = function(){
+    playlistPopup.dispatchEvent(cancelEvent);
+  }
+  
+  function clearImportList(){
     var container = document.getElementById("import-other-results");
     while(container.firstChild){
       container.removeChild(container.firstChild);
     }
-    this.style.display = "none";
+    document.getElementById("import-other-results-cancel-button").style.display = "none";
     document.getElementById("import-other-results-button").style.display = "none";
     container.style.display = "none";
-    playlistPopup.dispatchEvent(cancelEvent);
   }
   
   document.getElementById("import-other-success-exit-button").onclick = function(){
@@ -937,6 +949,7 @@ function initListeners(){
     document.getElementById("import-other-url-input").value = "";
     document.getElementById("import-other-load").style.display = "none";
     document.getElementById("import-other-success").style.display = "none";
+    clearImportList();
     cancelCreateButton.click();
   });
   
@@ -948,13 +961,74 @@ function initListeners(){
     document.getElementById("settings-button").click();
   });
   
+  document.getElementById("edit-video-modal").addEventListener("cancel", function(){
+    cancelButton.click();
+  });
+  
+  document.getElementById("edit-video-modal").onkeypress = function(){
+    if(event.keyCode == KEYCODE_ENTER){
+      document.getElementById("edit-video-confirm-button").click();
+    }
+  };
+  
+  document.getElementById("edit-video-cancel-button").onclick = function(){
+    containerToRemove = undefined;
+    videoIndexToRemove = undefined;
+    settingsIndex = undefined;
+    overlay.style.display = "none";
+    document.getElementById("edit-video-modal").style.display = "none";
+  }
+  
+  document.getElementById("edit-video-confirm-button").onclick = function(){
+    var titleInput = document.getElementById("edit-title-input");
+    var artistInput = document.getElementById("edit-artist-input");
+    var startMin = document.getElementById("edit-start-input-min");
+    var startSec = document.getElementById("edit-start-input-sec");
+    var endMin = document.getElementById("edit-end-input-min");
+    var endSec = document.getElementById("edit-end-input-sec");
+    containerToRemove.childNodes[1].innerHTML = titleInput.value;
+    containerToRemove.childNodes[2].innerHTML = artistInput.value;
+    chrome.extension.getBackgroundPage().editVideo(titleInput.value, 
+                                                   artistInput.value, 
+                                                   videoIndexes[videoIndexToRemove], 
+                                                   playlistInfo.viewingPlaylist,
+                                                   parseInt(startMin.value),
+                                                   parseInt(startSec.value),
+                                                   parseInt(endMin.value),
+                                                   parseInt(endSec.value));
+    document.getElementById("edit-video-cancel-button").click();  
+  }
+  
+  document.getElementById("edit-start-input-min").oninput = function(){
+    if(document.getElementById("edit-start-input-min").value > document.getElementById("edit-start-input-min").max){
+      document.getElementById("edit-start-input-min").value = document.getElementById("edit-start-input-min").max;
+    }
+  }
+  
+  document.getElementById("edit-start-input-sec").oninput = function(){
+    if(document.getElementById("edit-start-input-sec").value > document.getElementById("edit-start-input-sec").max){
+      document.getElementById("edit-start-input-sec").value = document.getElementById("edit-start-input-sec").max;
+    }
+  }
+  
+  document.getElementById("edit-end-input-min").oninput = function(){
+    if(document.getElementById("edit-end-input-min").value > document.getElementById("edit-end-input-min").max){
+      document.getElementById("edit-end-input-min").value = document.getElementById("edit-end-input-min").max;
+    }
+  }
+  
+  document.getElementById("edit-end-input-sec").oninput = function(){
+    if(document.getElementById("edit-end-input-sec").value > document.getElementById("edit-end-input-sec").max){
+      document.getElementById("edit-end-input-sec").value = document.getElementById("edit-end-input-sec").max;
+    }
+  }
+  
   timeBar.onmousedown = function(){
     timeSliderDown = true;
   }
   
   timeBar.onmouseup = function(){
     timeSliderDown = false; 
-    //pagePlayer.seekTo(this.value, true);
     if(pagePlayer.getPlayerState() != -1 && pagePlayer.getVideoUrl() != "https://www.youtube.com/watch"){
       chrome.extension.getBackgroundPage().seekTo(this.value);
       var currMins = Math.floor(this.value / 60);
@@ -1498,100 +1572,41 @@ function editVideo(){
   var video = chrome.extension.getBackgroundPage().getInfo({id:"video",               
                                                             playlistNumber:playlistInfo.viewingPlaylist,
                                                             videoNumber:videoIndexToRemove});
-  var editVideoDiv = document.createElement("div");
-  editVideoDiv.style.position = "absolute";
-  editVideoDiv.style.border = "1px solid black";
-  editVideoDiv.style.width = "500px";
-  editVideoDiv.style.height = "350px";
-  editVideoDiv.style.top = "100px";
-  editVideoDiv.style.left = "125px";
-  editVideoDiv.style.backgroundColor = "white";
-  editVideoDiv.style.zIndex = "1000";
-  editVideoDiv.classList.add("modal");
-  var titleText = document.createElement("div");
-  titleText.innerHTML = "Title";
-  titleText.style.position = "absolute";
-  titleText.style.top = "10px";
-  titleText.style.left = "25px";
-  var titleInput = document.createElement("input");
-  titleInput.style.position = "absolute";
-  titleInput.style.border = "1px solid black";
-  titleInput.style.width = "300px";
-  titleInput.style.height = "25px";
-  titleInput.style.top = "30px";
-  titleInput.style.left = "25px";
+  var editVideoDiv = document.getElementById("edit-video-modal");
+  editVideoDiv.style.display = "block";
+  var titleInput = document.getElementById("edit-title-input");
   titleInput.value = video.videoTitle;
-  titleInput.maxlength = 100;
-  var artistText = document.createElement("div");
-  artistText.innerHTML = "Artist";
-  artistText.style.position = "absolute";
-  artistText.style.top = "80px";
-  artistText.style.left = "25px";
-  var artistInput = document.createElement("input");
-  artistInput.style.position = "absolute";
-  artistInput.style.border = "1px solid black";
-  artistInput.style.height = "25px";
-  artistInput.style.width = "300px";
-  artistInput.style.top = "100px";
-  artistInput.style.left = "25px";
+  var artistInput = document.getElementById("edit-artist-input");
   artistInput.value = video.channelTitle;
-  artistInput.maxlength = 100;
-  var cancelButton = document.createElement("div");
-  cancelButton.style.position = "absolute";
-  cancelButton.style.border = "1px solid black";
-  cancelButton.style.height = "30px";
-  cancelButton.style.width = "75px";
-  cancelButton.style.top = "300px";
-  cancelButton.style.left = "150px";
-  cancelButton.innerHTML = "Cancel";
-  cancelButton.onclick = function(){
-    document.body.removeChild(editVideoDiv);
-    containerToRemove = undefined;
-    videoIndexToRemove = undefined;
-    settingsIndex = undefined;
-    overlay.style.display = "none";
+  var startTimeMin = document.getElementById("edit-start-input-min");
+  var startTimeSec = document.getElementById("edit-start-input-sec");
+  if(typeof video.startTime == "undefined"){
+    startTimeMin.value = 0;
+    startTimeSec.value = 0;
   }
-  cancelButton.classList.add("button");
-  var confirmButton = document.createElement("div");
-  confirmButton.style.position = "absolute";
-  confirmButton.style.border = "1px solid black";
-  confirmButton.style.height = "30px";
-  confirmButton.style.width = "75px";
-  confirmButton.style.top = "300px";
-  confirmButton.style.left = "250px";
-  confirmButton.innerHTML = "Confirm";
-  confirmButton.onclick = function(){
-    containerToRemove.childNodes[1].innerHTML = titleInput.value;
-    containerToRemove.childNodes[2].innerHTML = artistInput.value;
-    chrome.extension.getBackgroundPage().editVideo(titleInput.value, 
-                                                   artistInput.value, 
-                                                   videoIndexes[videoIndexToRemove], 
-                                                   playlistInfo.viewingPlaylist);
-    document.body.removeChild(editVideoDiv);
-    containerToRemove = undefined;
-    videoIndexToRemove = undefined;
-    settingsIndex = undefined;
-    overlay.style.display = "none";
+  else{
+    startTimeMin.value = Math.floor(video.startTime / 60);
+    startTimeSec.value = video.startTime % 60;
   }
-  confirmButton.classList.add("button");
-  editVideoDiv.appendChild(titleInput);
-  editVideoDiv.appendChild(titleText);
-  editVideoDiv.appendChild(artistInput);
-  editVideoDiv.appendChild(artistText);
-  editVideoDiv.appendChild(cancelButton);
-  editVideoDiv.appendChild(confirmButton);
+  var endTimeMin = document.getElementById("edit-end-input-min");
+  var endTimeSec = document.getElementById("edit-end-input-sec");
+  if(typeof video.endTime == "undefined"){
+    var start = video.duration.indexOf("PT") + 2;
+    var end = video.duration.indexOf("M");
+    var min = parseInt(video.duration.slice(start, end));
+    var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
+    endTimeMin.value = min;
+    endTimeSec.value = sec;
+    endTimeMin.max = min;
+    startTimeMin.max = min;
+  }
+  else{
+    endTimeMin.value = Math.floor(video.endTime / 60);
+    endTimeSec.value = video.endTime % 60;
+    endTimeMin.max = Math.floor(video.endTime / 60);
+    startTimeMin.max = Math.floor(video.endTime / 60);
+  }
   
-  editVideoDiv.onkeypress = function(){
-    if(event.keyCode == KEYCODE_ENTER){
-      confirmButton.click();
-    }
-  };
-  
-  editVideoDiv.addEventListener("cancel", function(){
-    cancelButton.click();
-  })
-  
-  document.body.appendChild(editVideoDiv);
   titleInput.focus();
 }
 
@@ -2109,13 +2124,28 @@ function updatePlaylistDivImage(playlistIndex){
 function play(video){
   if(video.videoId != currVideoId){
     pagePlayerStatus = "waitingForSync";
-    pagePlayer.loadVideoById(video.videoId, 0, quality);
-    chrome.extension.getBackgroundPage().loadVideo(video.videoId);
+    if(typeof video.startTime == "undefined" || typeof video.endTime == "undefined"){
+      pagePlayer.loadVideoById(video.videoId, 0, quality);
+    }
+    else{
+      pagePlayer.loadVideoById({"videoId": video.videoId,
+                                "startSeconds": video.startTime,
+                                "endSeconds": video.endTime,
+                                "suggestedQuality": quality});
+    }
+    chrome.extension.getBackgroundPage().loadVideo(video);
     currVideoId = video.videoId;
   }
   else{
-    pagePlayer.seekTo(0);
-    chrome.extension.getBackgroundPage().seekTo(0);
+    var video = chrome.extension.getBackgroundPage().getCurrVideo();
+    if(typeof video != "undefined" && typeof video.startTime != "undefined"){
+      pagePlayer.seekTo(video.startTime);
+      chrome.extension.getBackgroundPage().seekTo(video.startTime);
+    }
+    else{
+      pagePlayer.seekTo(0);
+      chrome.extension.getBackgroundPage().seekTo(0);
+    }
     pagePlayer.playVideo();
   }
 }

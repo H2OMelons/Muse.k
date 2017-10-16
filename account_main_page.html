@@ -739,7 +739,24 @@
       <div id="addVideoCancelButton">Cancel</div>
       <div id="addVideoConfirmButton">Confirm</div>
     </div>
-    
+    <div id="edit-video-modal" class="modal">
+      <div id="edit-title-label" class="edit-video-label">Title</div>
+      <input id="edit-title-input" maxlength="100"/>
+      <div id="edit-artist-label" class="edit-video-label">Artist</div>
+      <input id="edit-artist-input" maxlength="100"/>
+      <div id="edit-start-label" class="edit-video-label">Start Time</div>
+      <input id="edit-start-input-min" type="number" min="0">
+      <div id="edit-start-input-min-label">mins</div>
+      <input id="edit-start-input-sec" type="number" min="0" max="59"/>
+      <div id="edit-start-input-sec-label">secs</div>
+      <div id="edit-end-label" class="edit-video-label">End Time</div>
+      <input id="edit-end-input-min" type="number" min="0">
+      <div id="edit-end-input-min-label">mins</div>
+      <input id="edit-end-input-sec" type="number" min="0" max="59"/>
+      <div id="edit-end-input-sec-label">secs</div>
+      <div id="edit-video-cancel-button" class="button small-font">Cancel</div>
+      <div id="edit-video-confirm-button" class="button small-font">Confirm</div>
+    </div>
     <div id="overlay"></div>
     <div id="transparent-overlay"></div>
   </body>

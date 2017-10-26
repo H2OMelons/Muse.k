@@ -44,6 +44,9 @@ tag.src = "https://www.youtube.com/iframe_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
+
+
+
 var player;
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
@@ -127,7 +130,6 @@ function onPlayerStateChange(event) {
   }
 }
 
-
 function playVideo(){
   backgroundPlayerStatus = "ready";
   player.playVideo();
@@ -156,7 +158,6 @@ function loadVideo(video){
   }
   
 }
-
 
 function initQueue(startVideoIndex, playlistIndex){
   var videos = playlistCollection.get(playlistUids[playlistIndex]).videos;
@@ -331,8 +332,6 @@ function addToQueue(video, index){
                        index: index});
 }
 
-
-
 function updatePlaylist(playlist, playlistIndex){
   playlistCollection.delete(playlistUids[playlistIndex]);
   playlistCollection.set(playlistUids[playlistIndex], playlist);
@@ -344,8 +343,6 @@ function updatePlaylist(playlist, playlistIndex){
     }
   });
 }
-
-
 
 function addPlaylist(playlist){
   playlistUids.push(playlist.uid);
@@ -574,14 +571,14 @@ function buildApiRequest(requestMethod, path, params, properties){
 }
 
 function requestUserInfo(object, callback){
-  gapi.auth.setToken({access_token: object.token});
+  /*gapi.auth.setToken({access_token: object.token});
   gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
   callback(buildApiRequest(
     "GET",
     "/youtube/v3/channels",
     {"mine": "true",
      "part": "snippet"
-  }));
+  }));*/
 }
 
 function requestPlaylists(callback){
@@ -628,7 +625,7 @@ function getPlaylistByIdNextPage(id, nextPageToken, callback){
 }
 
 function search(keywords, callback){
-  gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
+  //gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
   executeRequest(buildApiRequest(
     "GET",
     "/youtube/v3/search",
@@ -656,10 +653,6 @@ function updateUserAccountStatus(status){
   accountStatus = status;
   chrome.storage.sync.set({"account" : status}, undefined);
 }
-
-
-
-
 
 function editVideo(newTitle, newArtist, videoIndex, playlistIndex, startMin, startSec, endMin, endSec){
   var playlist = playlistCollection.get(playlistUids[playlistIndex]);
@@ -827,6 +820,7 @@ function resetAccount(){
 chrome.runtime.onStartup.addListener(function(){
   //userSetup();
   onStart();
+  
 });
 
 chrome.runtime.onInstalled.addListener(function(details){
@@ -854,7 +848,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 chrome.runtime.onConnect.addListener(function(port){
   popupOpen = true;
   gapi.load("client", function(){
-    gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
+    gapi.client.setApiKey("AIzaSyBwpCPpLRdifG4iv5kKRDqVpQbANJgzAMI"); 
   });
   
   port.onDisconnect.addListener(function(){
@@ -897,6 +891,10 @@ function setVolume(vol){
     player.setVolume(vol.volume);
   }
   chrome.storage.sync.set({"volume": vol}, undefined);
+}
+
+function setToken(token){
+  gapi.client.setToken(token);
 }
 
 function getPlaylistImage(playlistIndex, type){

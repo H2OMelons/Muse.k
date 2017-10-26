@@ -106,7 +106,6 @@ tag.src = "https://www.youtube.com/iframe_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-
 var modalPlayer = undefined;
 var pagePlayer = undefined;
 function onYouTubeIframeAPIReady() {
@@ -295,8 +294,6 @@ function onPagePlayerReady(){
   }
   console.log("page player ready");
 }
-
-
 
 function initListeners(){
   // Opens a window for the user to add a playlist and closes the window 
@@ -644,14 +641,31 @@ function initListeners(){
     }
   }
   document.getElementById("sign-in-button").onclick = function(){
-    /*chrome.identity.getAuthToken({'interactive' : true}, function(token){
+    chrome.identity.getAuthToken({'interactive' : true}, function(token){
+      document.getElementById("signin-ui").style.display = "none";
       if(chrome.runtime.lastError){
-        chrome.extension.getBackgroundPage().console.log("sign in unsuccessful");
+        document.getElementById("try-again").style.display = "block";
       }
       else{
-        chrome.extension.getBackgroundPage().console.log("sign in success");
+        chrome.extension.getBackgroundPage().setToken({access_token: token});
+        document.getElementById("url-or-display-all-selection-container").style.display = "block";
+        document.getElementById("url-selection-button-container").style.display = "block";
       }
-    });*/
+    });
+  }
+  
+  document.getElementById("try-again-button").onclick = function(){
+    chrome.identity.getAuthToken({'interactive': true}, function(token){
+      if(chrome.runtime.lastError){
+        
+      }
+      else{
+        chrome.extension.getBackgroundPage().setToken({access_token: token});
+        document.getElementById("try-again").style.display = "none";
+        document.getElementById("url-or-display-all-selection-container").style.display = "block";
+        document.getElementById("url-selection-button-container").style.display = "block";
+      }
+    });
   }
   
   var currSelection = 1;
@@ -688,6 +702,8 @@ function initListeners(){
     }
   }
   
+  var logout = false;
+  
   importUser.onclick = function(){
     if(currSelection != 2){
       currSelection = 2;
@@ -697,25 +713,42 @@ function initListeners(){
       chrome.identity.getAuthToken({'interactive' : false}, function(token){
         if(chrome.runtime.lastError){
           document.getElementById("signin-ui").style.display = "block";
-           /*chrome.identity.getAuthToken({'interactive' : true}, function(token){
-            if(chrome.runtime.lastError){
-              changeState(signInFail);
-            }
-            else{
-              setUserInfo(token, function(){
-                changeState(signInSuccess);
-              });   
-            }
-           });*/
+          document.getElementById("try-again").style.display = "none";
+          document.getElementById("url-or-display-all-selection-container").style.display = "none";
+          document.getElementById("url-selection-container").style.display = "none";
+          document.getElementById("display-all-selection-container").style.display = "none";
+          document.getElementById("url-selection-results-button").style.display = "none";
+          document.getElementById("url-selection-results-cancel-button").style.display = "none";
         }
         else{
-          //setUserInfo(token, function(){
-          //  changeState(signInSuccess);
-          //}); 
+          chrome.extension.getBackgroundPage().setToken({access_token: token});
+          if(logout){
+            chrome.identity.removeCachedAuthToken({'token': token}, function(){
+              log("success");
+            });
+          }
+          // Display 2 button choices: import by url and display all playlists
+          document.getElementById("url-or-display-all-selection-container").style.display = "block";
+          document.getElementById("url-selection-url-input").value = "";
+          document.getElementById("url-selection-button-container").style.display = "block";
+          document.getElementById("url-selection-container").style.display = "none";
+          document.getElementById("display-all-selection-container").style.display = "none";
+          document.getElementById("url-selection-results-button").style.display = "none";
+          document.getElementById("url-selection-results-cancel-button").style.display = "none";
         }
       });
     }
-  }
+  };
+  
+  document.getElementById("url-selection-button").onclick = function(){
+    document.getElementById("url-selection-button-container").style.display = "none";
+    document.getElementById("url-selection-container").style.display = "block";
+  };
+  
+  document.getElementById("display-all-selection-button").onclick = function(){
+    document.getElementById("url-selection-button-container").style.display = "none";
+    document.getElementById("display-all-selection-container").style.display = "block";
+  };
   
   importOther.onmouseenter = function(){
     if(currSelection != 3){
@@ -738,20 +771,25 @@ function initListeners(){
     }
   }
   
-  function nextPlaylistPage(results, id){
+  function nextPlaylistPage(results, id, container, type){
     chrome.extension.getBackgroundPage().getPlaylistByIdNextPage(id, 
                                                                  results[results.length - 1].nextPageToken,
                                                                  function(response){
       if(response.error){
-        document.getElementById("import-other-load").style.display = "none";
+        if(type == "url-selection"){
+          document.getElementById("url-selection-load").style.display = "none";
+        }
+        else if(type == "import-other"){
+          document.getElementById("import-other-load").style.display = "none";
+        }
       }
       else{
         results.push(response);
         if(response.nextPageToken){
-          nextPlaylistPage(results, id);
+          nextPlaylistPage(results, id, container, type);
         }
         else{
-          displayPlaylistResults(results);
+          displayPlaylistResults(results, container, type);
         }
       }
     });
@@ -759,12 +797,12 @@ function initListeners(){
   
   var importList = [];
   var resultsList = [];
-  function displayPlaylistResults(results){
+  function displayPlaylistResults(results, container, type){
     // Reset the importList and resultsList
     importList = [];
     resultsList = [];
     // Reset the results container so that the previous results aren't shown with the current results
-    var container = document.getElementById("import-other-results");
+    //var container = document.getElementById("import-other-results");
     while(container.firstChild){
       container.removeChild(container.firstChild);
     }
@@ -775,22 +813,33 @@ function initListeners(){
         importList.push(true);
         resultsList.push(results[i].items[j]);
         var id = importList.length - 1;
-        createResultDisplay(id, results[i].items[j].snippet.title);
+        createResultDisplay(id, results[i].items[j].snippet.title, container);
       }
       
     }
     // Turn off the loading animation when done displaying the results
     container.style.display = "block";
-    document.getElementById("import-other-results-button").style.display = "block";
-    document.getElementById("import-other-results-cancel-button").style.display = "block";
-    document.getElementById("import-other-load").style.display = "none";
+    
+    if(type == "url-selection"){
+      
+      document.getElementById("url-selection-load").style.display = "none";
+    }
+    else if(type == "import-other"){
+      document.getElementById("import-other-results-button").style.display = "block";
+      document.getElementById("import-other-results-cancel-button").style.display = "block";
+      document.getElementById("import-other-load").style.display = "none";
+    }
+    
+    
   }
   
-  function createResultDisplay(id, videoTitle){
+  function createResultDisplay(id, videoTitle, container){
     var resultsDisplay = document.createElement("div");
     var checkBox = document.createElement("input");
     var title = document.createElement("div");
-    
+    title.style.height = "inherit";
+    title.style.position = "absolute";
+    title.style.left = "20px";
     resultsDisplay.classList.add("import-other-results-display-container");
     checkBox.classList.add("float-left");
     title.classList.add("float-left");
@@ -808,7 +857,8 @@ function initListeners(){
     resultsDisplay.appendChild(checkBox);
     title.innerHTML = videoTitle;
     resultsDisplay.appendChild(title);
-    document.getElementById("import-other-results").appendChild(resultsDisplay);
+    //document.getElementById("import-other-results").appendChild(resultsDisplay);
+    container.appendChild(resultsDisplay);
     
     resultsDisplay.onclick = function(e){
       if(e.path[0] == this){
@@ -850,7 +900,41 @@ function initListeners(){
     }
   }
   
+  document.getElementById("url-selection-results-button").onclick = function(){
+    document.getElementById("url-selection-load").style.display = "none";
+    document.getElementById("url-selection-results-button").style.display = "none";
+    document.getElementById("url-selection-results-cancel-button").style.display = "none";
+    document.getElementById("url-selection-results-container").style.display = "none";
+    var videos = [];
+    var numFinishedCalls = 0;
+    for(i = 0; i < resultsList.length; i++){
+      if(importList[i]){
+        chrome.extension.getBackgroundPage().createVideo(resultsList[i].snippet.resourceId.videoId, function(video){
+          if(typeof video != "undefined"){
+            videos.push(video);
+          }
+          numFinishedCalls++;
+          if(numFinishedCalls == resultsList.length){
+            var playlistObj = addPlaylistToPlaylistCollection("New Playlist", "images/default_playlist_img.png", true, videos);
+            createPlaylistDiv({containsPlaylist: true,
+                               index: chrome.extension.getBackgroundPage().getPlaylistCollectionLength() - 1,
+                               name: "New Playlist",
+                               playlist: playlistObj,
+                               numVideos: playlistObj.videos.length
+                              });
+            document.getElementById("url-selection-load").style.display = "none";
+            document.getElementById("url-selection-success").style.display = "block";
+          }
+        });
+      }
+    }
+  }
+  
   document.getElementById("import-other-results-cancel-button").onclick = function(){
+    playlistPopup.dispatchEvent(cancelEvent);
+  }
+  
+  document.getElementById("url-selection-results-cancel-button").onclick = function(){
     playlistPopup.dispatchEvent(cancelEvent);
   }
   
@@ -912,13 +996,11 @@ function initListeners(){
             var results = [];
             results.push(response);
             if(response.nextPageToken){
-              nextPlaylistPage(results, id);
+              nextPlaylistPage(results, id, document.getElementById("import-other-results"), "import-other");
             }
             else{
-              displayPlaylistResults(results);
-              
+              displayPlaylistResults(results, document.getElementById("import-other-results"), "import-other");
             }
-            
           }
         });
       }
@@ -929,6 +1011,61 @@ function initListeners(){
         document.getElementById("import-other-api-error").style.display = "none";
       }
     }
+  }
+  
+  document.getElementById("url-selection-url-input").onkeyup = function(){
+    if(event.keyCode == KEYCODE_ENTER){
+      var input = document.getElementById("url-selection-url-input").value;
+      var type = "list=";
+      var startIndex = input.indexOf(type) + type.length;
+      var id = input.slice(startIndex, startIndex + 34);
+      if(startIndex != -1 && id.length == 34 && !id.includes("&")){
+        if(window.getComputedStyle(document.getElementById("url-selection-error")).display != "none"){
+          document.getElementById("url-selection-error").style.display = "none";
+        }
+        
+        // Start the loading animation
+        document.getElementById("url-selection-load").style.display = "block";
+        
+        // If the given url is valid then make an api call for it
+        chrome.extension.getBackgroundPage().getPlaylistById(id, function(response){
+          // If there is an error, then display the error message for the user
+          if(response.error){
+            document.getElementById("url-selection-error").style.display = "block";
+            document.getElementById("url-selection-invalid-url-error").style.display = "none";
+            document.getElementById("url-selection-api-error").style.display = "block";
+            document.getElementById("url-selection-load").style.display = "none";
+            if(response.error.code == 403){
+              document.getElementById("url-selection-api-error-msg").innerHTML = "You do not have access to this private playlist";
+            }
+            else{
+              document.getElementById("url-selection-api-error-msg").innerHTML = response.error.message;
+            }
+            
+          }
+          // If there is no error then obtain all the videos in the playlist in order to display them for the
+          // user to select 
+          else{
+            var results = [];
+            results.push(response);
+            document.getElementById("url-selection-results-button").style.display = "block";
+            document.getElementById("url-selection-results-cancel-button").style.display = "block";
+            if(response.nextPageToken){
+              nextPlaylistPage(results, id, document.getElementById("url-selection-results-container"), "url-selection");
+            }
+            else{
+              displayPlaylistResults(results, document.getElementById("url-selection-results-container"), "url-selection");
+            }
+          }
+        });
+      }
+      else{
+        document.getElementById("url-selection-error").style.display = "block";
+        document.getElementById("url-selection-invalid-url-error").style.display = "block";
+        document.getElementById("url-selection-api-error").style.display = "none";
+      }
+    }
+    
   }
   
   function hideModals(){

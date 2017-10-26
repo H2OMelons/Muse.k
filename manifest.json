@@ -18,19 +18,17 @@
   },
   
   "oauth2": {
-    "client_id": "576480493485-t7gp4tmg0f8db1aep8t8r186cts7j7nv.apps.googleusercontent.com",
+    "client_id": "412798337675-5ghv6ttiiocf8fj3r9ki3qimh6q790vd.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/youtube.force-ssl",
-      "https://www.googleapis.com/auth/youtubepartner",
-      "https://www.google.com/accounts/OAuthGetRequestToken",
-      "https://www.google.com/accounts/OAuthAuthorizeToken",
-      "https://www.google.com/accounts/OAuthGetAccessToken"
+      "https://www.googleapis.com/auth/youtubepartner"
     ]
   },
   
   "permissions":[
     "identity",
     "storage",
+    "tabs",
     "https://www.youtube.com/iframe_api"
   ],
   

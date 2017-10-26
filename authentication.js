@@ -12,7 +12,7 @@ var loadedParts = 0;
 var maxLoadedParts = 2;
 
 signInButton.onclick = function(){
-  //interactiveSignIn();
+  interactiveSignIn();
   //changeState(load);
 }
 

@@ -558,7 +558,6 @@
   width: 400px;
   left: 50px;
   top: 90px;
-  
 }
 
 #import-other-results{
@@ -567,7 +566,83 @@
   height: 175px;
   width: 100%;
   overflow-y: scroll;
-  overflow-x: none;
+  overflow-x: hidden;
+}
+
+#url-or-display-all-selection-container{
+  position: absolute;
+  height: 200px;
+  width: 400px;
+  left: 50px;
+  top: 70px;
+  display: none;
+}
+
+#url-selection-button-container{
+  display: none;
+}
+
+#url-selection-button{
+  position: absolute;
+  border: 1px solid lightgray;
+  height: 25px;
+  width: 150px;
+  left: 100px;
+  top: 50px;
+  text-align: center;
+}
+
+#url-selection-container{
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: none;
+}
+
+#url-selection-results-container{
+  position: absolute;
+  height: 150px;
+  width: 400px;
+  left: 0px;
+  top: 40px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+#url-selection-load{
+  position: absolute;
+  left: 125px;
+  top: 50px;
+}
+
+#url-selection-error{
+  position: absolute;
+  top: 50px;
+}
+
+.url-selection-url-input{
+  position: absolute;
+  height: 20px;
+  width: 300px;
+  left: 45px;
+  top: 0;
+}
+
+#display-all-selection-button{
+  position: absolute;
+  border: 1px solid lightgray;
+  height: 25px;
+  width: 150px;
+  left: 100px;
+  top: 100px;
+  text-align: center;
+}
+
+#display-all-selection-container{
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: none;
 }
 
 #import-other-success{
@@ -585,6 +660,10 @@
   width: 75px;
   text-align: center;
   top: 102%;
+}
+
+.import-other-button.url-selection{
+  top: 97%;
 }
 
 .import-other-button.left{
@@ -605,6 +684,10 @@
   height: 20px;
   width: 100%;
   border-bottom: 1px solid lightgray;
+  overflow: hidden;
+  word-break: break-all;
+  word-wrap: break-word;
+  
 }
 
 .import-other-success-text{

@@ -649,10 +649,10 @@
           </div>
           <div id="signin-warning" style="position: absolute; top: 175px; left: 40px;">
             <i class="fa fa-info-circle" aria-hidden="true" style="float: left; line-height: 165%;"></i>
-            <div style="float: left; margin-left: 5px;"><!--Please login to your Youtube account to access your playlists-->Coming Soon</div>
+            <div style="float: left; margin-left: 5px;"><Please>Please login to your Youtube account to access your playlists</Please></div>
           </div>
         </div>
-        <div id="tryAgain" style="display: none">
+        <div id="try-again" style="display: none">
           <div id="header" style="padding-bottom: 5px">
               <loginText>Autherization Failed</loginText>
           </div>
@@ -660,26 +660,55 @@
             <button class = "AccountButton" id="try-again-button">TRY AGAIN</button>
           </div>
         </div>
-        <!--script src="authentication.js"></script>
-        <div class="container" id="loadAnimation">
-          <div class="loader">
-            <div class="sk-circle">
-              <div class="sk-circle1 sk-child"></div>
-              <div class="sk-circle2 sk-child"></div>
-              <div class="sk-circle3 sk-child"></div>
-              <div class="sk-circle4 sk-child"></div>
-              <div class="sk-circle5 sk-child"></div>
-              <div class="sk-circle6 sk-child"></div>
-              <div class="sk-circle7 sk-child"></div>
-              <div class="sk-circle8 sk-child"></div>
-              <div class="sk-circle9 sk-child"></div>
-              <div class="sk-circle10 sk-child"></div>
-              <div class="sk-circle11 sk-child"></div>
-              <div class="sk-circle12 sk-child"></div>
+        <div id="url-or-display-all-selection-container">
+          <div id="url-selection-button-container">
+            <div id="url-selection-button" class="button small-font">Enter URL</div>
+            <div id="display-all-selection-button" class="button small-font">Display My Playlists</div>
+          </div>
+          <div id="url-selection-container">
+            <input id="url-selection-url-input" autofocus class="url-selection-url-input"/>
+            <div id="url-selection-error" style="display: none;">
+              <div id="url-selection-invalid-url-error">
+                <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
+                Invalid URL. Please enter a playlist URL.
+              </div>
+              <div id="url-selection-api-error">
+                <i class="fa fa-exclamation-circle" aria-hidden="true" style="float: left; line-height: 145%;"></i>
+                <div id="url-selection-api-error-msg" style="float:left"></div>
+              </div>
             </div>
-            <div class="loader--text"></div>
-         </div>
-        </div-->
+            <div id="url-selection-results-container"></div>
+            <div id="url-selection-load" style="display: none;">
+              <div class="container" id="loadAnimation">
+                <div class="loader">
+                  <div class="sk-circle">
+                    <div class="sk-circle1 sk-child"></div>
+                    <div class="sk-circle2 sk-child"></div>
+                    <div class="sk-circle3 sk-child"></div>
+                    <div class="sk-circle4 sk-child"></div>
+                    <div class="sk-circle5 sk-child"></div>
+                    <div class="sk-circle6 sk-child"></div>
+                    <div class="sk-circle7 sk-child"></div>
+                    <div class="sk-circle8 sk-child"></div>
+                    <div class="sk-circle9 sk-child"></div>
+                    <div class="sk-circle10 sk-child"></div>
+                    <div class="sk-circle11 sk-child"></div>
+                    <div class="sk-circle12 sk-child"></div>
+                  </div>
+                  <div class="loader--text"></div>
+               </div>
+              </div>
+            </div>
+            <div id="url-selection-results-button" class="small-font import-other-button right button url-selection">Import</div>
+            <div id="url-selection-results-cancel-button" class="small-font import-other-button left button url-selection">Cancel</div>
+            <!--div id="url-selection-success">
+              <i class="fa fa-check fa-5x import-other-success-text" aria-hidden="true">Success!</i>
+              <div id="import-other-success-import-again-button" class="small-font import-other-button right button">Again</div>
+              <div id="import-other-success-exit-button" class="small-font import-other-button left button">Exit</div>
+            </div-->
+          </div>
+          <div id="display-all-selection-container"></div>
+        </div>
       </div>
       <div id="import-other-playlist-container" style="display: none">
         <input id="import-other-url-input" autofocus class="import-other-url-input"/>

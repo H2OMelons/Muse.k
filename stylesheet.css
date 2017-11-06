@@ -611,8 +611,31 @@
 
 #url-selection-load{
   position: absolute;
-  left: 125px;
-  top: 50px;
+  background-color: white;
+  top: -20px;
+  z-index: 100;
+  width: 100%;
+  height: 125%;
+  display: none;  
+}
+
+#url-selection-success{
+  position: absolute;
+  background-color: white;
+  top: -20px;
+  z-index: 100;
+  width: 100%;
+  height: 125%;
+  display: none;
+}
+
+#url-selection-continue-button{
+  position: absolute;
+  border: 1px solid lightgray;
+  top: 85%;
+  left: 40%;
+  width: 65px;
+  height: 25px;
 }
 
 #url-selection-error{
@@ -640,9 +663,55 @@
 
 #display-all-selection-container{
   position: absolute;
+  top: -15px;
   height: 100%;
   width: 100%;
   display: none;
+}
+
+#display-all-selection-results-container{
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+#display-all-selection-buttons-container{
+  position: absolute;
+  height: 25px;
+  width: 100%;
+  bottom: -30px;
+}
+
+#display-all-selection-cancel-button{
+  left: 20%;
+  width: 60px;
+}
+
+#display-all-selection-import-all-button{
+  left: 37%;
+  width: 85px;
+}
+
+#display-all-selection-import-button{
+  left: 60%;
+  width: 60px;
+}
+
+.display-all-selection-result{
+  position: relative;
+  height: 90px;
+  width: 120px;
+  border: 1px solid lightgray;
+  float: left;
+}
+
+.display-all-selection-buttons{
+  position: absolute;
+  border: 1px solid lightgray;
+  height: 25px;
+  text-align: center;
 }
 
 #import-other-success{

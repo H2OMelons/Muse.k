@@ -89,6 +89,8 @@ var playlistInfo = {playingPlaylist: -1,
 var videoListPlayButtons = [];
 var playlistSelectionContainerList = [];
 
+var currSelection = 1;
+
 var cancelEvent = new Event("cancel");
 
 var tag = document.createElement('script');
@@ -1000,7 +1002,7 @@ function initListeners(){
     });
   }
   
-  var currSelection = 1;
+  
   importDefault.onmouseenter = function(){
     if(currSelection != 1){
       importDefault.style.borderBottom = "2px solid gray";
@@ -1497,6 +1499,10 @@ function initListeners(){
     document.getElementById("import-other-url-input").value = "";
     document.getElementById("import-other-load").style.display = "none";
     document.getElementById("import-other-success").style.display = "none";
+    setImportDisplay({border: "2px solid gray", display: "block"},
+                     {border: "0px solid gray", display: "none"},
+                     {border: "0px solid gray", display: "none"});
+    currSelection = 1;
     clearImportList();
     cancelCreateButton.click();
   });
@@ -1814,6 +1820,7 @@ function displayPlaylistPopup(edit, uid){
     else{
       document.getElementById("playlistSetImageImage").src = playlist.image;
     }
+    
     playlistInputField.value = playlist.name;
     importUser.style.display = "none";
     importOther.style.display = "none";

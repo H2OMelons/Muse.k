@@ -638,6 +638,16 @@
   height: 25px;
 }
 
+#url-selection-logout-button{
+  position: absolute;
+  border: 1px solid lightgray;
+  top: -5%;
+  right: -5%;
+  width: 65px;
+  height: 25px;
+  text-align: center;
+}
+
 #url-selection-error{
   position: absolute;
   top: 50px;

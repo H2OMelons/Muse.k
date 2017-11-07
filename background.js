@@ -419,7 +419,6 @@ function deletePlaylist(uid){
       }
     });*/
     playlistCollection.delete(uid);
-    //playlistUids[playlistIndex] = -1;
     
     var j = 0;
     for(j = 0; j < playlistUids.length; j++){
@@ -1289,8 +1288,6 @@ function getCurrVideoId(){
   }
   return queue.playlist[queue.current].video.videoId;
 }
-
-
 
 function getCurrentTime(){
   return player.getCurrentTime();

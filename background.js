@@ -1177,16 +1177,7 @@ function getVideoByUid(uid, videoIndex){
  * Returns info depending on the data.id given
  */
 function getInfo(data){
-  if(data.id == "profileIcon"){
-    return profileIcon;
-  }
-  else if(data.id == "username"){
-    return username;
-  }
-  else if(data.id == "accountStatus"){
-    return accountStatus;
-  }
-  else if(data.id == "playlistCount"){
+  if(data.id == "playlistCount"){
     return playlistCollection.size;
   }
   else if(data.id == "playlistCollection"){
@@ -1201,7 +1192,6 @@ function getInfo(data){
   }
   else if(data.id == "playlist"){
     if(data.playlistNumber >= 0 && data.playlistNumber < playlistUids.length){
-      //return playlistCollection[data.playlistNumber];
       return playlistCollection.get(playlistUids[data.playlistNumber]);
     }
     else{
@@ -1223,14 +1213,12 @@ function getInfo(data){
   }
   else if(data.id == "currVideoBeingPlayed"){
     if(player.getPlayerState() >= 0 && typeof videoBeingPlayed != "undefined"){
-      //return playlistCollection[playlistBeingPlayed].videos[orderToPlayVideos[videoBeingPlayed]];
       return playlistCollection.get(playlistUids[playlistBeingPlayed]).videos[orderToPlayVideos[videoBeingPlayed]];
     } 
     
     return undefined;
   }
   else if(data.id == "video"){
-    //return playlistCollection[data.playlistNumber].videos[data.videoNumber];
     return playlistCollection.get(playlistUids[data.playlistNumber]).videos[data.videoNumber];
   }
   else if(data.id == "repeatStatus"){

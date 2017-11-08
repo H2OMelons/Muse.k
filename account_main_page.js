@@ -1676,42 +1676,6 @@ function setImportDisplay(defaultDisplay, userDisplay, otherDisplay){
   importOtherContainer.style.display = otherDisplay.display;
 }
 
-/**
- * @param videos-The list of videos that this playlist should have. If undefined set to be []
- * @param name-The name of the playlist. If undefined, set to be "New Playlist"
- * @param image-The default image for the playlist. If undefined then use system set default
- */
-function createNewPlaylist(videos, name, image){
-  var usingDefaultImg = false;
-  if(typeof videos == "undefined"){
-    videos = [];
-  }
-  if(typeof name == "undefined"){
-    name = "New Playlist";
-  }
-  if(typeof image == "undefined"){
-    image = "images/default_playlist_img.png";
-    usingDefaultImg = true;
-  }
-  // Create the actual playlist object and add it to the user's list of playlists
-  function createAndAddPlaylist(videos, name, image, usingDefaultImg, callback){
-    var uid = new Date().getTime().toString();
-    var playlistObj = {
-      name: name,
-      image: image,
-      usingDefaultImage: usingDefaultImg,
-      videos: videos,
-      uid: uid
-    }
-    chrome.extension.getBackgroundPage().addPlaylist(playlistObj);
-    
-    if(callback){
-      callback(playlistObj);
-    }
-  }
-  // Create the playlist display for the left column
-}
-
 var currSearchResultId = undefined;
 var selectedSearchResults = undefined;
 function createSearchResultDiv(videoInfo){
@@ -2199,24 +2163,6 @@ function editVideo(){
   titleInput.focus();
 }
 
-function addPlaylistToPlaylistCollection(name, image, usingDefaultImage, videos){
-  var uid = new Date().getTime().toString();
-  
-  var videoCollection = [];
-  if(typeof videos != "undefined"){
-    videoCollection = videos;
-  }
-  var playlistObj = {
-    name: name,
-    image: image,
-    usingDefaultImage: usingDefaultImage,
-    videos: videoCollection,
-    uid: uid
-  }
-  chrome.extension.getBackgroundPage().addPlaylist(playlistObj);
-  return playlistObj;
-}
-
 function displayPlaylists(){
   var numPlaylists = chrome.extension.getBackgroundPage().getInfo({id:"playlistCount"});
   var playlistCollection = chrome.extension.getBackgroundPage().getInfo({id:"playlistCollection"});
@@ -2252,19 +2198,6 @@ function loadPlayerState(){
     }
   }
   quality = chrome.extension.getBackgroundPage().getInfo({id:"quality"});
-}
-
-/**
- * Loads the user's profile icon and username
- */
-function loadUserInfo(){
-  var image = document.createElement("IMG");
-  image.id = "profileIconDivImage"
-  image.src = chrome.extension.getBackgroundPage().getInfo({id:"profileIcon"});
-  image.style.borderRadius = "100%";
-  image.style.width="35px";
-  profileIconDiv.appendChild(image);
-  usernameDiv.innerHTML = chrome.extension.getBackgroundPage().getInfo({id:"username"});
 }
 
 function loadDivs(){

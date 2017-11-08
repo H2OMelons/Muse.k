@@ -486,31 +486,6 @@ function createVideo(videoId, callback){
   });
 }
 
-function deleteVideo(videoIndex, playlistIndex){
-  
-  if(playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
-    if(queue.current != -1 && videoIndex == queue.playlist[queue.current].index &&
-       queue.playlist.length == 2){
-      if(queueHasNext()){
-        queue.tempNext = true;
-      }
-      else if(queueHasPrev()){
-        queue.tempPrev = true;
-      }
-    }
-    var retStatus = deleteFromQueue(videoIndex);
-  }
-  
-  playlistCollection.get(playlistUids[playlistIndex]).videos[videoIndex] = -1;
-  var obj = {};
-  obj[playlistUids[playlistIndex]] = playlistCollection.get(playlistUids[playlistIndex]);
-  chrome.storage.local.set(obj, function(){
-    if(chrome.runtime.lastError){
-      console.warn(chrome.runtime.lastError.message);
-    }
-  });
-}
-
 function deleteVideoByUid(videoIndex, uid){
   
   if(typeof uid == "number"){
@@ -663,17 +638,6 @@ function buildApiRequest(requestMethod, path, params, properties){
   return request; 
 }
 
-function requestUserInfo(object, callback){
-  /*gapi.auth.setToken({access_token: object.token});
-  gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
-  callback(buildApiRequest(
-    "GET",
-    "/youtube/v3/channels",
-    {"mine": "true",
-     "part": "snippet"
-  }));*/
-}
-
 function requestPlaylists(callback){
   chrome.identity.getAuthToken({"interactive" : false}, function(token){
     
@@ -770,21 +734,6 @@ function search(keywords, callback){
   ), "", function(response){
     callback(response);
   });
-}
-
-function updateProfileIcon(icon){
-  profileIcon = icon;
-  chrome.storage.sync.set({"profileIcon" : icon}, undefined); 
-}
-
-function updateUsername(name){
-  username = name;
-  chrome.storage.sync.set({"username": name}, undefined);
-}
-
-function updateUserAccountStatus(status){
-  accountStatus = status;
-  chrome.storage.sync.set({"account" : status}, undefined);
 }
 
 function editVideo(newTitle, newArtist, videoIndex, playlistIndex, startMin, startSec, endMin, endSec){
@@ -896,30 +845,6 @@ function onInstall(){
 }
 
 function onStart(){
-  chrome.storage.sync.get("profileIcon", function(item){
-    if(typeof item.profileIcon == "undefined"){
-      updateProfileIcon(defaultIcon);
-    }
-    else{
-      updateProfileIcon(item.profileIcon);
-    }
-  });
-  chrome.storage.sync.get("username", function(item){
-    if(typeof item.username == "undefined"){
-      updateUsername("user");
-    }
-    else{
-      updateUsername(item.username);
-    }
-  });
-  chrome.storage.sync.get("account", function(item){
-    if(typeof item.account == "undefined"){
-      updateUserAccountStatus("pending");   
-    }
-    else{
-      updateUserAccountStatus(item.account);
-    }
-  });
   chrome.storage.sync.get("repeat", function(item){
     repeatOn = item.repeat;
   });
@@ -1071,36 +996,6 @@ function setToken(token){
   gapi.client.setToken(token);
 }
 
-function getPlaylistImage(playlistIndex, type){
-  if(!getPlaylistUsingDefaultImage(playlistIndex)){
-    return playlistCollection.get(playlistUids[playlistIndex]).image;
-  }
-  
-  var videos = playlistCollection.get(playlistUids[playlistIndex]).videos;
-  var firstAvailableIndex = -1;
-
-  for(i = 0; i < videos.length; i++){
-    if(videos[i] != -1){
-      firstAvailableIndex = i;
-    }
-  }
-  
-  if(firstAvailableIndex != -1){
-    if(type == 1){
-      return "https://img.youtube.com/vi/"+videos[firstAvailableIndex].videoId+"/sddefault.jpg";
-    }
-    else if(type == 0){
-      return "https://img.youtube.com/vi/"+videos[firstAvailableIndex].videoId+"/mqdefault.jpg";
-    }
-    else{
-      return "https://img.youtube.com/vi/"+videos[firstAvailableIndex].videoId+"/default.jpg";
-    }
-  }
-  else{
-    return "images/default_playlist_img.png";
-  }
-}
-
 function getPlaylistImageByUid(uid, type){
   
   if(typeof uid == "number"){
@@ -1135,10 +1030,6 @@ function getPlaylistImageByUid(uid, type){
   else{
     return "images/default_playlist_img.png";
   }
-}
-
-function getPlaylistUsingDefaultImage(playlistIndex, type){
-  return playlistCollection.get(playlistUids[playlistIndex]).usingDefaultImage;
 }
 
 function getPlaylistUsingDefaultImageByUid(uid, type){
@@ -1176,10 +1067,6 @@ function getPlaylistLengthByUid(uid){
 
 function getPlaylistCollectionLength(){
   return playlistUids.length;
-}
-
-function getPlaylist(playlistIndex){
-  return playlistCollection.get(playlistUids[playlistIndex]);
 }
 
 function getPlaylistByUid(uid){
@@ -1231,21 +1118,6 @@ function getQueue(){
 
 function getQueueLength(){
   return queue.playlist.length;
-}
-
-function getNumVideos(playlistIndex){
-  var playlist = playlistCollection.get(playlistUids[playlistIndex]);
-  if(playlistIndex < 0 || playlistIndex > playlistUids.length || typeof playlist.videos == "undefined"){
-    return -1;
-  }
-  
-  var numVideos = 0;
-  for(i = 0; i < playlist.videos.length; i++){
-    if(playlist.videos[i] != -1){
-      numVideos++;
-    }
-  }
-  return numVideos;
 }
 
 function getNumVideosByUid(uid){

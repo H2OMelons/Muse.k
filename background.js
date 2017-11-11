@@ -20,15 +20,15 @@ var currPlaylistPage = undefined;
 var videoBeingPlayed = undefined;
 var playlistBeingPlayed = undefined;
 
-var playlistInfo = {playingPlaylist: undefined,
+/*var playlistInfo = {playingPlaylist: undefined,
                     viewingPlaylist: undefined,
-                    playlist: undefined};
+                    playlist: undefined};*/
 
 var repeatOn;
 var shuffleOn;
 
 var orderToPlayVideos = [];
-var playlistCollection = new Map();
+//var playlistCollection = new Map();
 var playlistUids = [];
 
 var queue = {playlist: [],
@@ -45,7 +45,161 @@ var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 
+var playlistCollectionManager;
+function PlaylistCollectionManager(playlistCollection){
+  this.playlistManagers = new Map();
+  this.createPlaylistCollection(playlistCollection);
+  this.editingPlaylistUid = undefined;
+  this.playingPlaylistUid = undefined;  
+  this.viewingPlaylistUid = undefined;
+}
 
+PlaylistCollectionManager.prototype.setEditingPlaylistUid = function(uid){
+  this.editingPlaylistUid = uid;
+}
+
+PlaylistCollectionManager.prototype.getEditingPlaylistUid = function(){
+  return this.editingPlaylist;
+}
+
+PlaylistCollectionManager.prototype.getEditingPlaylist = function(){
+  return this.getPlaylist(this.getEditingPlaylistUid());
+}
+
+PlaylistCollectionManager.prototype.setPlayingPlaylistUid = function(uid){
+  this.playingPlaylistUid = uid;
+}
+
+PlaylistCollectionManager.prototype.getPlayingPlaylistUid = function(){
+  return this.playingPlaylistUid;
+}
+
+PlaylistCollectionManager.prototype.getPlayingPlaylist = function(){
+  return this.getPlaylist(this.getPlayingPlaylistUid());
+}
+
+PlaylistCollectionManager.prototype.setViewingPlaylistUid = function(uid){
+  this.viewingPlaylistUid = uid;
+}
+
+PlaylistCollectionManager.prototype.getViewingPlaylistUid = function(uid){
+  return this.viewingPlaylistUid;
+}
+
+PlaylistCollectionManager.prototype.getViewingPlaylist = function(){
+  return this.getPlaylist(this.getViewingPlaylistUid());
+}
+
+PlaylistCollectionManager.prototype.createPlaylistCollection = function(playlistCollection){
+  var tempThis = this;
+  playlistCollection.forEach(function(value, key){
+    tempThis.playlistManagers.set(key, new PlaylistManager(value));
+  });
+  //console.log(Array.from(this.playlistManagers.values()));
+  //console.log(Array.from(this.playlistManagers.keys()));
+}
+
+PlaylistCollectionManager.prototype.editPlaylist = function(playlist){
+  this.playlistManagers.get(playlist.uid).editPlaylist(playlist);
+}
+
+PlaylistCollectionManager.prototype.deletePlaylist = function(){
+  this.deletePlaylistByUid(this.editingPlaylistUid);
+}
+
+PlaylistCollectionManager.prototype.deletePlaylistByUid = function(uid){
+  this.playlistManagers.delete(uid);
+  var playlistUids = Array.from(this.playlistManagers.keys());
+  chrome.storage.local.remove(uid, function(){
+      if(chrome.runtime.lastError){
+        console.warn(chrome.runtime.lastError.message);
+      }
+    });
+    
+    // Update the list of uids in local storage
+    chrome.storage.local.set({playlistUids:playlistUids}, function(){
+      if(chrome.runtime.lastError){
+        console.warn(chrome.runtime.lastError.message);
+      }
+    });
+}
+
+PlaylistCollectionManager.prototype.insertPlaylist = function(playlist){
+  this.playlistManagers.set(playlist.uid, new PlaylistManager(playlist));
+  var playlistUids = Array.from(this.playlistManagers.keys());
+  chrome.storage.local.set({playlistUids: playlistUids}, function(){
+    if(chrome.runtime.lastError){
+      console.warn(chrome.runtime.lastError.message);   
+    }
+  });
+  var obj = {};
+  obj[playlist.uid] = playlist;
+  chrome.storage.local.set(obj, function(){
+    if(chrome.runtime.lastError){
+      console.warn(chrome.runtime.lastError.message);
+    }
+  });
+}
+
+PlaylistCollectionManager.prototype.getPlaylist = function(uid){
+  return this.playlistManagers.get(uid).getPlaylist();
+}
+
+PlaylistCollectionManager.prototype.getPlaylistCollection = function(){
+  var temp = [];
+  this.playlistManagers.forEach(function(value, key){
+    temp.push(value.playlist);  
+  });
+  return temp;
+}
+
+PlaylistCollectionManager.prototype.size = function(){
+  return this.playlistManagers.size;
+}
+
+function PlaylistManager(playlist){
+  this.playlist = playlist;
+}
+
+PlaylistManager.prototype.editPlaylist = function(editedPlaylist){
+  if(this.playlist.uid != editedPlaylist.uid){
+    console.error("Playlist edit has different uids");
+  }
+  this.playlist = editedPlaylist;
+  chrome.storage.local.remove(editedPlaylist.uid, function(){
+    if(chrome.runtime.lastError){
+      console.warn(chrome.runtime.lastError.message);
+    }
+    
+    var obj = {};
+    obj[editedPlaylist.uid] = editedPlaylist;
+    chrome.storage.local.set(obj, function(){
+      if(chrome.runtime.lastError){
+        console.warn(chrome.runtime.lastError.message);
+      }
+    });
+  })
+}
+
+PlaylistManager.prototype.getPlaylist = function(){
+  return this.playlist;
+}
+
+PlaylistManager.prototype.editVideo = function(){
+  
+}
+
+PlaylistManager.prototype.insertVideo = function(){
+  
+}
+
+PlaylistManager.prototype.deleteVideo = function(){
+  
+}
+
+function Queue(){
+  
+}
 
 var player;
 function onYouTubeIframeAPIReady() {
@@ -159,6 +313,7 @@ function loadVideo(video){
   
 }
 
+/*
 function initQueue(startVideoIndex, playlistIndex){
   var videos = playlistCollection.get(playlistUids[playlistIndex]).videos;
   
@@ -185,9 +340,11 @@ function initQueue(startVideoIndex, playlistIndex){
     queue.current = startVideoIndex;
   }
 }
+*/
 
 function initQueueByUid(startVideoIndex, uid){
-  var videos = playlistCollection.get(uid).videos;
+  //var videos = playlistCollection.get(uid).videos;
+  var videos = playlistCollectionManager.getPlaylist(uid).videos;
   
   for(i = startVideoIndex - 1; i >= 0; i--){
     if(videos[i] == -1){
@@ -199,7 +356,7 @@ function initQueueByUid(startVideoIndex, uid){
     cleanVideoArrayByUid(uid);
   }
   
-  queue.playlist = shuffle(playlistCollection.get(uid).videos, startVideoIndex);
+  queue.playlist = shuffle(playlistCollectionManager.getPlaylist(uid).videos, startVideoIndex);
   queue.totalVideos = queue.playlist.length;
   queue.tempNext = false;
   queue.tempPrev = false;
@@ -219,7 +376,7 @@ function shuffle(videoArr, startVideoIndex){
     arr[i] = {video: videoArr[i],
               index: i};
   }
-
+  
   if(shuffleOn){
     // When shuffling a playlist we want the video that is being played to be
     // the first video in the playlist
@@ -367,6 +524,7 @@ function addToQueue(video, index){
                        index: index});
 }
 
+/*
 function updatePlaylist(playlist, uid){
   playlistCollection.delete(uid);
   playlistCollection.set(uid, playlist);
@@ -413,11 +571,12 @@ function deletePlaylist(uid){
       queue.totalVideos = 0; 
       returnStatus = 0;
     }
-    /*chrome.storage.local.remove(/*playlistUids[playlistIndex]uid, function(){
+    // Remove the playlist with the given uid from local storage
+    chrome.storage.local.remove(uid, function(){
       if(chrome.runtime.lastError){
         console.warn(chrome.runtime.lastError.message);
       }
-    });*/
+    });
     playlistCollection.delete(uid);
     
     var j = 0;
@@ -428,6 +587,7 @@ function deletePlaylist(uid){
       }
     }
     
+    // Update the list of uids in local storage
     chrome.storage.local.set({playlistUids:playlistUids}, function(){
       if(chrome.runtime.lastError){
         console.warn(chrome.runtime.lastError.message);
@@ -436,8 +596,10 @@ function deletePlaylist(uid){
   }
   return returnStatus;
 }
+*/
 
 function addVideoToPlaylist(playlistIndex, videoId){
+  /*
   createVideo(videoId, function(videoInfo){
     var playlist = playlistCollection.get(playlistUids[playlistIndex]);
     playlist.videos.push(videoInfo);
@@ -452,6 +614,7 @@ function addVideoToPlaylist(playlistIndex, videoId){
       }
     });
   });
+  */
 }
 
 function addVideoToPlaylistByUid(uid, videoId){
@@ -460,12 +623,12 @@ function addVideoToPlaylistByUid(uid, videoId){
     uid = uid.toString();
   }
   createVideo(videoId, function(videoInfo){
-    playlistCollection.get(uid).videos.push(videoInfo);
-    var videoIndex = playlistCollection.get(uid).videos.length - 1;
-    var video = playlistCollection.get(uid).videos[videoIndex];
+    playlistCollectionManager.getPlaylist(uid).videos.push(videoInfo);
+    var videoIndex = playlistCollectionManager.getPlaylist(uid).videos.length - 1;
+    var video = playlistCollectionManager.getPlaylist(uid).videos[videoIndex];
     chrome.runtime.sendMessage({request: "finishedAddingVideo", video: video, videoIndex: videoIndex, uid: uid});
     var obj = {};
-    obj[uid] = playlistCollection.get(uid);
+    obj[uid] = playlistCollectionManager.getPlaylist(uid);
     chrome.storage.local.set(obj, function(){
       if(chrome.runtime.lastError){
         console.warn(chrome.runtime.lastError.message);
@@ -492,7 +655,8 @@ function deleteVideoByUid(videoIndex, uid){
     uid = uid.toString();
   }
   
-  if(playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
+  //if(playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
+  if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
     if(queue.current != -1 && videoIndex == queue.playlist[queue.current].index &&
        queue.playlist.length == 2){
       if(queueHasNext()){
@@ -505,9 +669,9 @@ function deleteVideoByUid(videoIndex, uid){
     var retStatus = deleteFromQueue(videoIndex);
   }
   
-  playlistCollection.get(uid).videos[videoIndex] = -1;
+  playlistCollectionManager.getPlaylist(uid).videos[videoIndex] = -1;
   var obj = {};
-  obj[uid] = playlistCollection.get(uid);
+  obj[uid] = playlistCollectionManager.getPlaylist(uid);
   chrome.storage.local.set(obj, function(){
     if(chrome.runtime.lastError){
       console.warn(chrome.runtime.lastError.message);
@@ -516,15 +680,15 @@ function deleteVideoByUid(videoIndex, uid){
 }
 
 function cleanVideoArray(playlistIndex){
-  for(i = 0; i < playlistCollection.get(playlistUids[playlistIndex]).videos.length; i++){
-    if(playlistCollection.get(playlistUids[playlistIndex]).videos[i] == -1){
-      playlistCollection.get(playlistUids[playlistIndex]).videos.splice(i, 1);
+  for(i = 0; i < playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]).videos.length; i++){
+    if(playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]).videos[i] == -1){
+      playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]).videos.splice(i, 1);
       i--;
     }
   }
   
   var obj = {};
-  obj[playlistUids[playlistIndex]] = playlistCollection.get(playlistUids[playlistIndex]);
+  obj[playlistUids[playlistIndex]] = playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]);
   chrome.storage.local.set(obj, function(){
     if(chrome.runtime.lastError){
       console.warn(chrome.runtime.lastError.message);
@@ -533,7 +697,7 @@ function cleanVideoArray(playlistIndex){
 }
 
 function cleanVideoArrayByUid(uid){
-  var playlist = playlistCollection.get(uid);
+  var playlist = playlistCollectionManager.getPlaylist(uid);
   var playlistLength = playlist.videos.length;
   for(i = 0; i < playlistLength; i++){
     if(playlist.videos[i] == -1){
@@ -543,7 +707,7 @@ function cleanVideoArrayByUid(uid){
   }
   
   var obj = {};
-  obj[uid] = playlistCollection.get(uid);
+  obj[uid] = playlistCollectionManager.getPlaylist(uid);
   chrome.storage.local.set(obj, function(){
     if(chrome.runtime.lastError){
       console.warn(chrome.runtime.lastError.message);
@@ -736,6 +900,7 @@ function search(keywords, callback){
   });
 }
 
+/*
 function editVideo(newTitle, newArtist, videoIndex, playlistIndex, startMin, startSec, endMin, endSec){
   var playlist = playlistCollection.get(playlistUids[playlistIndex]);
   var video = playlist.videos[videoIndex];
@@ -772,6 +937,7 @@ function editVideo(newTitle, newArtist, videoIndex, playlistIndex, startMin, sta
     }
   });
 }
+*/
 
 function editVideoByUid(newTitle, newArtist, videoIndex, uid, startMin, startSec, endMin, endSec){
   
@@ -779,7 +945,7 @@ function editVideoByUid(newTitle, newArtist, videoIndex, uid, startMin, startSec
     uid = uid.toString();
   }
   
-  var playlist = playlistCollection.get(uid);
+  var playlist = playlistCollectionManager.getPlaylist(uid);
   var video = playlist.videos[videoIndex];
   video.videoTitle = newTitle;
   video.channelTitle = newArtist;
@@ -881,20 +1047,31 @@ function onStart(){
         }
       }
       
-      var tempUids = playlistUids.slice();
+      //var tempUids = playlistUids.slice();
+      var numPlaylistsLoaded = 0;
+      var numLoadErrors = 0;
+      var playlistCollection = new Map();
       for(i = 0; i < playlistUids.length; i++){
         chrome.storage.local.get(playlistUids[i], function(playlist){
+          //console.log(playlist);
           if(chrome.runtime.lastError){
+            numLoadErrors++;
             console.warn("playlist could not be loaded");
           }
           else{
-            var uid;
-            var counter = 0;
-            while(!playlist.hasOwnProperty(tempUids[counter])){
-              counter++;
-            }
-            playlistCollection.set(tempUids[counter], playlist[tempUids[counter]]);
-            tempUids.splice(counter, 1);
+            numPlaylistsLoaded++;
+            //var counter = 0;
+            //while(!playlist.hasOwnProperty(tempUids[counter])){
+            //  counter++;
+            //}
+            //console.log(typeof Object.keys(playlist)[0]);
+            //console.log(typeof tempUids[counter]);
+            var uid = Object.keys(playlist)[0];
+            playlistCollection.set(uid, playlist[uid]);
+            //tempUids.splice(counter, 1);
+          }
+          if(numPlaylistsLoaded + numLoadErrors == playlistUids.length){
+            playlistCollectionManager = new PlaylistCollectionManager(playlistCollection);
           }
         });
       }
@@ -953,6 +1130,7 @@ chrome.runtime.onConnect.addListener(function(port){
   port.onDisconnect.addListener(function(){
     popupOpen = false;
     
+    /*
     if(playlistUids.length != playlistCollection.size){
       for(i = playlistUids.length - 1; i >= 0; i--){
         if(playlistUids[i] == -1){
@@ -960,16 +1138,20 @@ chrome.runtime.onConnect.addListener(function(port){
         }
       }
     }
+    */
   });
 });
 
+/*
 function setViewingPlaylist(playlistNum){
   playlistInfo.viewingPlaylist = playlistNum;
 }
 
+
 function setPlayingPlaylist(playlistNum){
   playlistInfo.playingPlaylist = playlistNum;
 }
+*/
 
 function setRepeat(status){
   repeatOn = status;
@@ -1002,11 +1184,12 @@ function getPlaylistImageByUid(uid, type){
     uid = uid.toString();
   }
   
-  if(!playlistCollection.get(uid).usingDefaultImage){
-    return playlistCollection.get(uid).image; 
+  if(!playlistCollectionManager.getPlaylist(uid).usingDefaultImage){
+  //if(!playlistCollection.get(uid).usingDefaultImage){
+    return playlistCollectionManager.getPlaylist(uid).image; 
   }
   
-  var videos = playlistCollection.get(uid).videos;
+  var videos = playlistCollectionManager.getPlaylist(uid).videos;
   var firstAvailableIndex = -1;
   
   for(i = 0; i < videos.length; i++){
@@ -1033,9 +1216,10 @@ function getPlaylistImageByUid(uid, type){
 }
 
 function getPlaylistUsingDefaultImageByUid(uid, type){
-  return playlistCollection.get(uid).usingDefaultImage;
+  return playlistCollectionManager.getPlaylist(uid).usingDefaultImage;
 }
 
+/*
 function getPlaylistLength(playlistIndex){
   var videos = playlistCollection.get(playlistUids[playlistIndex]).videos;
   var length = videos.length;
@@ -1048,12 +1232,13 @@ function getPlaylistLength(playlistIndex){
   
   return length;
 }
+*/
 
 function getPlaylistLengthByUid(uid){
   if(typeof uid == "number"){
     uid = uid.toString();
   }
-  var videos = playlistCollection.get(uid).videos;
+  var videos = playlistCollectionManager.getPlaylist(uid).videos;
   var length = videos.length;
   
   for(i = 0; i < length; i++){
@@ -1065,9 +1250,11 @@ function getPlaylistLengthByUid(uid){
   return length;
 }
 
+/*
 function getPlaylistCollectionLength(){
   return playlistUids.length;
 }
+*/
 
 function getPlaylistByUid(uid){
   
@@ -1075,9 +1262,10 @@ function getPlaylistByUid(uid){
     uid = uid.toString();
   }
   
-  return playlistCollection.get(uid);
+  return playlistCollectionManager.getPlaylist(uid);
 }
 
+/*
 function getPlaylistCollection(){
   var tempArr = [];
   for(i = 0; i < playlistUids.length; i++){
@@ -1085,16 +1273,24 @@ function getPlaylistCollection(){
   }
   return tempArr;
 }
+*/
 
+function getPlaylistCollectionManager(){
+  return playlistCollectionManager;
+}
+
+/*
 function getPlaylistInfo(){
   return playlistInfo;
 }
+*/
 
 function getPlayerState(){
   return player.getPlayerState();
 }
 
 function getUnfilteredPlaylistCollection(){
+  /*
   var tempArr = [];
   for(i = 0; i < playlistUids.length; i++){
     if(playlistUids[i] != -1){
@@ -1104,7 +1300,10 @@ function getUnfilteredPlaylistCollection(){
       tempArr.push(-1);
     }
   }
+  
   return tempArr;
+  */
+  return playlistCollectionManager.getPlaylistCollection();
 }
 
 function setQuality(qual){
@@ -1126,7 +1325,7 @@ function getNumVideosByUid(uid){
     uid = uid.toString();
   }
   
-  var playlist = playlistCollection.get(uid);
+  var playlist = playlistCollectionManager.getPlaylist(uid);
   if(typeof playlist == "undefined" || typeof playlist.videos == "undefined"){
     return -1;
   }
@@ -1170,13 +1369,14 @@ function getVolume(){
 }
 
 function getVideoByUid(uid, videoIndex){
-  return playlistCollection.get(uid).videos[videoIndex];
+  return playlistCollectionManager.getPlaylist(uid).videos[videoIndex];
 }
 
 /**
  * Returns info depending on the data.id given
  */
 function getInfo(data){
+  /*
   if(data.id == "playlistCount"){
     return playlistCollection.size;
   }
@@ -1221,7 +1421,8 @@ function getInfo(data){
   else if(data.id == "video"){
     return playlistCollection.get(playlistUids[data.playlistNumber]).videos[data.videoNumber];
   }
-  else if(data.id == "repeatStatus"){
+  */
+  if(data.id == "repeatStatus"){
     if(typeof repeatOn == "undefined"){
       return false;
     }

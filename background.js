@@ -78,6 +78,10 @@ PlaylistCollectionManager.prototype.getPlayingPlaylist = function(){
   return this.getPlaylist(this.getPlayingPlaylistUid());
 }
 
+PlaylistCollectionManager.prototype.getPlayingManager = function(){
+  return this.playlistManagers.get(this.getPlayingPlaylistUid());
+}
+
 PlaylistCollectionManager.prototype.setViewingPlaylistUid = function(uid){
   this.viewingPlaylistUid = uid;
 }
@@ -90,13 +94,15 @@ PlaylistCollectionManager.prototype.getViewingPlaylist = function(){
   return this.getPlaylist(this.getViewingPlaylistUid());
 }
 
+PlaylistCollectionManager.prototype.getViewingManager = function(){
+  return this.playlistManagers.get(this.getViewingPlaylistUid());
+}
+
 PlaylistCollectionManager.prototype.createPlaylistCollection = function(playlistCollection){
   var tempThis = this;
   playlistCollection.forEach(function(value, key){
     tempThis.playlistManagers.set(key, new PlaylistManager(value));
   });
-  //console.log(Array.from(this.playlistManagers.values()));
-  //console.log(Array.from(this.playlistManagers.keys()));
 }
 
 PlaylistCollectionManager.prototype.editPlaylist = function(playlist){
@@ -141,8 +147,40 @@ PlaylistCollectionManager.prototype.insertPlaylist = function(playlist){
   });
 }
 
+PlaylistCollectionManager.prototype.editVideo = function(video){
+  this.playlistManagers.get(this.getViewingPlaylistUid()).editVideo(video);
+}
+
+PlaylistCollectionManager.prototype.deleteVideo = function(videoUid){
+  if(this.getViewingPlaylistUid() == this.getPlayingPlaylistUid()){
+    videoPlayerManager.removeFromQueue(videoUid);
+  }
+  this.playlistManagers.get(this.getViewingPlaylistUid()).deleteVideo(videoUid);
+}
+
+PlaylistCollectionManager.prototype.insertVideo = function(playlistUid, videoId){
+  if(typeof playlistUid == "number"){
+    playlistUid = playlistUid.toString();
+  }
+  var tempThis = this;
+  createVideo(videoId, function(videoInfo){
+    if(typeof videoInfo.uid == "undefined"){
+      videoInfo.uid = playlistCollectionManager.getPlaylist(playlistUid).videoUidGenerator;
+      playlistCollectionManager.getPlaylist(playlistUid).videoUidGenerator++;
+    }
+    if(playlistUid == tempThis.getPlayingPlaylistUid()){
+      videoPlayerManager.addToQueue(videoInfo);
+    }
+    tempThis.playlistManagers.get(playlistUid).insertVideo(videoInfo);
+  });
+}
+
 PlaylistCollectionManager.prototype.getPlaylist = function(uid){
   return this.playlistManagers.get(uid).getPlaylist();
+}
+
+PlaylistCollectionManager.prototype.getPlaylistLength = function(uid){
+  return this.getPlaylist(uid).videos.length;
 }
 
 PlaylistCollectionManager.prototype.getPlaylistCollection = function(){
@@ -178,30 +216,373 @@ PlaylistManager.prototype.editPlaylist = function(editedPlaylist){
         console.warn(chrome.runtime.lastError.message);
       }
     });
-  })
+  });
 }
 
 PlaylistManager.prototype.getPlaylist = function(){
   return this.playlist;
 }
 
-PlaylistManager.prototype.editVideo = function(){
-  
+PlaylistManager.prototype.editVideo = function(video){
+  var i;
+  for(i = 0; i < this.playlist.videos.length; i++){
+    if(this.playlist.videos[i].uid == video.uid){
+      this.playlist.videos[i] = video;
+      playlistCollectionManager.editPlaylist(this.playlist);
+      i = this.playlist.videos.length;
+    }
+  }
 }
 
-PlaylistManager.prototype.insertVideo = function(){
-  
+PlaylistManager.prototype.insertVideo = function(video){  
+  this.playlist.videos.push(video);
+  console.log(this.playlist);
+  this.editPlaylist(this.playlist);
+  var videoIndex = this.playlist.videos.length - 1;
+  if(this.playlist.uid == playlistCollectionManager.getViewingPlaylistUid()){
+    chrome.runtime.sendMessage({request: "createVideoDiv", video: video, videoIndex: videoIndex});
+  }
 }
 
-PlaylistManager.prototype.deleteVideo = function(){
-  
+PlaylistManager.prototype.deleteVideo = function(videoUid){
+  var i;
+  for(i = 0; i < this.playlist.videos.length; i++){
+    if(this.playlist.videos[i].uid == videoUid){
+      this.playlist.videos.splice(i, 1);
+      playlistCollectionManager.editPlaylist(this.playlist);
+      i = this.playlist.videos.length;
+    }
+  }
 }
 
-function Queue(){
+function VideoPlayerManager(){
+  this.backgroundVideoPlayer = undefined;
+  this.queue = [];
+  this.queueIndex = 0;
+  this.playlistManager = undefined;
+  this.playButtonsMap = undefined;
+  this.userPause = false;
+  this.userPlay = false;
+  this.fastForwarding = false;
+}
+
+VideoPlayerManager.prototype.UNSTARTED = -1;
+VideoPlayerManager.prototype.ENDED = 0;
+VideoPlayerManager.prototype.PLAYING = 1;
+VideoPlayerManager.prototype.PAUSED = 2;
+VideoPlayerManager.prototype.BUFFERING = 3;
+VideoPlayerManager.prototype.CUED = 5;
+
+VideoPlayerManager.prototype.setBackgroundVideoPlayer = function(player){
+  this.backgroundVideoPlayer = player;
+  var tempThis = this;
+}
+
+VideoPlayerManager.prototype.setPlaylistManager = function(manager){
+  this.playlistManager = manager;
+}
+
+VideoPlayerManager.prototype.initQueue = function(startUid){
+  if(typeof this.playlistManager == "undefined"){
+    throw 'Error: can\'t init queue when playlist manager is undefined';
+  }
   
+  this.queue = [];
+  this.queueIndex = 0;
+  var videos = this.playlistManager.playlist.videos.slice(0);
+  var startIndex = 0;
+  
+  // Find the index where the queue should start
+  if(typeof startUid != "undefined"){
+    var i;
+    for(i = 0; i < videos.length; i++){
+      if(videos[i].uid == startUid){
+        startIndex = i;
+        i = videos.length;
+      }
+    }
+  }
+
+  // If shuffle is turned on, then shuffle the playlist and then push the videos into the queue
+  if(shuffleOn){
+    // Move the video at the start index to the front
+    var temp = videos[0];
+    videos[0] = videos[startIndex];
+    videos[startIndex] = temp;
+    var i;
+    for(i = arr.length - 1; i > 0; i--){
+      var randomIndex = Math.floor((Math.random() * i) + 1);
+      var temp = videos[randomIndex];
+      videos[randomIndex] = videos[i];
+      videos[i] = temp;
+    }
+    for(i = 0; i < videos.length; i++){
+      this.queue.push(videos[i]);
+    }
+  }
+  // If shuffle is turned off, push everything after the start index into the queue first
+  // then everything in front of the start index
+  else{
+    this.queue = videos.slice();
+    this.queueIndex = startIndex;
+  }
+}
+
+VideoPlayerManager.prototype.startQueue = function(){
+  this.cueVideo();
+}
+
+VideoPlayerManager.prototype.addToQueue = function(video){
+  queue.push(video);
+}
+
+VideoPlayerManager.prototype.removeFromQueue = function(videoUid){
+  var temp = this.queue.slice();
+  var i;
+  for(i = 0; i < this.queue.length; i++){
+    if(this.queue[i].uid == videoUid){
+      this.queue.splice(i, 1);
+      if(i == this.queueIndex){
+        this.queueIndex--;
+      }
+      i = this.queue.length;
+    }
+  }
+}
+
+VideoPlayerManager.prototype.cueVideo = function(){
+  this.backgroundVideoPlayer.cueVideo(this.queue[this.queueIndex]);
+  /*
+  if(typeof this.pageVideoPlayer != "undefined"){
+    this.pageVideoPlayer.cueVideo(this.queue[this.queueIndex]);
+  }
+  */
+}
+
+VideoPlayerManager.prototype.playVideo = function(){
+  this.userPlay = true;
+  this.backgroundVideoPlayer.play();
+  if(typeof this.playButtonsMap != "undefined"){
+    var videoUid = this.queue[this.queueIndex].uid;
+    this.playButtonsMap.get(videoUid).childNodes[0].style.display = "none";
+    this.playButtonsMap.get(videoUid).childNodes[1].style.display = "block";
+  }
+  /*
+  if(typeof this.pageVideoPlayer != "undefined"){
+    this.pageVideoPlayer.play();
+  }
+  */
+}
+
+VideoPlayerManager.prototype.pauseVideo = function(){
+  this.userPause = true;
+  this.backgroundVideoPlayer.pause();
+  var videoUid = this.queue[this.queueIndex].uid;
+  this.playButtonsMap.get(videoUid).childNodes[0].style.display = "block";
+  this.playButtonsMap.get(videoUid).childNodes[1].style.display = "none";
+  /*
+  if(typeof this.pageVideoPlayer != "undefined"){
+    this.pageVideoPlayer.userPause = true;
+    this.pageVideoPlayer.pause();
+  }
+  */
+}
+
+VideoPlayerManager.prototype.seekTo = function(time){
+  this.getBackgroundVideoPlayer().seekTo(time);
+}
+
+VideoPlayerManager.prototype.fastForward = function(){
+  var hadNext = false;
+  var prevIndex = this.queueIndex;
+  this.fastForwarding = true;
+  if(this.queueIndex == (this.queue.length - 1) && repeatOn && this.queueIndex != -1){
+    this.queueIndex = 0;
+    this.cueVideo();
+    hasNext = true;
+  }
+  else if(this.queueIndex == (this.queue.length - 1) && !repeatOn){
+    if(playlistCollectionManager.getViewingPlaylistUid() == getPlaylistCollection.getPlayingPlaylistUid()){
+      this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "block";
+      this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "none";
+    }
+    playlistCollectionManager.setPlayingPlaylistUid(undefined);
+    chrome.runtime.sendMessage({request: "playlistEnded"});
+  }
+  else if(this.queueIndex != this.queue.length - 1){
+    this.queueIndex++;
+    this.cueVideo();
+    hasNext = true;
+  }
+  if(hasNext && popupOpen &&
+     playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid() &&
+     typeof this.playButtonsMap != "undefined"){// && 
+     //typeof this.pageVideoPlayer != "undefined"){
+    if(prevIndex >= 0){
+      this.playButtonsMap.get(this.queue[prevIndex].uid).childNodes[0].style.display = "block";
+      this.playButtonsMap.get(this.queue[prevIndex].uid).childNodes[1].style.display = "none";
+    }
+    this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "none";
+    this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "block";
+  }
+}
+
+VideoPlayerManager.prototype.rewind = function(){
+  if(this.queueIndex > 0){
+    this.queueIndex--;
+    this.cueVideo();
+    if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid() &&
+       typeof this.playButtonsMap != "undefined"){// &&
+       //typeof this.pageVideoPlayer != "undefined"){
+      if(this.queueIndex + 1 < this.queue.length){
+        this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).childNodes[0].style.display = "block";
+        this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).childNodes[1].style.display = "none";
+      }
+      this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "none";
+      this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "block";
+    }
+  }
+}
+
+/*
+VideoPlayerManager.prototype.getPageVideoPlayer = function(){
+  return this.pageVideoPlayer;
+}
+*/
+
+VideoPlayerManager.prototype.getBackgroundVideoPlayer = function(){
+  return this.backgroundVideoPlayer;
+}
+
+VideoPlayerManager.prototype.getVideoBeingPlayed = function(){
+  if(this.queue.length == 0){
+    return undefined;
+  }
+  return this.queue[this.queueIndex];
+}
+
+VideoPlayerManager.prototype.getPrevVideoBeingPlayed = function(){
+  if(this.queue.length == 0){
+    return undefined;
+  }
+  else if(this.queue.length == 1){
+    return this.queue[this.queueIndex];
+  }
+  else{
+    var index = this.queueIndex - 1;
+    if(index < 0){
+      index = this.queue.length - 1;
+    }
+    return this.queue[index];
+  }
+}
+
+VideoPlayerManager.prototype.setPlayButtons = function(playButtonsMap){
+  this.playButtonsMap = playButtonsMap;
+}
+
+var videoPlayerManager = new VideoPlayerManager();
+
+function VideoPlayer(player){
+  this.player = player;
+  this.userPause = false;
+}
+
+VideoPlayer.prototype.SYNC = 0;
+VideoPlayer.prototype.SEEK = 1;
+
+VideoPlayer.prototype.loadVideo = function(video){
+  //backgroundPlayerStatus = "waitingForSync";
+  if(typeof video.startTime == "undefined" || typeof video.endTime == "undefined"){
+    this.player.loadVideoById(video.videoId, 0, "small");
+  }
+  else{
+    this.player.loadVideoById({"videoId": video.videoId,
+                          "startSeconds": video.startTime,
+                          "endSeconds": video.endTime,
+                          "suggestedQuality": "small"});  
+  }
+}
+
+VideoPlayer.prototype.cueVideo = function(video){
+  var startTime = 0;
+  var endTime = 0;
+  if(typeof video.startTime == "undefined" && typeof video.endTime == "undefined"){
+    this.player.cueVideoById(video.videoId, 0, "small");
+    var start = video.duration.indexOf("PT") + 2;
+    var end = video.duration.indexOf("M");
+    var min = parseInt(video.duration.slice(start, end));
+    var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
+    endTime = min * 60 + sec;
+  }
+  else if(typeof video.startTime == "undefined"){
+    this.player.cueVideoById({"videoId": video.videoId,
+                              "startSeconds": 0,
+                              "endSeconds": video.endTime,
+                              "suggestedQuality": "small"
+      
+    });
+    endTime = video.endTime;
+  }
+  else if(typeof video.endTime == "undefined"){
+    this.player.cueVideoById(video.videoId, video.startTime, "small");
+    var start = video.duration.indexOf("PT") + 2;
+    var end = video.duration.indexOf("M");
+    var min = parseInt(video.duration.slice(start, end));
+    var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
+    startTime = video.starTime;
+    endTime = min * 60 + sec;
+  }
+  else{
+    this.player.cueVideoById({"videoId": video.videoId,
+                              "startSeconds": video.startTime,
+                              "endSeconds": video.endTime,
+                              "suggestedQuality": "small"
+    });
+    startTime = video.startTime;
+    endTime = video.endTime
+  }
+  chrome.runtime.sendMessage({request: "initTimeBar", startTime: startTime, endTime: endTime});
+}
+
+VideoPlayer.prototype.getPlayerState = function(){
+  return this.player.getPlayerState();
+}
+
+VideoPlayer.prototype.play = function(){
+  this.player.playVideo();
+}
+
+VideoPlayer.prototype.pause = function(){
+  this.player.pauseVideo();
+}
+
+VideoPlayer.prototype.seekTo = function(time){
+  this.player.seekTo(time);
+}
+
+VideoPlayer.prototype.getCurrentTime = function(){
+  return this.player.getCurrentTime();
+}
+
+VideoPlayer.prototype.getDuration = function(){
+  return this.player.getDuration();
+}
+
+VideoPlayer.prototype.getVideoUrl = function(){
+  return this.player.getVideoUrl();
+}
+
+VideoPlayer.prototype.setVolume = function(volume){
+  this.player.setVolume(volume);
+}
+
+VideoPlayer.prototype.mute = function(){
+  this.player.mute();
 }
 
 var player;
+
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
     playerVars:{
@@ -231,67 +612,53 @@ function onBackgroundPlayerReady(event){
     }
     player.setVolume(volume.volume);
   });
+  
+  videoPlayerManager.setBackgroundVideoPlayer(new VideoPlayer(player));
 }
 
+//var fastForwarding = false;
+
 function onPlayerStateChange(event) {
-  videoIsPlaying = false;
-  if (event.data == YT.PlayerState.PLAYING) {
-    if(backgroundPlayerStatus == "waitingForSync"){
-      player.pauseVideo();
-      var video = getCurrVideo();
-      if(typeof video != "undefined" && typeof video.startTime != "undefined"){
-        player.seekTo(video.startTime);
-      }
-      else{
-        player.seekTo(0);
-      }
-      chrome.runtime.sendMessage({request: "finishedLoading"});
-    }
-    else if(backgroundPlayerStatus == "ready"){
-      videoIsPlaying = true; 
-    }
-    else if(backgroundPlayerStatus == "seeking"){
-      player.pauseVideo();
-      chrome.runtime.sendMessage({request: "finishedSeeking",
-                                  time: player.getCurrentTime()});
-      backgroundPlayerStatus = "ready";
-    }
+  //var pagePlayer = videoPlayerManager.getPageVideoPlayer();
+  var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
+  if(event.data == -1){
+    
   }
-  else if(event.data == YT.PlayerState.BUFFERING){
-    if(backgroundPlayerStatus == "seeking"){
-      
+  else if(event.data == YT.PlayerState.PLAYING){
+    if(videoPlayerManager.fastForwarding){
+      videoPlayerManager.fastForwarding = false;
     }
   }
   else if(event.data == YT.PlayerState.PAUSED){
-    if(backgroundPlayerStatus == "seeking"){
-      chrome.runtime.sendMessage({request: "finishedSeeking",
-                                  time: player.getCurrentTime()});
-      backgroundPlayerStatus = "ready";
-    }
+    
   }
-  else if(event.data == YT.PlayerState.ENDED){
-    if(backgroundPlayerStatus == "waitingForSync"){
-      player.playVideo();
-    }
-    else{
-      playNextInQueue();
-    }
+  else if(event.data == YT.PlayerState.BUFFERING){
+    // If the popup is open and the page player is playing, then pause it
+    //if(typeof pagePlayer != "undefined" && 
+    //   pagePlayer.getPlayerState() == YT.PlayerState.PLAYING){
+    //   pagePlayer.pause();    
+    //}
   }
   else if(event.data == YT.PlayerState.CUED){
+    // If both videos are finished loading, then play both of them
+    /*if(typeof pagePlayer != "undefined" &&
+       pagePlayer.getPlayerState() == YT.PlayerState.CUED){
+      backgroundPlayer.play();
+      pagePlayer.play();
+    }
+    else if(typeof pagePlayer == "undefined"){
+      backgroundPlayer.play();
+    }
+    */
+    backgroundPlayer.play();
   }
-  else if(event.data == -1){
-
+  else if(event.data == YT.PlayerState.ENDED){
+    if(!videoPlayerManager.fastForwarding){
+      videoPlayerManager.fastForward();
+      videoPlayerManager.fastForwarding = true;
+    }
+    
   }
-}
-
-function playVideo(){
-  backgroundPlayerStatus = "ready";
-  player.playVideo();
-}
-
-function pauseVideo(){
-  backgroundPlayerStatus = "pausedByPagePlayer";
-  player.pauseVideo();
 }
 
 function seekTo(time){
@@ -313,330 +680,6 @@ function loadVideo(video){
   
 }
 
-/*
-function initQueue(startVideoIndex, playlistIndex){
-  var videos = playlistCollection.get(playlistUids[playlistIndex]).videos;
-  
-  for(i = startVideoIndex - 1; i >= 0; i--){
-    if(videos[i] == -1){
-      startVideoIndex--;   
-    }
-  }
-  
-  if(videos.length != getPlaylistLength(playlistIndex)){
-    cleanVideoArray(playlistIndex);
-  }
-  
-  queue.playlist = shuffle(playlistCollection.get(playlistUids[playlistIndex]).videos, startVideoIndex);
-  queue.totalVideos = queue.playlist.length;
-  queue.tempNext = false;
-  queue.tempPrev = false;
-  if(shuffleOn){
-    queue.startIndex = 0;
-    queue.current = 0;
-  }
-  else{
-    queue.startIndex = startVideoIndex;
-    queue.current = startVideoIndex;
-  }
-}
-*/
-
-function initQueueByUid(startVideoIndex, uid){
-  //var videos = playlistCollection.get(uid).videos;
-  var videos = playlistCollectionManager.getPlaylist(uid).videos;
-  
-  for(i = startVideoIndex - 1; i >= 0; i--){
-    if(videos[i] == -1){
-      startVideoIndex--;   
-    }
-  }
-  
-  if(videos.length != getPlaylistLengthByUid(uid)){
-    cleanVideoArrayByUid(uid);
-  }
-  
-  queue.playlist = shuffle(playlistCollectionManager.getPlaylist(uid).videos, startVideoIndex);
-  queue.totalVideos = queue.playlist.length;
-  queue.tempNext = false;
-  queue.tempPrev = false;
-  if(shuffleOn){
-    queue.startIndex = 0;
-    queue.current = 0;
-  }
-  else{
-    queue.startIndex = startVideoIndex;
-    queue.current = startVideoIndex;
-  }
-}
-
-function shuffle(videoArr, startVideoIndex){
-  var arr = [];
-  for(i = 0; i < videoArr.length; i++){
-    arr[i] = {video: videoArr[i],
-              index: i};
-  }
-  
-  if(shuffleOn){
-    // When shuffling a playlist we want the video that is being played to be
-    // the first video in the playlist
-    var temp = arr[0];
-    arr[0] = arr[startVideoIndex];
-    arr[startVideoIndex] = temp;
-    for(i = arr.length - 1; i > 0; i--){
-      var randomIndex = Math.floor((Math.random() * i) + 1);
-      var temp = arr[randomIndex];
-      arr[randomIndex] = arr[i];
-      arr[i] = temp;
-    }
-  }
-
-  return arr;
-}
-
-function startQueue(){
-  createVideo(queue.playlist[queue.startIndex].video.videoId);
-}
-
-function queueHasNext(){
-  if(queue.current == queue.playlist.length - 1 && !repeatOn){
-    return false;
-  }
-  return true;
-}
-
-function previewNextInQueue(){
-  if(queueHasNext()){
-    return queue.playlist[queue.current + 1].video;
-  }
-  return undefined;
-}
-
-function playNextInQueue(){
-  if(queue.tempNext){
-    queue.current = 0;
-    chrome.runtime.sendMessage({request: "playNextVideo",
-                                video: queue.playlist[queue.current].video,
-                                videoIndex: queue.playlist[queue.current].index,
-                                prevVideoIndex: undefined});
-    queue.tempNext = false;
-  }
-  else if(queueHasNext() && queue.current != -1){
-    var prevId = queue.playlist[queue.current].video.videoId;
-    var prevIndex = queue.playlist[queue.current].index;
-    queue.current++;
-    
-    if(queue.current >= queue.playlist.length){
-      queue.current = 0;
-    }
-
-    if(popupOpen){
-      chrome.runtime.sendMessage({request:"playNextVideo", 
-                                  video: queue.playlist[queue.current].video,
-                                  videoIndex: queue.playlist[queue.current].index, 
-                                  prevVideoIndex: prevIndex});
-    }
-    else{
-      // If the next video to play is the same as the current one then restart the player
-      if(prevId == queue.playlist[queue.current].video.videoId){
-        player.playVideo();
-      }
-      // Otherwise load the new video
-      else{
-        var startTime = queue.playlist[queue.current].video.startTime;
-        var endTime = queue.playlist[queue.current].video.endTime;
-        if(typeof startTime == "undefined" && typeof endTime == "undefined"){
-          player.loadVideoById(queue.playlist[queue.current].video.videoId, 0, "small");
-        }
-        else{
-          player.loadVideoById({"videoId": queue.playlist[queue.current].video.videoId,
-                                "startSeconds": startTime,
-                                "endSeconds": endTime,
-                                "suggestedQuality": "small"});
-        }
-        
-      }
-    }
-  }
-  else if(player.getPlayerState() == YT.PlayerState.ENDED){
-    if(queue.current != -1){
-      chrome.runtime.sendMessage({request: "playlistEnded",
-                                  videoIndex: undefined});
-    }
-    else{
-      chrome.runtime.sendMessage({request:"playlistEnded", 
-                                  videoIndex: queue.playlist[queue.current].index});
-    }
-    
-  }
-}
-
-function queueHasPrev(){
-  if(queue.current == 0){
-    return false;
-  }
-  return true;
-}
-
-function previewPrevInQueue(){
-  if(queueHasPrev()){
-    return queue.playlist[queue.current - 1].video;
-  }
-  return undefined;
-}
-
-function playPrevInQueue(){
-  if(queue.tempPrev){
-    queue.current = 0;
-    queue.current = 0;
-    chrome.runtime.sendMessage({request: "playPrevVideo",
-                                video: queue.playlist[queue.current].video,
-                                videoIndex: queue.playlist[queue.current].index,
-                                prevVideoIndex: undefined});
-    queue.tempPrev = false;
-  }
-  else if(queueHasPrev()){
-    queue.current--;
-    if(popupOpen){
-      chrome.runtime.sendMessage({request: "playPrevVideo",
-                                  video: queue.playlist[queue.current].video,
-                                  videoIndex: queue.playlist[queue.current].index,
-                                  prevVideoIndex: queue.playlist[queue.current + 1].index});
-    } 
-  }
-}
-
-function deleteFromQueue(indexToRemove){
-  var length = queue.playlist.length;
-  
-  for(i = 0; i < length; i++){
-    if(queue.playlist[i].index == indexToRemove){
-      queue.playlist.splice(i, 1);
-      queue.current = -1;
-      return 1;
-    }
-  }
-  return -1;
-}
-
-function addToQueue(video, index){
-  queue.playlist.push({video: video,
-                       index: index});
-}
-
-/*
-function updatePlaylist(playlist, uid){
-  playlistCollection.delete(uid);
-  playlistCollection.set(uid, playlist);
-  var obj = {};
-  obj[uid] = playlist;
-  chrome.storage.local.set(obj, function(){
-    if(chrome.runtime.lastError){
-      console.warn(chrome.runtime.lastError.message);
-    }
-  });
-}
-
-function addPlaylist(playlist){
-  playlistUids.push(playlist.uid);
-  playlistCollection.set(playlist.uid, playlist);
-  chrome.storage.local.set({playlistUids: playlistUids}, function(){
-    if(chrome.runtime.lastError){
-      console.warn(chrome.runtime.lastError.message);   
-    }
-  });
-  var obj = {};
-  obj[playlist.uid] = playlist;
-  chrome.storage.local.set(obj, function(){
-    if(chrome.runtime.lastError){
-      console.warn(chrome.runtime.lastError.message);
-    }
-  });
-}
-
-function deletePlaylist(uid){
-  var returnStatus = 1;
-  if(typeof playlistCollection.get(uid) == "undefined" || 
-     typeof uid == "undefined"){
-    return -1; 
-  }
-  else{
-    playlistInfo.viewingPlaylist = -1;
-    if(playlistInfo.playingPlaylist == uid){
-      player.stopVideo();
-      playlistInfo.playingPlaylist = -1;
-      queue.playlist = [];
-      queue.current = 0;
-      queue.startIndex = 0;
-      queue.totalVideos = 0; 
-      returnStatus = 0;
-    }
-    // Remove the playlist with the given uid from local storage
-    chrome.storage.local.remove(uid, function(){
-      if(chrome.runtime.lastError){
-        console.warn(chrome.runtime.lastError.message);
-      }
-    });
-    playlistCollection.delete(uid);
-    
-    var j = 0;
-    for(j = 0; j < playlistUids.length; j++){
-      if(playlistUids[j] == uid){
-        playlistUids[j] = -1;
-        j = playlistUids.length;
-      }
-    }
-    
-    // Update the list of uids in local storage
-    chrome.storage.local.set({playlistUids:playlistUids}, function(){
-      if(chrome.runtime.lastError){
-        console.warn(chrome.runtime.lastError.message);
-      }
-    });
-  }
-  return returnStatus;
-}
-*/
-
-function addVideoToPlaylist(playlistIndex, videoId){
-  /*
-  createVideo(videoId, function(videoInfo){
-    var playlist = playlistCollection.get(playlistUids[playlistIndex]);
-    playlist.videos.push(videoInfo);
-    var videoIndex = playlistCollection.get(playlistUids[playlistIndex]).videos.length - 1;
-    var video = playlistCollection.get(playlistUids[playlistIndex]).videos[index];
-    chrome.runtime.sendMessage({request: "finishedAddingVideo", video: video, videoIndex: videoIndex, uid: playlist.uid});
-    var obj = {};
-    obj[playlistUids[playlistIndex]] = playlistCollection.get(playlistUids[playlistIndex]);
-    chrome.storage.local.set(obj, function(){
-      if(chrome.runtime.lastError){
-        console.warn(chrome.runtime.lastError.message);
-      }
-    });
-  });
-  */
-}
-
-function addVideoToPlaylistByUid(uid, videoId){
-  
-  if(typeof uid == "number"){
-    uid = uid.toString();
-  }
-  createVideo(videoId, function(videoInfo){
-    playlistCollectionManager.getPlaylist(uid).videos.push(videoInfo);
-    var videoIndex = playlistCollectionManager.getPlaylist(uid).videos.length - 1;
-    var video = playlistCollectionManager.getPlaylist(uid).videos[videoIndex];
-    chrome.runtime.sendMessage({request: "finishedAddingVideo", video: video, videoIndex: videoIndex, uid: uid});
-    var obj = {};
-    obj[uid] = playlistCollectionManager.getPlaylist(uid);
-    chrome.storage.local.set(obj, function(){
-      if(chrome.runtime.lastError){
-        console.warn(chrome.runtime.lastError.message);
-      }
-    });
-  });
-}
-
 function createVideo(videoId, callback){
   var apiRequestRetVal = buildApiRequest("GET",
                                          "/youtube/v3/videos",
@@ -645,36 +688,6 @@ function createVideo(videoId, callback){
   executeRequest(apiRequestRetVal, "videoInfo", function(videoInfo){
     if(callback){
       callback(videoInfo);
-    }
-  });
-}
-
-function deleteVideoByUid(videoIndex, uid){
-  
-  if(typeof uid == "number"){
-    uid = uid.toString();
-  }
-  
-  //if(playlistInfo.playingPlaylist == playlistInfo.viewingPlaylist){
-  if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
-    if(queue.current != -1 && videoIndex == queue.playlist[queue.current].index &&
-       queue.playlist.length == 2){
-      if(queueHasNext()){
-        queue.tempNext = true;
-      }
-      else if(queueHasPrev()){
-        queue.tempPrev = true;
-      }
-    }
-    var retStatus = deleteFromQueue(videoIndex);
-  }
-  
-  playlistCollectionManager.getPlaylist(uid).videos[videoIndex] = -1;
-  var obj = {};
-  obj[uid] = playlistCollectionManager.getPlaylist(uid);
-  chrome.storage.local.set(obj, function(){
-    if(chrome.runtime.lastError){
-      console.warn(chrome.runtime.lastError.message);
     }
   });
 }
@@ -900,45 +913,6 @@ function search(keywords, callback){
   });
 }
 
-/*
-function editVideo(newTitle, newArtist, videoIndex, playlistIndex, startMin, startSec, endMin, endSec){
-  var playlist = playlistCollection.get(playlistUids[playlistIndex]);
-  var video = playlist.videos[videoIndex];
-  video.videoTitle = newTitle;
-  video.channelTitle = newArtist;
-  
-  var start = video.duration.indexOf("PT") + 2;
-  var end = video.duration.indexOf("M");
-  var min = parseInt(video.duration.slice(start, end));
-  var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
-  
-  if(startMin >= min){
-    startMin = min;
-    if(startSec > sec){
-      startSec = sec;
-    }
-  }
-  
-  if(endMin >= min){
-    endMin = min;
-    if(endSec > sec){
-      endSec = sec;
-    }
-  }
-  
-  video.startTime = (startMin * 60) + startSec;
-  video.endTime = (endMin * 60) + endSec;
-  
-  var obj = {};
-  obj[playlistUids[playlistIndex]] = playlist;
-  chrome.storage.local.set(obj, function(){
-    if(chrome.runtime.lastError){
-      console.error(chrome.runtime.lastError.message);
-    }
-  });
-}
-*/
-
 function editVideoByUid(newTitle, newArtist, videoIndex, uid, startMin, startSec, endMin, endSec){
   
   if(typeof uid == "number"){
@@ -1047,28 +1021,19 @@ function onStart(){
         }
       }
       
-      //var tempUids = playlistUids.slice();
       var numPlaylistsLoaded = 0;
       var numLoadErrors = 0;
       var playlistCollection = new Map();
       for(i = 0; i < playlistUids.length; i++){
         chrome.storage.local.get(playlistUids[i], function(playlist){
-          //console.log(playlist);
           if(chrome.runtime.lastError){
             numLoadErrors++;
             console.warn("playlist could not be loaded");
           }
           else{
             numPlaylistsLoaded++;
-            //var counter = 0;
-            //while(!playlist.hasOwnProperty(tempUids[counter])){
-            //  counter++;
-            //}
-            //console.log(typeof Object.keys(playlist)[0]);
-            //console.log(typeof tempUids[counter]);
             var uid = Object.keys(playlist)[0];
             playlistCollection.set(uid, playlist[uid]);
-            //tempUids.splice(counter, 1);
           }
           if(numPlaylistsLoaded + numLoadErrors == playlistUids.length){
             playlistCollectionManager = new PlaylistCollectionManager(playlistCollection);
@@ -1105,11 +1070,61 @@ chrome.runtime.onInstalled.addListener(function(details){
     onStart();
   }
   else if(details.reason == "update"){
-    //userSetup();
-    /*var obj = {"volume": 25, "mute": false};
-    chrome.storage.sync.set({"volume": obj}, function(){
-      onStart();
-    });*/
+    if(details.previousVersion == "0.0.0.6"){
+      chrome.storage.local.get("playlistUids", function(item){
+        if(typeof item.playlistUids != "undefined"){
+          var updateUids = item.playlistUids;
+
+          for(i = updateUids.length - 1; i >= 0; i--){
+            if(updateUids[i] == -1){
+              updateUids.splice(i, 1);
+            }
+          }
+
+          for(i = 0; i < updateUids.length; i++){
+            chrome.storage.local.get(updateUids[i], function(item){
+              if(chrome.runtime.lastError){
+                console.warn("playlist could not be loaded");
+              }
+              else{
+                var uid = Object.keys(item)[0];
+                var playlist = item[uid];
+                if(typeof playlist.videoUidGenerator == "undefined"){
+                  var videoUid = 0;
+                  while(videoUid < playlist.videos.length){
+                    playlist.videos[videoUid].uid = videoUid;
+                    videoUid++;
+                  }
+                  playlist.videoUidGenerator = videoUid;
+                  var obj = {};
+                  obj[uid] = playlist;
+                  chrome.storage.local.set(obj, function(){
+                    if(chrome.runtime.lastError){
+                      console.warn(chrome.runtime.lastError.message);
+                    }
+                  });
+                }
+                else if(playlist.videoUidGenerator == 0 && playlist.videos.length > 0){
+                  var i;
+                  for(i = 0; i < playlist.videos.length; i++){
+                    playlist.videos[i].uid = playlist.videoUidGenerator;
+                    playlist.videoUidGenerator++;
+                  }
+                  var obj = {};
+                  obj[uid] = playlist;
+                  chrome.storage.local.set(obj, function(){
+                    if(chrome.runtime.lastError){
+                      console.warn(chrome.runtime.lastError.message);
+                    }
+                  });
+                }
+              }
+            });
+          }
+        }
+      });
+    }
+    
     onStart();
     //resetAccount();
   }
@@ -1129,7 +1144,7 @@ chrome.runtime.onConnect.addListener(function(port){
   
   port.onDisconnect.addListener(function(){
     popupOpen = false;
-    
+    //videoPlayerManager.setPageVideoPlayer(undefined);
     /*
     if(playlistUids.length != playlistCollection.size){
       for(i = playlistUids.length - 1; i >= 0; i--){
@@ -1141,17 +1156,6 @@ chrome.runtime.onConnect.addListener(function(port){
     */
   });
 });
-
-/*
-function setViewingPlaylist(playlistNum){
-  playlistInfo.viewingPlaylist = playlistNum;
-}
-
-
-function setPlayingPlaylist(playlistNum){
-  playlistInfo.playingPlaylist = playlistNum;
-}
-*/
 
 function setRepeat(status){
   repeatOn = status;
@@ -1289,6 +1293,10 @@ function getPlayerState(){
   return player.getPlayerState();
 }
 
+function getVideoPlayerManager(){
+  return videoPlayerManager;
+}
+
 function getUnfilteredPlaylistCollection(){
   /*
   var tempArr = [];
@@ -1354,10 +1362,11 @@ function getCurrVideoIndex(){
 }
 
 function getCurrVideoId(){
-  if(queue.playlist.length == 0 || queue.current == -1){
+  var video = videoPlayerManager.getVideoBeingPlayed();
+  if(typeof video == "undefined"){
     return undefined;
   }
-  return queue.playlist[queue.current].video.videoId;
+  return video.videoId;
 }
 
 function getCurrentTime(){
@@ -1376,52 +1385,6 @@ function getVideoByUid(uid, videoIndex){
  * Returns info depending on the data.id given
  */
 function getInfo(data){
-  /*
-  if(data.id == "playlistCount"){
-    return playlistCollection.size;
-  }
-  else if(data.id == "playlistCollection"){
-    var tempArr = [];
-    
-    for(i = 0; i < playlistUids.length; i++){
-      if(playlistUids[i] != -1){
-        tempArr.push(playlistCollection.get(playlistUids[i]));
-      }
-    }
-    return tempArr;
-  }
-  else if(data.id == "playlist"){
-    if(data.playlistNumber >= 0 && data.playlistNumber < playlistUids.length){
-      return playlistCollection.get(playlistUids[data.playlistNumber]);
-    }
-    else{
-      console.error("getInfo() with id playlist given invalid playlist number " + data.playlistNumber);
-      return "undefined";
-    }
-  }
-  else if(data.id == "playerState"){
-    return player.getPlayerState();
-  }
-  else if(data.id == "currVideoId"){
-    if(player.getPlayerState() >= 0 && player.getPlayerState() < 5){
-      if(typeof playlistBeingPlayed == "undefined" || typeof videoBeingPlayed == "undefined"){
-        return undefined;
-      }
-      return playlistCollection.get(playlistUids[playlistBeingPlayed]).videos[orderToPlayVideos[videoBeingPlayed]].videoId;
-    }    
-    return undefined;
-  }
-  else if(data.id == "currVideoBeingPlayed"){
-    if(player.getPlayerState() >= 0 && typeof videoBeingPlayed != "undefined"){
-      return playlistCollection.get(playlistUids[playlistBeingPlayed]).videos[orderToPlayVideos[videoBeingPlayed]];
-    } 
-    
-    return undefined;
-  }
-  else if(data.id == "video"){
-    return playlistCollection.get(playlistUids[data.playlistNumber]).videos[data.videoNumber];
-  }
-  */
   if(data.id == "repeatStatus"){
     if(typeof repeatOn == "undefined"){
       return false;

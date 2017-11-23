@@ -236,7 +236,6 @@ PlaylistManager.prototype.editVideo = function(video){
 
 PlaylistManager.prototype.insertVideo = function(video){  
   this.playlist.videos.push(video);
-  console.log(this.playlist);
   this.editPlaylist(this.playlist);
   var videoIndex = this.playlist.videos.length - 1;
   if(this.playlist.uid == playlistCollectionManager.getViewingPlaylistUid()){
@@ -257,7 +256,7 @@ PlaylistManager.prototype.deleteVideo = function(videoUid){
 
 function VideoPlayerManager(){
   this.backgroundVideoPlayer = undefined;
-  this.queue = [];
+  this.queue = undefined;
   this.queueIndex = 0;
   this.playlistManager = undefined;
   this.playButtonsMap = undefined;
@@ -333,7 +332,14 @@ VideoPlayerManager.prototype.startQueue = function(){
 }
 
 VideoPlayerManager.prototype.addToQueue = function(video){
-  queue.push(video);
+  if(typeof this.queue == "undefined"){
+    return;
+  }
+  this.queue.push(video);
+}
+
+VideoPlayerManager.prototype.getQueue = function(){
+  return this.queue;
 }
 
 VideoPlayerManager.prototype.removeFromQueue = function(videoUid){
@@ -351,15 +357,16 @@ VideoPlayerManager.prototype.removeFromQueue = function(videoUid){
 }
 
 VideoPlayerManager.prototype.cueVideo = function(){
-  this.backgroundVideoPlayer.cueVideo(this.queue[this.queueIndex]);
-  /*
-  if(typeof this.pageVideoPlayer != "undefined"){
-    this.pageVideoPlayer.cueVideo(this.queue[this.queueIndex]);
+  if(typeof this.queue == "undefined"){
+    return;
   }
-  */
+  this.backgroundVideoPlayer.cueVideo(this.queue[this.queueIndex]);
 }
 
 VideoPlayerManager.prototype.playVideo = function(){
+  if(typeof this.queue == "undefined"){
+    return;
+  }
   this.userPlay = true;
   this.backgroundVideoPlayer.play();
   if(typeof this.playButtonsMap != "undefined"){
@@ -367,33 +374,31 @@ VideoPlayerManager.prototype.playVideo = function(){
     this.playButtonsMap.get(videoUid).childNodes[0].style.display = "none";
     this.playButtonsMap.get(videoUid).childNodes[1].style.display = "block";
   }
-  /*
-  if(typeof this.pageVideoPlayer != "undefined"){
-    this.pageVideoPlayer.play();
-  }
-  */
 }
 
 VideoPlayerManager.prototype.pauseVideo = function(){
+  if(typeof this.queue == "undefined"){
+    return;
+  }
   this.userPause = true;
   this.backgroundVideoPlayer.pause();
   var videoUid = this.queue[this.queueIndex].uid;
   this.playButtonsMap.get(videoUid).childNodes[0].style.display = "block";
   this.playButtonsMap.get(videoUid).childNodes[1].style.display = "none";
-  /*
-  if(typeof this.pageVideoPlayer != "undefined"){
-    this.pageVideoPlayer.userPause = true;
-    this.pageVideoPlayer.pause();
-  }
-  */
 }
 
 VideoPlayerManager.prototype.seekTo = function(time){
+  if(typeof this.queue == "undefined"){
+    return;
+  }
   this.getBackgroundVideoPlayer().seekTo(time);
 }
 
 VideoPlayerManager.prototype.fastForward = function(){
-  var hadNext = false;
+  if(typeof this.queue == "undefined"){
+    return;
+  }
+  var hasNext = false;
   var prevIndex = this.queueIndex;
   this.fastForwarding = true;
   if(this.queueIndex == (this.queue.length - 1) && repeatOn && this.queueIndex != -1){
@@ -402,11 +407,12 @@ VideoPlayerManager.prototype.fastForward = function(){
     hasNext = true;
   }
   else if(this.queueIndex == (this.queue.length - 1) && !repeatOn){
-    if(playlistCollectionManager.getViewingPlaylistUid() == getPlaylistCollection.getPlayingPlaylistUid()){
+    if(playlistCollectionManager.getViewingPlaylistUid() == playlistCollectionManager.getPlayingPlaylistUid()){
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "block";
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "none";
     }
     playlistCollectionManager.setPlayingPlaylistUid(undefined);
+    this.resetQueue();
     chrome.runtime.sendMessage({request: "playlistEnded"});
   }
   else if(this.queueIndex != this.queue.length - 1){
@@ -416,8 +422,7 @@ VideoPlayerManager.prototype.fastForward = function(){
   }
   if(hasNext && popupOpen &&
      playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid() &&
-     typeof this.playButtonsMap != "undefined"){// && 
-     //typeof this.pageVideoPlayer != "undefined"){
+     typeof this.playButtonsMap != "undefined"){
     if(prevIndex >= 0){
       this.playButtonsMap.get(this.queue[prevIndex].uid).childNodes[0].style.display = "block";
       this.playButtonsMap.get(this.queue[prevIndex].uid).childNodes[1].style.display = "none";
@@ -428,12 +433,14 @@ VideoPlayerManager.prototype.fastForward = function(){
 }
 
 VideoPlayerManager.prototype.rewind = function(){
+  if(typeof this.queue == "undefined"){
+    return;
+  }
   if(this.queueIndex > 0){
     this.queueIndex--;
     this.cueVideo();
     if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid() &&
-       typeof this.playButtonsMap != "undefined"){// &&
-       //typeof this.pageVideoPlayer != "undefined"){
+       typeof this.playButtonsMap != "undefined"){
       if(this.queueIndex + 1 < this.queue.length){
         this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).childNodes[0].style.display = "block";
         this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).childNodes[1].style.display = "none";
@@ -444,25 +451,19 @@ VideoPlayerManager.prototype.rewind = function(){
   }
 }
 
-/*
-VideoPlayerManager.prototype.getPageVideoPlayer = function(){
-  return this.pageVideoPlayer;
-}
-*/
-
 VideoPlayerManager.prototype.getBackgroundVideoPlayer = function(){
   return this.backgroundVideoPlayer;
 }
 
 VideoPlayerManager.prototype.getVideoBeingPlayed = function(){
-  if(this.queue.length == 0){
+  if(typeof this.queue == "undefined" || this.queue.length == 0){
     return undefined;
   }
   return this.queue[this.queueIndex];
 }
 
 VideoPlayerManager.prototype.getPrevVideoBeingPlayed = function(){
-  if(this.queue.length == 0){
+  if(typeof this.queue == "undefined" || this.queue.length == 0){
     return undefined;
   }
   else if(this.queue.length == 1){
@@ -479,6 +480,11 @@ VideoPlayerManager.prototype.getPrevVideoBeingPlayed = function(){
 
 VideoPlayerManager.prototype.setPlayButtons = function(playButtonsMap){
   this.playButtonsMap = playButtonsMap;
+}
+
+VideoPlayerManager.prototype.resetQueue = function(){
+  this.queue = undefined;
+  this.queueIndex = 0;
 }
 
 var videoPlayerManager = new VideoPlayerManager();
@@ -615,8 +621,6 @@ function onBackgroundPlayerReady(event){
   
   videoPlayerManager.setBackgroundVideoPlayer(new VideoPlayer(player));
 }
-
-//var fastForwarding = false;
 
 function onPlayerStateChange(event) {
   //var pagePlayer = videoPlayerManager.getPageVideoPlayer();
@@ -1144,16 +1148,6 @@ chrome.runtime.onConnect.addListener(function(port){
   
   port.onDisconnect.addListener(function(){
     popupOpen = false;
-    //videoPlayerManager.setPageVideoPlayer(undefined);
-    /*
-    if(playlistUids.length != playlistCollection.size){
-      for(i = playlistUids.length - 1; i >= 0; i--){
-        if(playlistUids[i] == -1){
-          playlistUids.splice(i, 1);
-        }
-      }
-    }
-    */
   });
 });
 

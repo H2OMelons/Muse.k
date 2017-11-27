@@ -59,7 +59,7 @@ PlaylistCollectionManager.prototype.setEditingPlaylistUid = function(uid){
 }
 
 PlaylistCollectionManager.prototype.getEditingPlaylistUid = function(){
-  return this.editingPlaylist;
+  return this.editingPlaylistUid;
 }
 
 PlaylistCollectionManager.prototype.getEditingPlaylist = function(){
@@ -114,6 +114,10 @@ PlaylistCollectionManager.prototype.deletePlaylist = function(){
 }
 
 PlaylistCollectionManager.prototype.deletePlaylistByUid = function(uid){
+  if(this.viewingPlaylistUid == this.editingPlaylistUid){
+    this.viewingPlaylistUid = undefined;
+  }
+  this.editingPlaylistUid = undefined;
   this.playlistManagers.delete(uid);
   var playlistUids = Array.from(this.playlistManagers.keys());
   chrome.storage.local.remove(uid, function(){

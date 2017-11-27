@@ -304,8 +304,8 @@
           <div id="playlist-list" class="scrollbar"></div>
           <div id="playlist-options">
             <i id="add-playlist-options-button" 
-               class="fa fa-plus-circle fa-2x card-background white add-playlist button clickable-through-overlay" aria-hidden="true">
-              <div id="add-options" class="add-playlist-options border modal card-background">
+               class="fa fa-plus-circle fa-2x card-background white add-playlist button " aria-hidden="true">
+              <div id="add-options" class="add-playlist-options border modal card-background clickable-through-overlay">
                 <div id="add-new-playlist" class="small-font center border-bottom small-top-down-padding">New Playlist</div>
                 <div id="import-new-playlist" class="small-font center small-top-down-padding">Import From Youtube</div>
               </div>
@@ -355,6 +355,146 @@
           <div id="control-time-end" class="control-time-end right-align tiny-font"></div>
         </div>
       </div>
+    <div id="delete-playlist-popup" class="modal card-background border center white">
+      <text id="delete  -playlist-popup-text" class="regular-font">Delete this playlist forever</text>
+      <div id="delete-playlist-popup-confirm-button" class="button border center">Confirm</div>
+      <div id="delete-playlist-popup-cancel-button" class="button border center">Cancel</div>
+    </div>
+    <div id="playlist-popup" class="modal border card-background">
+      <div id="create-playlist-selections" class="import-container">
+        <div id="import-other-playlist" 
+             class="float-left import-other-playlist small-font white border-bottom">Import Public Playlists</div>
+        <div id="import-your-playlist" class="float-left import-your-playlist small-font white">Import Your Playlists</div>
+      </div>
+      <div id="import-your-playlist-container" style="display: none">
+        <div id="signin-ui" style="display: none;">
+          <div id="buttons" style="position: absolute; left: 175px; top: 75px;">
+            <div class="Bot10pxMargin">
+              <button class = "AccountButton" id="sign-in-button">LOG IN</button>
+            </div>
+          </div>
+          <div id="signin-warning" style="position: absolute; top: 175px; left: 40px;">
+            <i class="fa fa-info-circle" aria-hidden="true" style="float: left; line-height: 165%;"></i>
+            <div style="float: left; margin-left: 5px;"><Please>Please login to your Youtube account to access your playlists</Please></div>
+          </div>
+        </div>
+        <div id="try-again" style="display: none">
+          <div id="header" style="padding-bottom: 5px">
+              <loginText>Autherization Failed</loginText>
+          </div>
+          <div style="margin-top: 40px">
+            <button class = "AccountButton" id="try-again-button">TRY AGAIN</button>
+          </div>
+        </div>
+        <div id="url-or-display-all-selection-container">
+          <div id="url-selection-load" >
+            <div class="url-selection-load-container" id="loadAnimation">
+              <div class="loader">
+                <div class="sk-circle card-background circle-background" style="margin-left: 25px;">
+                  <div class="sk-circle1 sk-child"></div>
+                  <div class="sk-circle2 sk-child"></div>
+                  <div class="sk-circle3 sk-child"></div>
+                  <div class="sk-circle4 sk-child"></div>
+                  <div class="sk-circle5 sk-child"></div>
+                  <div class="sk-circle6 sk-child"></div>
+                  <div class="sk-circle7 sk-child"></div>
+                  <div class="sk-circle8 sk-child"></div>
+                  <div class="sk-circle9 sk-child"></div>
+                  <div class="sk-circle10 sk-child"></div>
+                  <div class="sk-circle11 sk-child"></div>
+                  <div class="sk-circle12 sk-child"></div>
+                </div>
+                <div class="loader--text" style="left: -200px;"></div>
+             </div>
+            </div>
+          </div>
+          <div id="url-selection-success" class="card-background">
+            <i class="fa fa-check fa-5x import-other-success-text" aria-hidden="true">Success!</i>
+            <div id="url-selection-continue-button" class="small-font button white">Continue</div>
+          </div>
+          <div id="url-selection-button-container">
+            <div id="url-selection-button" class="button small-font white">Enter URL</div>
+            <div id="display-all-selection-button" class="button small-font white small-margin">Display My Playlists</div>
+          </div>
+          <div id="url-selection-container">
+            <input id="url-selection-url-input" class="url-selection-url-input card-background border white"/>
+            <div id="url-selection-error" style="display: none;">
+              <div id="url-selection-invalid-url-error">
+                <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
+                Invalid URL. Please enter a playlist URL.
+              </div>
+              <div id="url-selection-api-error">
+                <i class="fa fa-exclamation-circle" aria-hidden="true" style="float: left; line-height: 145%;"></i>
+                <div id="url-selection-api-error-msg" style="float:left"></div>
+              </div>
+            </div>
+            <div id="url-selection-results-container" class="scrollbar white border"></div>
+            
+            <div id="url-selection-results-button" 
+                 class="small-font import-other-button right button url-selection white">Import</div>
+            <div id="url-selection-results-cancel-button" 
+                 class="small-font import-other-button left button url-selection white">Cancel</div>
+          </div>
+          <div id="display-all-selection-container">
+            <div id="display-all-selection-results-container" class="scrollbar"></div>
+            <div id="display-all-selection-buttons-container" class="white">
+              <div id="display-all-selection-results-buttons" style="display: none;">
+                <div id="display-all-selection-cancel-button" class="small-font display-all-selection-buttons button">Cancel</div>
+                <div id="display-all-selection-import-all-button" class="small-font display-all-selection-buttons button" style="display: none;">Import All</div>
+                <div id="display-all-selection-import-button" class="small-font display-all-selection-buttons button">Import</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="import-other-playlist-container">
+        <input id="import-other-url-input" autofocus class="import-other-url-input card-background border white"/>
+        <div id="import-other-results-container">
+          <div id="import-other-error" style="display: none;">
+            <div id="invalid-url-error">
+              <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
+              Invalid URL. Please enter a playlist URL.
+            </div>
+            <div id="import-other-api-error">
+              <i class="fa fa-exclamation-circle" aria-hidden="true" style="float: left; line-height: 145%;"></i>
+              <div id="import-other-api-error-msg" style="float:left"></div>
+            </div>
+          </div>
+          <div id="import-other-load" style="display: none;">
+            <div class="container" id="loadAnimation">
+              <div class="loader">
+                <div class="sk-circle">
+                  <div class="sk-circle1 sk-child"></div>
+                  <div class="sk-circle2 sk-child"></div>
+                  <div class="sk-circle3 sk-child"></div>
+                  <div class="sk-circle4 sk-child"></div>
+                  <div class="sk-circle5 sk-child"></div>
+                  <div class="sk-circle6 sk-child"></div>
+                  <div class="sk-circle7 sk-child"></div>
+                  <div class="sk-circle8 sk-child"></div>
+                  <div class="sk-circle9 sk-child"></div>
+                  <div class="sk-circle10 sk-child"></div>
+                  <div class="sk-circle11 sk-child"></div>
+                  <div class="sk-circle12 sk-child"></div>
+                </div>
+                <div class="loader--text"></div>
+             </div>
+            </div>
+          </div>
+          <div id="import-other-results" style="display: none;" class="white scrollbar"></div>
+          <div id="import-other-results-button" class="small-font import-other-button results right button white">Import</div>
+          <div id="import-other-results-cancel-button" 
+               class="small-font import-other-button results left button white">Cancel</div>
+          <div id="import-other-success">
+            <i class="fa fa-check fa-5x import-other-success-text" aria-hidden="true">Success!</i>
+            <div id="import-other-success-import-again-button" 
+                 class="small-font import-other-button right button white">Again</div>
+            <div id="import-other-success-exit-button" 
+                 class="small-font import-other-button left button white">Exit</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="overlay"></div>
     <div id="transparent-overlay"></div>
   </body>

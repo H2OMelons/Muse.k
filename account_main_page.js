@@ -18,6 +18,11 @@ var createPlaylistButton;     // Button that actually creates the playlist in th
 var cancelCreateButton;       // Button that cancels playlist creation in the popup
 var playlistInputField;       // Input field that the user enters the playlist name in the popup
 
+var infoBarButton;            // The button to the top left that toggles the playlist list into/out of view
+
+var videoList;                // The container that holds a playlist's videos
+var playlistList;             // The container that holds all playlists
+
 var searchInput;
 var searchButton;
 
@@ -258,18 +263,27 @@ PlaylistGenerator.prototype.generateNewPlaylist = function(videos, name, img, ca
 PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
   var name = playlistObj.name;
   var index = playlistCollectionManager.size();
-  var pic = chrome.extension.getBackgroundPage().getPlaylistImageByUid(playlistObj.uid, MQ_DEFAULT_IMG);
   
   var div = document.createElement("div");
   var tag = "Playlist " + playlistObj.uid + ":" + name;
   div.id = tag;
-  div.classList.add("border-bottom", "playlist-div", "button");
+  div.classList.add("playlist-container");
   
-  var titleContainer = document.createElement("div");
-  titleContainer.classList.add("regular-font", "playlist-div-info");
-  titleContainer.innerHTML = playlistObj.name;
-  var infoContainer = document.createElement("div");
-  infoContainer.classList.add("tiny-font", "playlist-div-info");
+  var titleContainer = document.createElement("input");
+  titleContainer.type = "text";
+  titleContainer.maxlength = "50";
+  titleContainer.classList.add("ellipsis", "playlist-title", "small-font", "border-none", "white");
+  titleContainer.value = playlistObj.name;
+  titleContainer.disabled = "disabled";
+  
+  titleContainer.onkeyup = function(e){
+    if(e.keyCode == KEYCODE_ENTER){
+      titleContainer.disabled = "disabled";
+    }
+  }
+  
+  var infoContainer = document.createElement("text");
+  infoContainer.classList.add("ellipsis", "playlist-length", "tiny-font", "gray");
   
   var numVideos = playlistObj.videos.length;
   
@@ -280,12 +294,15 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
     }
   }
   
-  infoContainer.innerHTML = numVideos + " Videos";
-  
-  infoContainer.style.lineHeight = "150%";
-  
+  if(numVideos == 1){
+    infoContainer.innerHTML = numVideos + " Video";
+  }
+  else{
+    infoContainer.innerHTML = numVideos + " Videos";
+  }
+    
   div.onclick = function(e){
-    if(e.clientX < 290){
+    if(e.path[0].tag != "i"){
       if(playlistObj.uid != playlistCollectionManager.getViewingPlaylistUid()){
         if(typeof playlistPageManager.viewingVideoListManager != "undefined"){
           var buttonsMap = playlistPageManager.getVideoListManager().playButtons;
@@ -294,39 +311,28 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
               value.parentNode.parentNode.removeChild(value.parentNode);
             }
           });
-          playlistPageManager.viewingVideoListManager = undefined;
         }
-        
-
-        currPlaylistId = tag;
         playlistCollectionManager.setViewingPlaylistUid(playlistObj.uid);
         playlistPageManager.loadPlaylistPage(playlistObj.uid);
-      } 
+      }
     }
     else{
       var playlist = playlistCollectionManager.getPlaylist(playlistObj.uid);
-      editPlaylistId = tag;
       playlistCollectionManager.setEditingPlaylistUid(playlistObj.uid);
       currPlaylistLoaded = playlist;
     }
   }
   
   var settings = document.createElement("div");
-  settings.classList.add("playlist-settings", "list-group");
+  settings.classList.add("playlist-settings");
   var deleteContainer = document.createElement("div");
-  deleteContainer.classList.add("list-group-item");
+  deleteContainer.classList.add("playlist-delete", "float-left", "button");
   var deleteButtonImg = document.createElement("div");
   deleteButtonImg.tag = "i";
-  deleteButtonImg.classList.add("fa", "fa-trash-o", "fa-fw");
+  deleteButtonImg.classList.add("fa", "fa-trash-o", "fa-lg");
   deleteButtonImg.setAttribute("aria-hidden", "true");
   deleteContainer.appendChild(deleteButtonImg);
-  var deleteButtonText = document.createElement("div");
-  deleteButtonText.style.right = "5px";
-  deleteButtonText.innerHTML = "Delete";
-  deleteButtonText.style.position = "absolute";
-  deleteButtonText.style.top = "0";
-  deleteContainer.appendChild(deleteButtonText);
-  settings.appendChild(deleteContainer);
+  
   deleteContainer.onclick = function(){
     if(window.getComputedStyle(deletePlaylistPopup).display == "none"){
       overlay.style.display = "block";
@@ -339,21 +345,17 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
   };
   
   var editContainer = document.createElement("div");
-  editContainer.classList.add("list-group-item");
+  editContainer.classList.add("playlist-edit", "float-left", "button", "fa-lg");
   var editButtonImg = document.createElement("div");
   editButtonImg.tag = "i";
-  editButtonImg.classList.add("fa", "fa-pencil-square-o", "fa-fw");
+  editButtonImg.classList.add("fa", "fa-pencil-square-o");
   editButtonImg.setAttribute("aria-hidden", "true");
   editContainer.appendChild(editButtonImg);
-  var editButtonText = document.createElement("div");
-  editButtonText.style.right = "18px";
-  editButtonText.innerHTML = "Edit";
-  editButtonText.style.position = "absolute";
-  editButtonText.style.top = "20px";
-  editContainer.appendChild(editButtonText);
   settings.appendChild(editContainer);
+  settings.appendChild(deleteContainer);
   
   editContainer.onclick = function(e){
+    /*
     var start = "Playlist ".length;
     var uid = 0;
     for(i = 0; i < e.path.length; i++){
@@ -364,20 +366,26 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
       }
     }
     displayPlaylistPopup(true, uid);
-  }
-  
-  div.onmouseenter = function(){
-    settings.style.opacity = "1";
+    */
+    if(titleContainer.disabled == ""){
+      titleContainer.disabled = "disabled";
+    }
+    else{
+      titleContainer.disabled = "";
+      titleContainer.focus();
+    }
   }
   
   div.onmouseleave = function(){
-    settings.style.opacity = "0";
+    if(titleContainer.disabled == ""){
+      titleContainer.disabled = "disabled";
+    }
   }
   
   div.appendChild(titleContainer);
   div.appendChild(infoContainer);
   div.appendChild(settings);
-  document.getElementById("playlist-display").appendChild(div);
+  document.getElementById("playlist-list").appendChild(div);
   
   if(callback){
     callback();
@@ -403,11 +411,6 @@ PlaylistPageManager.prototype.VIDEO_NOT_LOADED = 0;
 PlaylistPageManager.prototype.VIDEO_LOADED = 1;
 
 PlaylistPageManager.prototype.loadPlaylistPage = function(uid){
-  if(!this.videoBarDisplayed){
-    document.getElementById("video-bar").style.display = "block";
-    this.videoBarDisplayed = true;
-  }
-  
   videoPlayerManager.setPlaylistManager(playlistCollectionManager.getViewingManager());
   
   // Get info about the current video being played from the background page
@@ -416,13 +419,11 @@ PlaylistPageManager.prototype.loadPlaylistPage = function(uid){
   var playlist = playlistCollectionManager.getViewingPlaylist();
   this.currPlaylist = playlist;
   
+  document.getElementById("playlist-name").innerHTML = playlist.name;
+  
   this.viewingVideoListManager = new VideoListManager(playlist);
   
   if(typeof playlist != "undefined"){
-    var img = document.getElementById("player-image-image");
-    img.src = chrome.extension.getBackgroundPage().getPlaylistImageByUid(uid, SD_DEFAULT_IMG);
-    document.getElementById("playerImage").style.display = "block";
-    this.viewingVideoListManager = new VideoListManager(playlist);
     this.viewingVideoListManager.displayVideos();
   }
   else{
@@ -473,24 +474,28 @@ VideoListManager.prototype.displayVideos = function(){
 
 VideoListManager.prototype.createVideoDiv = function(video, index){
   var container = document.createElement("div");
-  container.classList.add("videoList", "container", "botBorder", "video");
+  container.classList.add("video-container", "card-background");
   container.id = index;
   
   var playButton = document.createElement("div");
-  playButton.classList.add("videoList", "imageContainer");
+  playButton.classList.add("video-img", "video-play-pause-button");
 
-  var play = document.createElement("div");
-  play.tag = "i";
-  play.classList.add("fa", "fa-play-circle-o", "fa-lg", "video-image-container");
+  var playContainer = document.createElement("div");
+  playContainer.classList.add("video-play-button");
+  var play = document.createElement("i");
+  play.classList.add("fa", "fa-play", "fa-lg");
   play.setAttribute("aria-hidden", "true");
+  playContainer.appendChild(play);
   
-  var pause = document.createElement("div");
-  pause.tag = "i";
-  pause.classList.add("fa", "fa-pause-circle-o", "fa-lg", "video-image-container");
+  var pauseContainer = document.createElement("div");
+  pauseContainer.classList.add("video-pause-button");
+  var pause = document.createElement("i");
+  pause.classList.add("fa", "fa-pause", "fa-lg");
   pause.setAttribute("aria-hidden", "true");
+  pauseContainer.appendChild(pause);
   
-  playButton.appendChild(play);
-  playButton.appendChild(pause);
+  playButton.appendChild(playContainer);
+  playButton.appendChild(pauseContainer);
   
   var manager = this;
   
@@ -499,23 +504,23 @@ VideoListManager.prototype.createVideoDiv = function(video, index){
     if((video.uid == videoBeingPlayedUid) &&
        (videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING)){
       videoPlayerManager.setPlayButtons(manager.playButtons);
-      play.style.display = "none";
-      pause.style.display = "block";
+      playContainer.style.display = "none";
+      pauseContainer.style.display = "block";
     }
     else{
-      play.style.display = "block";
-      pause.style.display = "none";
+      playContainer.style.display = "block";
+      pauseContainer.style.display = "none";
     }
     this.videoBeingPlayed = playButton;
   }
   else{
-    play.style.display = "block";
-    pause.style.display = "none";
+    playContainer.style.display = "block";
+    pauseContainer.style.display = "none";
   }
   
   
   
-  play.onclick = function(){
+  playContainer.onclick = function(){
     if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
       manager.playButtons.forEach(function(value, key){
         if(value.childNodes[0].style.display != "block"){
@@ -541,43 +546,25 @@ VideoListManager.prototype.createVideoDiv = function(video, index){
       manager.videoBeingPlayed = playButton;
     }
     updateControlPanelPlayButton(true);
-    play.style.display = "none";
-    pause.style.display = "block";
+    playContainer.style.display = "none";
+    pauseContainer.style.display = "block";
   };
   
-  pause.onclick = function(){
+  pauseContainer.onclick = function(){
     videoPlayerManager.pauseVideo();
     updateControlPanelPlayButton(false);
-    play.style.display = "block";
-    pause.style.display = "none";
+    playContainer.style.display = "block";
+    pauseContainer.style.display = "none";
   }
   
   this.playButtons.set(video.uid, playButton);
   
-  var title = document.createElement("div");
-  title.classList.add("videoList", "titleContainer");
+  var title = document.createElement("text");
+  title.classList.add("tiny-font", "left-column-video-title", "ellipsis");
   title.innerHTML = video.videoTitle;
-  title.onclick = function(){
-    if(window.getComputedStyle(play).display == "none"){
-      pause.click();
-    }
-    else{
-      play.click();
-    }
-  }
-  var channel = document.createElement("div");
-  channel.classList.add("videoList", "channelContainer");
-  channel.innerHTML = video.channelTitle;
-  channel.onclick = function(){
-    if(window.getComputedStyle(play).display == "none"){
-      pause.click();
-    }
-    else{
-      play.click();
-    }
-  }
+
   var duration = document.createElement("div");
-  duration.classList.add("videoList", "durationContainer");
+  duration.classList.add("tiny-font", "left-column-duration", "gray");
   var start = video.duration.indexOf("PT") + 2;
   var end = video.duration.indexOf("M");
   var min = video.duration.slice(start, end);
@@ -586,77 +573,95 @@ VideoListManager.prototype.createVideoDiv = function(video, index){
     sec = "0" + sec;
   }
   duration.innerHTML = min + ":" + sec;
+  
   var settings = document.createElement("div");
   settings.classList.add("video-settings");
   settings.id = "videoSettings";
-  var img = document.createElement("img");
-  img.classList.add("image");
-  img.src = "images/settings-cog.png";
   
-  settings.appendChild(img);
+  var deleteContainer = document.createElement("div");
+  deleteContainer.classList.add("video-delete", "button");
+  var deleteVideo = document.createElement("i");
+  deleteVideo.classList.add("fa", "fa-trash-o");
+  deleteVideo.setAttribute("aria-hidden", "true");
+  deleteContainer.appendChild(deleteVideo);
+  settings.appendChild(deleteContainer);
+  
+  deleteContainer.onclick = function(){
+    var length = playlistCollectionManager.getPlaylistLength(playlistCollectionManager.getViewingPlaylistUid());
 
-  var settingsModal = document.createElement("div");
-  settingsModal.classList.add("video-settings-modal");
-  var deleteButton = document.createElement("div");
-  deleteButton.classList.add("small-square-button", "left-align", "button");
-  var deleteButtonImg = document.createElement("div");
-  deleteButtonImg.tag = "i";
-  deleteButtonImg.setAttribute("aria-hidden", "true");
-  deleteButtonImg.classList.add("fa", "fa-trash-o");
-  deleteButton.appendChild(deleteButtonImg);
-  var editButton = document.createElement("div");
-  editButton.classList.add("small-square-button", "right-align", "button");
-  var editButtonImg = document.createElement("div");
-  editButtonImg.classList.add("fa", "fa-pencil-square-o");
-  editButton.style.top = "2px";
-  editButton.appendChild(editButtonImg);
-  settingsModal.appendChild(deleteButton);
-  settingsModal.appendChild(editButton);
+    playlistCollectionManager.deleteVideo(video.uid);
+    container.parentNode.removeChild(container);
+
+    var playlistName = playlistCollectionManager.getViewingPlaylist().name;
+    
+    var viewingPlaylist = playlistCollectionManager.getViewingPlaylistUid();
+    var videoDisplay = document.getElementById("Playlist " + viewingPlaylist + ":" + playlistName).childNodes[1];
+    var numVideos = chrome.extension.getBackgroundPage().getNumVideosByUid(viewingPlaylist);
+    videoDisplay.innerHTML = numVideos + " Videos";
+  }
   
+  var editContainer = document.createElement("div");
+  editContainer.classList.add("video-edit", "button");
+  var edit = document.createElement("i");
+  edit.classList.add("fa", "fa-pencil-square-o");
+  edit.setAttribute("aria-hidden", "true");
+  editContainer.appendChild(edit);
+  settings.appendChild(editContainer);
   
-  
-  settings.onclick = function(){
-    manager.setVideoToBeRemoved(video);
-    manager.setVideoToBeEdited(video);
-    if(window.getComputedStyle(settingsModal).opacity == "0"){
-      settingsModal.style.opacity = "1";
-      settingsIndex = index;
-      containerToRemove = container;
-      videoIndexToRemove = index;
-      deleteButton.addEventListener("click", removeVideo);
-      editButton.addEventListener("click", editVideo);
+  editContainer.onclick = function(){
+    overlay.style.display = "block";
+    
+    var editVideoDiv = document.getElementById("edit-video-modal");
+    editVideoDiv.style.display = "block";
+    var titleInput = document.getElementById("edit-title-input");
+    titleInput.value = video.videoTitle;
+    var artistInput = document.getElementById("edit-artist-input");
+    artistInput.value = video.channelTitle;
+    var startTimeMin = document.getElementById("edit-start-input-min");
+    var startTimeSec = document.getElementById("edit-start-input-sec");
+    if(typeof video.startTime == "undefined"){
+      startTimeMin.value = 0;
+      startTimeSec.value = 0;
     }
     else{
-      settingsModal.style.opacity = "0";
-      if(settingsIndex == index){
-        containerToRemove = undefined;
-        videoIndexToRemove = undefined;
-      }
-      else{
-        settingsIndex = index;
-        videoIndexToRemove = index;
-        containerToRemove = container;
-      }
+      startTimeMin.value = Math.floor(video.startTime / 60);
+      startTimeSec.value = video.startTime % 60;
     }
+    var endTimeMin = document.getElementById("edit-end-input-min");
+    var endTimeSec = document.getElementById("edit-end-input-sec");
+    if(typeof video.endTime == "undefined"){
+      var start = video.duration.indexOf("PT") + 2;
+      var end = video.duration.indexOf("M");
+      var min = parseInt(video.duration.slice(start, end));
+      var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
+      endTimeMin.value = min;
+      endTimeSec.value = sec;
+      endTimeMin.max = min;
+      startTimeMin.max = min;
+    }
+    else{
+      endTimeMin.value = Math.floor(video.endTime / 60);
+      endTimeSec.value = video.endTime % 60;
+      endTimeMin.max = Math.floor(video.endTime / 60);
+      startTimeMin.max = Math.floor(video.endTime / 60);
+    }
+
+    titleInput.focus();
   }
+  
+  var videoOverlay = document.createElement("div");
+  videoOverlay.classList.add("video-img", "video-img-overlay");
+  
+  var videoImg = document.createElement("img");
+  videoImg.classList.add("video-img");
+  videoImg.src = "http://img.youtube.com/vi/" + video.videoId + "/1.jpg";
   
   container.appendChild(playButton);
+  container.appendChild(videoOverlay);
+  container.appendChild(videoImg);
   container.appendChild(title);
-  container.appendChild(channel);
   container.appendChild(duration);
   container.appendChild(settings);
-  container.appendChild(settingsModal);
-  
-  container.onmouseenter = function(){
-    settings.style.opacity = "1";
-  }
-  
-  container.onmouseleave = function(){
-    settings.style.opacity = "0";
-    if(window.getComputedStyle(settingsModal).opacity == "1"){
-      settingsModal.style.opacity = "0";
-    }
-  }
 
   videoList.appendChild(container);
 }
@@ -755,807 +760,807 @@ function onModalPlayerReady(event){
 function initListeners(){
   // Opens a window for the user to add a playlist and closes the window 
   // if clicked again
-  addPlaylistButton.onclick = function(){
-    displayPlaylistPopup(false, undefined);
-  };
-  addVideoButton.onclick = function(){
-    if(window.getComputedStyle(addVideoModal).display == "none"){
-      addVideoModal.style.display = "block";
-      overlay.style.display = "block";
-      videoUrlInput.focus();
-    }
-    else{
-      addVideoModal.style.display = "none";
-      overlay.style.display = "none";
-    }
-  };
-  addVideoConfirmButton.onclick = function(){
-    var enteredUrl = videoUrlInput.value;
-    var key = "watch?v=";
-    var start = enteredUrl.indexOf(key);
-    if(start != -1){
-      start += key.length;
-      var end = start + 11;
-      var videoId = enteredUrl.slice(start, end);
-      var uid = playlistCollectionManager.getViewingPlaylistUid();
-      playlistCollectionManager.insertVideo(uid, videoId);
-      var id = "Playlist " + uid + ":" + playlistCollectionManager.getPlaylist(uid).name;
-      var videoDisplay = document.getElementById(id).childNodes[1];
-      var numVideos = parseInt(videoDisplay.innerHTML.substr(0, videoDisplay.innerHTML.indexOf("V") - 1)) + 1;
-      videoDisplay.innerHTML = numVideos + " Videos";
-    }
-    addVideoCancelButton.click();
-  };
-  addVideoCancelButton.onclick = function(){
-    addVideoModal.style.display = "none";
-    videoUrlInput.value = "";
-    modalPlayer.stopVideo();
-    document.getElementById("videoModalResultDisplay").style.display = "none";
-    overlay.style.display = "none";
-  };
-  videoUrlInput.onkeyup = function(){
-    var enteredUrl = videoUrlInput.value;
-    var key = "watch?v=";
-    var start = enteredUrl.indexOf(key);
-    if(start != -1){
-      start += key.length;
-      var end = start + 11;
-      var videoId = enteredUrl.slice(start, end);
-      if(videoId.length == 11){
-        loadVideoPreview(videoId);
-      }
-    }
-  };
-  playlistInputField.onkeyup = function(){
-    var numChars = playlistInputField.value.length;
-    document.getElementById("playlistTextboxCharCount").innerHTML = numChars + "/50";
-  };
-  setImageButton.addEventListener("change", function(){
-    var file = setImageButton.files[0];
-    var reader = new FileReader();
-    reader.onloadend = function(){
-      document.getElementById("playlistSetImageImage").src = reader.result;  
-    }
-    if(file){
-      reader.readAsDataURL(file);
-    }
-    else{
-      document.getElementById("playlistSetImageImage").src = defaultPlaylistImage;
-    }
-  }, true);
-  
-  deletePlaylistPopupCancelButton.onclick = function(){
-    overlay.style.display = "none";
-    deletePlaylistPopup.style.display = "none";
-  };
-  
-  deletePlaylistPopupConfirmButton.onclick = function(event){
-    // Delete the playlist from storage
-    playlistCollectionManager.deletePlaylist();
-    // Remove the playlist div from the left hand column
-    document.getElementById(editPlaylistId).parentNode.removeChild(document.getElementById(editPlaylistId));
-    // If the playlist being deleted is the same as the one that is currently playing, reset the playing
-    // details
-    if(playlistCollectionManager.getEditingPlaylistUid() == playlistCollectionManager.getPlayingPlaylistUid()){
-      videoBeingPlayed = undefined;
-      currVideoId = undefined;
-      playlistCollectionManager.setPlayingPlaylistUid(undefined);
-    }
-    // If the playlist being deleted is the same as the one being displayed, then close the page
-    if(playlistCollectionManager.getEditingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
-      document.getElementById("playerImage").style.display = "none";
-      document.getElementById("video-bar").style.display = "none";
-      playlistPageManager.videoBarDisplayed = false;
-      if(typeof playlistPageManager.viewingVideoListManager != "undefined"){
-        var buttonsMap = playlistPageManager.viewingVideoListManager.playButtons;
-        buttonsMap.forEach(function(value, key){
-          value.parentNode.parentNode.removeChild(value.parentNode);  
-        });
-        playlistPageManager.viewingVideoListManager = undefined;
-      }
-    }
-    // Reset UI to normal
-    playlistCollectionManager.setEditingPlaylistUid(undefined);
-    editPlaylistId = undefined;
-    deletePlaylistPopup.style.display = "none";
-    overlay.style.display = "none";
-    var playlistSelectionContainer = document.getElementById("playlist-selection-container");
-    for(i = 0; i < playlistSelectionContainerList.length; i++){
-      playlistSelectionContainerList[i].parentNode.removeChild(playlistSelectionContainerList[i]);
-    }
-    playlistSelectionContainerList = [];
-    setupPlaylistSelectionContainer();
-  }
-  
-  // Clicks the create playlist button when user hits enter key
-  searchInput.onkeyup = function(){
-    if(event.keyCode == KEYCODE_ENTER){
-      searchButton.click();
-    }
-  };
-  
-  importDefaultContainer.onkeypress = function(){
-    if(event.keyCode == KEYCODE_ENTER){
-      createPlaylistButton.click();
-    }
-  };
-  
-  searchButton.onclick = function(){
-    var keywords = searchInput.value;
-    if(keywords.length != 0 && keywords.replace(/\s/g, '').length != 0){
-      keywords = keywords.replace(/\s/g, '');
-      
-      var displayContainer = document.getElementById("search-results-display");
-      
-      while(displayContainer.firstChild){
-        displayContainer.removeChild(displayContainer.firstChild);
-      }
-      
-      chrome.extension.getBackgroundPage().search(keywords, function(item){
-        for(i = 0; i < item.items.length; i++){
-          createSearchResultDiv(item.items[i]);
-        }
-      });
-    }
-  };
-
-  controlPlayButton.onclick = function(){
-    if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
-      updateControlPanelPlayButton(true);
-      videoPlayerManager.playVideo();
-    }
-  }
-  controlPauseButton.onclick = function(){
-    if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING ||
-       videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.BUFFERING){
-      updateControlPanelPlayButton(false);
-      videoPlayerManager.pauseVideo();
-    }
-  }
-  controlFastForwardButton.onclick = function(){
-    videoPlayerManager.fastForward();
-  }
-  controlRewindButton.onclick = function(){
-    videoPlayerManager.rewind();
-  }
-  
-  controlRepeatButton.onclick = function(){
-    var repeatOn = chrome.extension.getBackgroundPage().getInfo({id:"repeatStatus"});
-    if(repeatOn){
-      controlRepeatButton.style.color = "black";
-    }
-    else{
-      controlRepeatButton.style.color = "green"
-    }
-    chrome.extension.getBackgroundPage().setRepeat(!repeatOn);
-  }
-  controlShuffleButton.onclick = function(){
-    var shuffleOn = chrome.extension.getBackgroundPage().getInfo({id:"shuffleStatus"});
-    if(shuffleOn){
-      controlShuffleButton.style.color = "black";
-    }
-    else{
-      controlShuffleButton.style.color = "green";
-    }
-    chrome.extension.getBackgroundPage().setShuffle(!shuffleOn);
-  }
-  
-  document.getElementById("settings-button").onclick = function(){
-    if(window.getComputedStyle(document.getElementById("settings-container")).display == "none"){
-      document.getElementById("settings-container").style.display = "block";
-      document.getElementById("transparent-overlay").style.display = "block";
-      if(quality == "small"){
-        document.getElementById("smallQualitySelection").style.backgroundColor = "green";
-      }
-      else if(quality == "medium"){
-        document.getElementById("mediumQualitySelection").style.backgroundColor = "green";
-      }
-      else if(quality == "large"){
-        document.getElementById("largeQualitySelection").style.backgroundColor = "green";
-      }
-      else if(quality == "hd720"){
-        document.getElementById("hd720QualitySelection").style.backgroundColor = "green";
-      }
-      else{
-        document.getElementById("defaultQualitySelection").style.backgroundColor = "green";
-      }
-    }
-    else{
-      document.getElementById("settings-container").style.display = "none"; 
-      document.getElementById("transparent-overlay").style.display = "none";
-    }
-  }
-  
-  
-  
-  document.getElementById("playlist-tab").onclick = function(){
-    if(window.getComputedStyle(document.getElementById("playlist-container")).display == "none"){
-      document.getElementById("playlist-container").style.display = "block";
-      document.getElementById("playlist-tab").style.borderBottom = "none";
-      document.getElementById("search-container").style.display = "none";
-      document.getElementById("search-tab").style.borderBottom = "1px solid lightgray";
-    }
-  }
-  
-  document.getElementById("search-tab").onclick = function(){
-    if(window.getComputedStyle(document.getElementById("search-container")).display == "none"){
-      document.getElementById("playlist-container").style.display = "none";
-      document.getElementById("playlist-tab").style.borderBottom = "1px solid lightgray";
-      document.getElementById("search-container").style.display = "block";
-      document.getElementById("search-tab").style.borderBottom = "none";
-    }
-  }
-  
-  volumeBar.onclick = function(e){
-    var volume = e.offsetX;
-
-    document.getElementById("volume-bar-fill").style.width = volume + "px";
-    // Convert volume to be in range 0-100
-    volume = Math.round((volume / 50) * 100);
-    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
-  }
-  
-  document.getElementById("volume-on").onclick = function(){
-    document.getElementById("volume-on").style.display = "none";
-    document.getElementById("volume-off").style.display = "block";
-    document.getElementById("volume-bar-fill").style.width = "0px";
-    var volume = chrome.extension.getBackgroundPage().getVolume().volume;
-    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": true});
-  }
-  
-  document.getElementById("volume-off").onclick = function(){
-    document.getElementById("volume-on").style.display = "block";
-    document.getElementById("volume-off").style.display = "none";
-    var volume = chrome.extension.getBackgroundPage().getVolume().volume;
-    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
-    document.getElementById("volume-bar-fill").style.width = (volume / 2) + "px";
-  }
-  
-  document.getElementById("smallQualitySelection").onclick = function(){
-    if(document.getElementById("smallQualitySelection").style.backgroundColor != "green"){
-      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
-      document.getElementById("smallQualitySelection").style.backgroundColor = "green";
-      quality = "small";
-      chrome.extension.getBackgroundPage().setQuality("small");
-    }
-  }
-  document.getElementById("mediumQualitySelection").onclick = function(){
-    if(document.getElementById("mediumQualitySelection").style.backgroundColor != "green"){
-      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
-      document.getElementById("mediumQualitySelection").style.backgroundColor = "green";
-      quality = "medium";
-      chrome.extension.getBackgroundPage().setQuality("medium");
-    }
-  }
-  document.getElementById("largeQualitySelection").onclick = function(){
-    if(document.getElementById("largeQualitySelection").style.backgroundColor != "green"){
-      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
-      document.getElementById("largeQualitySelection").style.backgroundColor = "green";
-      quality = "large";
-      chrome.extension.getBackgroundPage().setQuality("large");
-    }
-  }
-  document.getElementById("hd720QualitySelection").onclick = function(){
-    if(document.getElementById("hd720QualitySelection").style.backgroundColor != "green"){
-      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
-      document.getElementById("hd720QualitySelection").style.backgroundColor = "green";
-      quality = "hd720";
-      chrome.extension.getBackgroundPage().setQuality("hd720");
-    }
-  }
-  document.getElementById("defaultQualitySelection").onclick = function(){
-    if(document.getElementById("defaultQualitySelection").style.backgroundColor != "green"){
-      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
-      document.getElementById("defaultQualitySelection").style.backgroundColor = "green";
-      quality = "default";
-      chrome.extension.getBackgroundPage().setQuality("default");
-    }
-  }
-  document.getElementById("sign-in-button").onclick = function(){
-    chrome.identity.getAuthToken({'interactive' : true}, function(token){
-      document.getElementById("signin-ui").style.display = "none";
-      if(chrome.runtime.lastError){
-        document.getElementById("try-again").style.display = "block";
-      }
-      else{
-        chrome.extension.getBackgroundPage().setToken({access_token: token});
-        document.getElementById("url-or-display-all-selection-container").style.display = "block";
-        document.getElementById("url-selection-button-container").style.display = "block";
-      }
-    });
-  }
-  
-  document.getElementById("try-again-button").onclick = function(){
-    chrome.identity.getAuthToken({'interactive': true}, function(token){
-      if(chrome.runtime.lastError){
-        
-      }
-      else{
-        chrome.extension.getBackgroundPage().setToken({access_token: token});
-        document.getElementById("try-again").style.display = "none";
-        document.getElementById("url-or-display-all-selection-container").style.display = "block";
-        document.getElementById("url-selection-button-container").style.display = "block";
-      }
-    });
-  }
-  
-  
-  importDefault.onmouseenter = function(){
-    if(currSelection != 1){
-      importDefault.style.borderBottom = "2px solid gray";
-    }
-  }
-  
-  importDefault.onmouseleave = function(){
-    if(currSelection != 1){
-      importDefault.style.borderBottom = "0px";
-    }
-  }
-  
-  importDefault.onclick = function(){
-    if(currSelection != 1){
-      currSelection = 1;
-      setImportDisplay({border: "2px solid gray", display: "block"},
-                       {border: "0px solid gray", display: "none"},
-                       {border: "0px solid gray", display: "none"});
-    }
-  }
-  
-  importUser.onmouseenter = function(){
-    if(currSelection != 2){
-      importUser.style.borderBottom = "2px solid gray";
-    }
-  }
-  
-  importUser.onmouseleave = function(){
-    if(currSelection != 2){
-      importUser.style.borderBottom = "0px solid gray";
-    }
-  }
-  
-  var logout = false;
-  
-  importUser.onclick = function(){
-    if(currSelection != 2){
-      currSelection = 2;
-      setImportDisplay({border: "0px solid gray", display: "none"},
-                       {border: "2px solid gray", display: "block"},
-                       {border: "0px solid gray", display: "none"});
-      chrome.identity.getAuthToken({'interactive' : false}, function(token){
-        if(chrome.runtime.lastError){
-          document.getElementById("signin-ui").style.display = "block";
-          document.getElementById("try-again").style.display = "none";
-          document.getElementById("url-or-display-all-selection-container").style.display = "none";
-          document.getElementById("url-selection-container").style.display = "none";
-          document.getElementById("display-all-selection-container").style.display = "none";
-          document.getElementById("display-all-selection-results-buttons").style.display = "none";
-          document.getElementById("url-selection-results-button").style.display = "none";
-          document.getElementById("url-selection-results-cancel-button").style.display = "none";
-        }
-        else{
-          chrome.extension.getBackgroundPage().setToken({access_token: token});
-          if(logout){
-            chrome.identity.removeCachedAuthToken({'token': token}, function(){
-              log("success");
-            });
-          }
-          // Display 2 button choices: import by url and display all playlists
-          document.getElementById("url-or-display-all-selection-container").style.display = "block";
-          document.getElementById("url-selection-url-input").value = "";
-          document.getElementById("url-selection-button-container").style.display = "block";
-          document.getElementById("url-selection-container").style.display = "none";
-          document.getElementById("display-all-selection-container").style.display = "none";
-          document.getElementById("display-all-selection-results-buttons").style.display = "none";
-          document.getElementById("url-selection-results-button").style.display = "none";
-          document.getElementById("url-selection-results-cancel-button").style.display = "none";
-        }
-      });
-    }
-  };
-  
-  document.getElementById("url-selection-button").onclick = function(){
-    document.getElementById("url-selection-button-container").style.display = "none";
-    document.getElementById("url-selection-container").style.display = "block";
-  };
-  
-  var userPlaylistResults = [];
-  var userImportChoices = [];
-  /**
-   * newResults-If true then we want to remove all previous results that were displayed and if false 
-   *            we don't remove the displayed results
-   */
-  function displayAllPlaylistResults(results, newResults){
-    var container = document.getElementById("display-all-selection-results-container");
-    
-    if(newResults){
-      userPlaylistResults = [];
-      userImportChoices = [];
-      while(container.firstChild){
-        container.removeChild(container.firstChild);
-      }
-    }
-    
-    var offset = userPlaylistResults.length;
-    
-    // If there is a next page token, then get the next page of results
-    for(i = 0; i < results.items.length; i++){
-      userPlaylistResults.push(results.items[i]);
-      userImportChoices.push(false);
-      var div = document.createElement("div");
-      var img = document.createElement("img");
-      img.src = results.items[i].snippet.thumbnails.default.url;
-      div.classList.add("display-all-selection-result");
-      div.appendChild(img);
-      div.id = offset + i;
-      var span = document.createElement("span");
-      span.classList.add("fa-stack");
-      span.style.position = "absolute";
-      span.style.top = "5px";
-      span.style.left = "5px";
-      span.style.display = "none";
-      var innerCircle = document.createElement("i");
-      innerCircle.classList.add("fa", "fa-circle", "fa-stack-2x");
-      innerCircle.style.color = "#c0ffc0";
-      var outerCircle = document.createElement("i");
-      outerCircle.classList.add("fa", "fa-circle-thin", "fa-stack-2x");
-      outerCircle.style.color = "#40c040";
-      var check = document.createElement("i");
-      check.classList.add("fa", "fa-check", "fa-stack-1x");
-      span.appendChild(innerCircle);
-      span.appendChild(outerCircle);
-      span.appendChild(check);
-      div.appendChild(span);
-      
-      div.onclick = function(e){
-        var id = parseInt(e.path[1].id);
-        if(window.getComputedStyle(e.path[1].childNodes[1]).display == "none"){
-          e.path[1].childNodes[1].style.display = "block";
-          userImportChoices[id] = true;
-        }
-        else{
-          e.path[1].childNodes[1].style.display = "none";
-          userImportChoices[id] = false;
-        }        
-      }
-      
-      container.appendChild(div);
-    }
-    document.getElementById("url-selection-load").style.display = "none";
-    document.getElementById("display-all-selection-results-buttons").style.display = "block";
-  }
-  
-  document.getElementById("display-all-selection-button").onclick = function(){
-    document.getElementById("url-selection-button-container").style.display = "none";
-    document.getElementById("display-all-selection-container").style.display = "block";
-    document.getElementById("url-selection-load").style.display = "block";
-    chrome.extension.getBackgroundPage().requestPlaylists(function(response){
-      
-      if(chrome.runtime.lastError){
-        document.getElementById("url-selection-load").style.display = "none";
-      }
-      else{
-        var results = [response];
-        displayAllPlaylistResults(response, true);
-      }
-    });
-  };
-  
-  document.getElementById("display-all-selection-import-all-button").onclick = function(){
-    
-  };
-  
-  document.getElementById("display-all-selection-import-button").onclick = function(){
-    
-    for(i = 0; i < userImportChoices.length; i++){
-      if(userImportChoices[i]){
-        document.getElementById("url-selection-load").style.display = "block";
-        playlistGenerator.processRawPlaylistList(userPlaylistResults, userImportChoices, function(){
-          document.getElementById("url-selection-load").style.display = "none";
-          document.getElementById("url-selection-success").style.display = "block";
-          var playlistNodes = document.getElementById("display-all-selection-results-container").childNodes;
-          
-          for(i = 0; i < playlistNodes.length; i++){
-            playlistNodes[i].childNodes[1].style.display = "none";
-          }
-        });
-        i = userImportChoices.length;
-      }
-    }
-    
-  };
-  
-  document.getElementById("url-selection-continue-button").onclick = function(){
-    document.getElementById("url-selection-success").style.display = "none";
-    for(i = 0; i < userImportChoices.length; i++){
-      userImportChoices[i] = false;
-    }
-  }
-  
-  document.getElementById("display-all-selection-cancel-button").onclick = function(){
-    playlistPopup.dispatchEvent(cancelEvent);
-  };
-  
-  
-  importOther.onmouseenter = function(){
-    if(currSelection != 3){
-      importOther.style.borderBottom = "2px solid gray";
-    }
-  }
-  
-  importOther.onmouseleave = function(){
-    if(currSelection != 3){
-      importOther.style.borderBottom = "0px solid gray";
-    }
-  }
-  
-  importOther.onclick = function(){
-    if(currSelection != 3){
-      currSelection = 3;
-      setImportDisplay({border: "0px solid gray", display: "none"}, 
-                       {border: "0px solid gray", display: "none"}, 
-                       {border: "2px solid gray", display: "block"});
-    }
-  }
-  
-  function nextPlaylistPage(results, id, container, type){
-    chrome.extension.getBackgroundPage().getPlaylistByIdNextPage(id, 
-                                                                 results[results.length - 1].nextPageToken,
-                                                                 function(response){
-      if(response.error){
-        if(type == "url-selection"){
-          document.getElementById("url-selection-load").style.display = "none";
-        }
-        else if(type == "import-other"){
-          document.getElementById("import-other-load").style.display = "none";
-        }
-      }
-      else{
-        results.push(response);
-        if(response.nextPageToken){
-          nextPlaylistPage(results, id, container, type);
-        }
-        else{
-          displayPlaylistResults(results, container, type);
-        }
-      }
-    });
-  }
-  
-  var importList = [];
-  var resultsList = [];
-  function displayPlaylistResults(results, container, type){
-    // Reset the importList and resultsList
-    importList = [];
-    resultsList = [];
-    // Reset the results container so that the previous results aren't shown with the current results
-    while(container.firstChild){
-      container.removeChild(container.firstChild);
-    }
-    // Display the names of the videos along with a checkbox for the user to include it in the import or not
-    for(i = 0; i < results.length; i++){
-      var j;
-      for(j = 0; j < results[i].items.length; j++){
-        importList.push(true);
-        resultsList.push(results[i].items[j]);
-        var id = importList.length - 1;
-        createResultDisplay(id, results[i].items[j].snippet.title, container);
-      }
-      
-    }
-    // Turn off the loading animation when done displaying the results
-    container.style.display = "block";
-    
-    if(type == "url-selection"){
-      
-      document.getElementById("url-selection-load").style.display = "none";
-    }
-    else if(type == "import-other"){
-      document.getElementById("import-other-results-button").style.display = "block";
-      document.getElementById("import-other-results-cancel-button").style.display = "block";
-      document.getElementById("import-other-load").style.display = "none";
-    }
-    
-    
-  }
-  
-  function createResultDisplay(id, videoTitle, container){
-    var resultsDisplay = document.createElement("div");
-    var checkBox = document.createElement("input");
-    var title = document.createElement("div");
-    title.style.height = "inherit";
-    title.style.position = "absolute";
-    title.style.left = "20px";
-    resultsDisplay.classList.add("import-other-results-display-container");
-    checkBox.classList.add("float-left");
-    title.classList.add("float-left");
-    checkBox.type = "checkbox";
-    checkBox.id = id;
-    checkBox.checked = true;
-    checkBox.onchange = function(){
-      if(checkBox.checked){
-        importList[parseInt(checkBox.id)] = true;
-      }
-      else{
-        importList[parseInt(checkBox.id)] = false;
-      }
-    }
-    resultsDisplay.appendChild(checkBox);
-    title.innerHTML = videoTitle;
-    resultsDisplay.appendChild(title);
-    container.appendChild(resultsDisplay);
-    
-    resultsDisplay.onclick = function(e){
-      if(e.path[0] == this){
-        checkBox.click();
-      }
-    }
-    
-  }
-  
-  document.getElementById("import-other-results-button").onclick = function(){
-    document.getElementById("import-other-load").style.display = "block";
-    document.getElementById("import-other-results-button").style.display = "none";
-    document.getElementById("import-other-results-cancel-button").style.display = "none";
-    document.getElementById("import-other-results").style.display = "none";
-    var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
-    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
-      document.getElementById("import-other-load").style.display = "none";
-      document.getElementById("import-other-success").style.display = "block";
-      document.getElementById("import-other-url-input").style.display = "none";
-    });
-  }
-  
-  document.getElementById("url-selection-results-button").onclick = function(){
-    document.getElementById("url-selection-load").style.display = "none";
-    document.getElementById("url-selection-results-button").style.display = "none";
-    document.getElementById("url-selection-results-cancel-button").style.display = "none";
-    document.getElementById("url-selection-results-container").style.display = "none";
-    var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
-    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
-      document.getElementById("url-selection-load").style.display = "none";
-      document.getElementById("url-selection-success").style.display = "block";
-    });
-  }
-  
-  
-  document.getElementById("import-other-results-cancel-button").onclick = function(){
-    playlistPopup.dispatchEvent(cancelEvent);
-  }
-  
-  document.getElementById("url-selection-results-cancel-button").onclick = function(){
-    playlistPopup.dispatchEvent(cancelEvent);
-  }
-  
-  function clearImportList(){
-    var container = document.getElementById("import-other-results");
-    while(container.firstChild){
-      container.removeChild(container.firstChild);
-    }
-    document.getElementById("import-other-results-cancel-button").style.display = "none";
-    document.getElementById("import-other-results-button").style.display = "none";
-    container.style.display = "none";
-  }
-  
-  document.getElementById("import-other-success-exit-button").onclick = function(){
-    playlistPopup.dispatchEvent(cancelEvent);
-  }
-  
-  document.getElementById("import-other-success-import-again-button").onclick = function(){
-    var urlInput = document.getElementById("import-other-url-input");
-    urlInput.style.display = "block";
-    urlInput.value = "";
-    urlInput.focus();
-    document.getElementById("import-other-success").style.display = "none";
-  }
-  
-  importOtherUrlInput.onkeyup = function(){
-    if(event.keyCode == KEYCODE_ENTER){
-      var input = importOtherUrlInput.value;
-      var type = "list=";
-      var startIndex = input.indexOf(type) + type.length;
-      var id = input.slice(startIndex, startIndex + 34);
-      if(startIndex != -1 && id.length == 34 && !id.includes("&")){
-        if(window.getComputedStyle(document.getElementById("import-other-error")).display != "none"){
-          document.getElementById("import-other-error").style.display = "none";
-        }
-        
-        // Start the loading animation
-        document.getElementById("import-other-load").style.display = "block";
-        
-        // If the given url is valid then make an api call for it
-        chrome.extension.getBackgroundPage().getPlaylistById(id, function(response){
-          // If there is an error, then display the error message for the user
-          if(response.error){
-            document.getElementById("import-other-error").style.display = "block";
-            document.getElementById("invalid-url-error").style.display = "none";
-            document.getElementById("import-other-api-error").style.display = "block";
-            document.getElementById("import-other-load").style.display = "none";
-            if(response.error.code == 403){
-              document.getElementById("import-other-api-error-msg").innerHTML = "You do not have access to this private playlist";
-            }
-            else{
-              document.getElementById("import-other-api-error-msg").innerHTML = response.error.message;
-            }
-            
-          }
-          // If there is no error then obtain all the videos in the playlist in order to display them for the
-          // user to select 
-          else{
-            var results = [];
-            results.push(response);
-            if(response.nextPageToken){
-              nextPlaylistPage(results, id, document.getElementById("import-other-results"), "import-other");
-            }
-            else{
-              displayPlaylistResults(results, document.getElementById("import-other-results"), "import-other");
-            }
-          }
-        });
-      }
-      else{
-        // If the given url is invalid then display an error message
-        document.getElementById("import-other-error").style.display = "block";
-        document.getElementById("invalid-url-error").style.display = "block";
-        document.getElementById("import-other-api-error").style.display = "none";
-      }
-    }
-  }
-  
-  document.getElementById("url-selection-url-input").onkeyup = function(){
-    if(event.keyCode == KEYCODE_ENTER){
-      var input = document.getElementById("url-selection-url-input").value;
-      var type = "list=";
-      var startIndex = input.indexOf(type) + type.length;
-      var id = input.slice(startIndex, startIndex + 34);
-      if(startIndex != -1 && id.length == 34 && !id.includes("&")){
-        if(window.getComputedStyle(document.getElementById("url-selection-error")).display != "none"){
-          document.getElementById("url-selection-error").style.display = "none";
-        }
-        
-        // Start the loading animation
-        document.getElementById("url-selection-load").style.display = "block";
-        
-        // If the given url is valid then make an api call for it
-        chrome.extension.getBackgroundPage().getPlaylistById(id, function(response){
-          // If there is an error, then display the error message for the user
-          if(response.error){
-            document.getElementById("url-selection-error").style.display = "block";
-            document.getElementById("url-selection-invalid-url-error").style.display = "none";
-            document.getElementById("url-selection-api-error").style.display = "block";
-            document.getElementById("url-selection-load").style.display = "none";
-            if(response.error.code == 403){
-              document.getElementById("url-selection-api-error-msg").innerHTML = "You do not have access to this private playlist";
-            }
-            else{
-              document.getElementById("url-selection-api-error-msg").innerHTML = response.error.message;
-            }
-            
-          }
-          // If there is no error then obtain all the videos in the playlist in order to display them for the
-          // user to select 
-          else{
-            var results = [];
-            results.push(response);
-            document.getElementById("url-selection-results-button").style.display = "block";
-            document.getElementById("url-selection-results-cancel-button").style.display = "block";
-            if(response.nextPageToken){
-              nextPlaylistPage(results, id, document.getElementById("url-selection-results-container"), "url-selection");
-            }
-            else{
-              displayPlaylistResults(results, document.getElementById("url-selection-results-container"), "url-selection");
-            }
-          }
-        });
-      }
-      else{
-        document.getElementById("url-selection-error").style.display = "block";
-        document.getElementById("url-selection-invalid-url-error").style.display = "block";
-        document.getElementById("url-selection-api-error").style.display = "none";
-      }
-    }
-    
-  }
-  
+//  addPlaylistButton.onclick = function(){
+//    displayPlaylistPopup(false, undefined);
+//  };
+//  addVideoButton.onclick = function(){
+//    if(window.getComputedStyle(addVideoModal).display == "none"){
+//      addVideoModal.style.display = "block";
+//      overlay.style.display = "block";
+//      videoUrlInput.focus();
+//    }
+//    else{
+//      addVideoModal.style.display = "none";
+//      overlay.style.display = "none";
+//    }
+//  };
+//  addVideoConfirmButton.onclick = function(){
+//    var enteredUrl = videoUrlInput.value;
+//    var key = "watch?v=";
+//    var start = enteredUrl.indexOf(key);
+//    if(start != -1){
+//      start += key.length;
+//      var end = start + 11;
+//      var videoId = enteredUrl.slice(start, end);
+//      var uid = playlistCollectionManager.getViewingPlaylistUid();
+//      playlistCollectionManager.insertVideo(uid, videoId);
+//      var id = "Playlist " + uid + ":" + playlistCollectionManager.getPlaylist(uid).name;
+//      var videoDisplay = document.getElementById(id).childNodes[1];
+//      var numVideos = parseInt(videoDisplay.innerHTML.substr(0, videoDisplay.innerHTML.indexOf("V") - 1)) + 1;
+//      videoDisplay.innerHTML = numVideos + " Videos";
+//    }
+//    addVideoCancelButton.click();
+//  };
+//  addVideoCancelButton.onclick = function(){
+//    addVideoModal.style.display = "none";
+//    videoUrlInput.value = "";
+//    modalPlayer.stopVideo();
+//    document.getElementById("videoModalResultDisplay").style.display = "none";
+//    overlay.style.display = "none";
+//  };
+//  videoUrlInput.onkeyup = function(){
+//    var enteredUrl = videoUrlInput.value;
+//    var key = "watch?v=";
+//    var start = enteredUrl.indexOf(key);
+//    if(start != -1){
+//      start += key.length;
+//      var end = start + 11;
+//      var videoId = enteredUrl.slice(start, end);
+//      if(videoId.length == 11){
+//        loadVideoPreview(videoId);
+//      }
+//    }
+//  };
+//  playlistInputField.onkeyup = function(){
+//    var numChars = playlistInputField.value.length;
+//    document.getElementById("playlistTextboxCharCount").innerHTML = numChars + "/50";
+//  };
+//  setImageButton.addEventListener("change", function(){
+//    var file = setImageButton.files[0];
+//    var reader = new FileReader();
+//    reader.onloadend = function(){
+//      document.getElementById("playlistSetImageImage").src = reader.result;  
+//    }
+//    if(file){
+//      reader.readAsDataURL(file);
+//    }
+//    else{
+//      document.getElementById("playlistSetImageImage").src = defaultPlaylistImage;
+//    }
+//  }, true);
+//  
+//  deletePlaylistPopupCancelButton.onclick = function(){
+//    overlay.style.display = "none";
+//    deletePlaylistPopup.style.display = "none";
+//  };
+//  
+//  deletePlaylistPopupConfirmButton.onclick = function(event){
+//    // Delete the playlist from storage
+//    playlistCollectionManager.deletePlaylist();
+//    // Remove the playlist div from the left hand column
+//    document.getElementById(editPlaylistId).parentNode.removeChild(document.getElementById(editPlaylistId));
+//    // If the playlist being deleted is the same as the one that is currently playing, reset the playing
+//    // details
+//    if(playlistCollectionManager.getEditingPlaylistUid() == playlistCollectionManager.getPlayingPlaylistUid()){
+//      videoBeingPlayed = undefined;
+//      currVideoId = undefined;
+//      playlistCollectionManager.setPlayingPlaylistUid(undefined);
+//    }
+//    // If the playlist being deleted is the same as the one being displayed, then close the page
+//    if(playlistCollectionManager.getEditingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
+//      document.getElementById("playerImage").style.display = "none";
+//      document.getElementById("video-bar").style.display = "none";
+//      playlistPageManager.videoBarDisplayed = false;
+//      if(typeof playlistPageManager.viewingVideoListManager != "undefined"){
+//        var buttonsMap = playlistPageManager.viewingVideoListManager.playButtons;
+//        buttonsMap.forEach(function(value, key){
+//          value.parentNode.parentNode.removeChild(value.parentNode);  
+//        });
+//        playlistPageManager.viewingVideoListManager = undefined;
+//      }
+//    }
+//    // Reset UI to normal
+//    playlistCollectionManager.setEditingPlaylistUid(undefined);
+//    editPlaylistId = undefined;
+//    deletePlaylistPopup.style.display = "none";
+//    overlay.style.display = "none";
+//    var playlistSelectionContainer = document.getElementById("playlist-selection-container");
+//    for(i = 0; i < playlistSelectionContainerList.length; i++){
+//      playlistSelectionContainerList[i].parentNode.removeChild(playlistSelectionContainerList[i]);
+//    }
+//    playlistSelectionContainerList = [];
+//    setupPlaylistSelectionContainer();
+//  }
+//  
+//  // Clicks the create playlist button when user hits enter key
+//  searchInput.onkeyup = function(){
+//    if(event.keyCode == KEYCODE_ENTER){
+//      searchButton.click();
+//    }
+//  };
+//  
+//  importDefaultContainer.onkeypress = function(){
+//    if(event.keyCode == KEYCODE_ENTER){
+//      createPlaylistButton.click();
+//    }
+//  };
+//  
+//  searchButton.onclick = function(){
+//    var keywords = searchInput.value;
+//    if(keywords.length != 0 && keywords.replace(/\s/g, '').length != 0){
+//      keywords = keywords.replace(/\s/g, '');
+//      
+//      var displayContainer = document.getElementById("search-results-display");
+//      
+//      while(displayContainer.firstChild){
+//        displayContainer.removeChild(displayContainer.firstChild);
+//      }
+//      
+//      chrome.extension.getBackgroundPage().search(keywords, function(item){
+//        for(i = 0; i < item.items.length; i++){
+//          createSearchResultDiv(item.items[i]);
+//        }
+//      });
+//    }
+//  };
+//
+//  controlPlayButton.onclick = function(){
+//    if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
+//      updateControlPanelPlayButton(true);
+//      videoPlayerManager.playVideo();
+//    }
+//  }
+//  controlPauseButton.onclick = function(){
+//    if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING ||
+//       videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.BUFFERING){
+//      updateControlPanelPlayButton(false);
+//      videoPlayerManager.pauseVideo();
+//    }
+//  }
+//  controlFastForwardButton.onclick = function(){
+//    videoPlayerManager.fastForward();
+//  }
+//  controlRewindButton.onclick = function(){
+//    videoPlayerManager.rewind();
+//  }
+//  
+//  controlRepeatButton.onclick = function(){
+//    var repeatOn = chrome.extension.getBackgroundPage().getInfo({id:"repeatStatus"});
+//    if(repeatOn){
+//      controlRepeatButton.style.color = "black";
+//    }
+//    else{
+//      controlRepeatButton.style.color = "green"
+//    }
+//    chrome.extension.getBackgroundPage().setRepeat(!repeatOn);
+//  }
+//  controlShuffleButton.onclick = function(){
+//    var shuffleOn = chrome.extension.getBackgroundPage().getInfo({id:"shuffleStatus"});
+//    if(shuffleOn){
+//      controlShuffleButton.style.color = "black";
+//    }
+//    else{
+//      controlShuffleButton.style.color = "green";
+//    }
+//    chrome.extension.getBackgroundPage().setShuffle(!shuffleOn);
+//  }
+//  
+//  document.getElementById("settings-button").onclick = function(){
+//    if(window.getComputedStyle(document.getElementById("settings-container")).display == "none"){
+//      document.getElementById("settings-container").style.display = "block";
+//      document.getElementById("transparent-overlay").style.display = "block";
+//      if(quality == "small"){
+//        document.getElementById("smallQualitySelection").style.backgroundColor = "green";
+//      }
+//      else if(quality == "medium"){
+//        document.getElementById("mediumQualitySelection").style.backgroundColor = "green";
+//      }
+//      else if(quality == "large"){
+//        document.getElementById("largeQualitySelection").style.backgroundColor = "green";
+//      }
+//      else if(quality == "hd720"){
+//        document.getElementById("hd720QualitySelection").style.backgroundColor = "green";
+//      }
+//      else{
+//        document.getElementById("defaultQualitySelection").style.backgroundColor = "green";
+//      }
+//    }
+//    else{
+//      document.getElementById("settings-container").style.display = "none"; 
+//      document.getElementById("transparent-overlay").style.display = "none";
+//    }
+//  }
+//  
+//  
+//  
+//  document.getElementById("playlist-tab").onclick = function(){
+//    if(window.getComputedStyle(document.getElementById("playlist-container")).display == "none"){
+//      document.getElementById("playlist-container").style.display = "block";
+//      document.getElementById("playlist-tab").style.borderBottom = "none";
+//      document.getElementById("search-container").style.display = "none";
+//      document.getElementById("search-tab").style.borderBottom = "1px solid lightgray";
+//    }
+//  }
+//  
+//  document.getElementById("search-tab").onclick = function(){
+//    if(window.getComputedStyle(document.getElementById("search-container")).display == "none"){
+//      document.getElementById("playlist-container").style.display = "none";
+//      document.getElementById("playlist-tab").style.borderBottom = "1px solid lightgray";
+//      document.getElementById("search-container").style.display = "block";
+//      document.getElementById("search-tab").style.borderBottom = "none";
+//    }
+//  }
+//  
+//  volumeBar.onclick = function(e){
+//    var volume = e.offsetX;
+//
+//    document.getElementById("volume-bar-fill").style.width = volume + "px";
+//    // Convert volume to be in range 0-100
+//    volume = Math.round((volume / 50) * 100);
+//    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
+//  }
+//  
+//  document.getElementById("volume-on").onclick = function(){
+//    document.getElementById("volume-on").style.display = "none";
+//    document.getElementById("volume-off").style.display = "block";
+//    document.getElementById("volume-bar-fill").style.width = "0px";
+//    var volume = chrome.extension.getBackgroundPage().getVolume().volume;
+//    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": true});
+//  }
+//  
+//  document.getElementById("volume-off").onclick = function(){
+//    document.getElementById("volume-on").style.display = "block";
+//    document.getElementById("volume-off").style.display = "none";
+//    var volume = chrome.extension.getBackgroundPage().getVolume().volume;
+//    chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
+//    document.getElementById("volume-bar-fill").style.width = (volume / 2) + "px";
+//  }
+//  
+//  document.getElementById("smallQualitySelection").onclick = function(){
+//    if(document.getElementById("smallQualitySelection").style.backgroundColor != "green"){
+//      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
+//      document.getElementById("smallQualitySelection").style.backgroundColor = "green";
+//      quality = "small";
+//      chrome.extension.getBackgroundPage().setQuality("small");
+//    }
+//  }
+//  document.getElementById("mediumQualitySelection").onclick = function(){
+//    if(document.getElementById("mediumQualitySelection").style.backgroundColor != "green"){
+//      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
+//      document.getElementById("mediumQualitySelection").style.backgroundColor = "green";
+//      quality = "medium";
+//      chrome.extension.getBackgroundPage().setQuality("medium");
+//    }
+//  }
+//  document.getElementById("largeQualitySelection").onclick = function(){
+//    if(document.getElementById("largeQualitySelection").style.backgroundColor != "green"){
+//      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
+//      document.getElementById("largeQualitySelection").style.backgroundColor = "green";
+//      quality = "large";
+//      chrome.extension.getBackgroundPage().setQuality("large");
+//    }
+//  }
+//  document.getElementById("hd720QualitySelection").onclick = function(){
+//    if(document.getElementById("hd720QualitySelection").style.backgroundColor != "green"){
+//      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
+//      document.getElementById("hd720QualitySelection").style.backgroundColor = "green";
+//      quality = "hd720";
+//      chrome.extension.getBackgroundPage().setQuality("hd720");
+//    }
+//  }
+//  document.getElementById("defaultQualitySelection").onclick = function(){
+//    if(document.getElementById("defaultQualitySelection").style.backgroundColor != "green"){
+//      document.getElementById(quality+"QualitySelection").style.backgroundColor = "white";
+//      document.getElementById("defaultQualitySelection").style.backgroundColor = "green";
+//      quality = "default";
+//      chrome.extension.getBackgroundPage().setQuality("default");
+//    }
+//  }
+//  document.getElementById("sign-in-button").onclick = function(){
+//    chrome.identity.getAuthToken({'interactive' : true}, function(token){
+//      document.getElementById("signin-ui").style.display = "none";
+//      if(chrome.runtime.lastError){
+//        document.getElementById("try-again").style.display = "block";
+//      }
+//      else{
+//        chrome.extension.getBackgroundPage().setToken({access_token: token});
+//        document.getElementById("url-or-display-all-selection-container").style.display = "block";
+//        document.getElementById("url-selection-button-container").style.display = "block";
+//      }
+//    });
+//  }
+//  
+//  document.getElementById("try-again-button").onclick = function(){
+//    chrome.identity.getAuthToken({'interactive': true}, function(token){
+//      if(chrome.runtime.lastError){
+//        
+//      }
+//      else{
+//        chrome.extension.getBackgroundPage().setToken({access_token: token});
+//        document.getElementById("try-again").style.display = "none";
+//        document.getElementById("url-or-display-all-selection-container").style.display = "block";
+//        document.getElementById("url-selection-button-container").style.display = "block";
+//      }
+//    });
+//  }
+//  
+//  
+//  importDefault.onmouseenter = function(){
+//    if(currSelection != 1){
+//      importDefault.style.borderBottom = "2px solid gray";
+//    }
+//  }
+//  
+//  importDefault.onmouseleave = function(){
+//    if(currSelection != 1){
+//      importDefault.style.borderBottom = "0px";
+//    }
+//  }
+//  
+//  importDefault.onclick = function(){
+//    if(currSelection != 1){
+//      currSelection = 1;
+//      setImportDisplay({border: "2px solid gray", display: "block"},
+//                       {border: "0px solid gray", display: "none"},
+//                       {border: "0px solid gray", display: "none"});
+//    }
+//  }
+//  
+//  importUser.onmouseenter = function(){
+//    if(currSelection != 2){
+//      importUser.style.borderBottom = "2px solid gray";
+//    }
+//  }
+//  
+//  importUser.onmouseleave = function(){
+//    if(currSelection != 2){
+//      importUser.style.borderBottom = "0px solid gray";
+//    }
+//  }
+//  
+//  var logout = false;
+//  
+//  importUser.onclick = function(){
+//    if(currSelection != 2){
+//      currSelection = 2;
+//      setImportDisplay({border: "0px solid gray", display: "none"},
+//                       {border: "2px solid gray", display: "block"},
+//                       {border: "0px solid gray", display: "none"});
+//      chrome.identity.getAuthToken({'interactive' : false}, function(token){
+//        if(chrome.runtime.lastError){
+//          document.getElementById("signin-ui").style.display = "block";
+//          document.getElementById("try-again").style.display = "none";
+//          document.getElementById("url-or-display-all-selection-container").style.display = "none";
+//          document.getElementById("url-selection-container").style.display = "none";
+//          document.getElementById("display-all-selection-container").style.display = "none";
+//          document.getElementById("display-all-selection-results-buttons").style.display = "none";
+//          document.getElementById("url-selection-results-button").style.display = "none";
+//          document.getElementById("url-selection-results-cancel-button").style.display = "none";
+//        }
+//        else{
+//          chrome.extension.getBackgroundPage().setToken({access_token: token});
+//          if(logout){
+//            chrome.identity.removeCachedAuthToken({'token': token}, function(){
+//              log("success");
+//            });
+//          }
+//          // Display 2 button choices: import by url and display all playlists
+//          document.getElementById("url-or-display-all-selection-container").style.display = "block";
+//          document.getElementById("url-selection-url-input").value = "";
+//          document.getElementById("url-selection-button-container").style.display = "block";
+//          document.getElementById("url-selection-container").style.display = "none";
+//          document.getElementById("display-all-selection-container").style.display = "none";
+//          document.getElementById("display-all-selection-results-buttons").style.display = "none";
+//          document.getElementById("url-selection-results-button").style.display = "none";
+//          document.getElementById("url-selection-results-cancel-button").style.display = "none";
+//        }
+//      });
+//    }
+//  };
+//  
+//  document.getElementById("url-selection-button").onclick = function(){
+//    document.getElementById("url-selection-button-container").style.display = "none";
+//    document.getElementById("url-selection-container").style.display = "block";
+//  };
+//  
+//  var userPlaylistResults = [];
+//  var userImportChoices = [];
+//  /**
+//   * newResults-If true then we want to remove all previous results that were displayed and if false 
+//   *            we don't remove the displayed results
+//   */
+//  function displayAllPlaylistResults(results, newResults){
+//    var container = document.getElementById("display-all-selection-results-container");
+//    
+//    if(newResults){
+//      userPlaylistResults = [];
+//      userImportChoices = [];
+//      while(container.firstChild){
+//        container.removeChild(container.firstChild);
+//      }
+//    }
+//    
+//    var offset = userPlaylistResults.length;
+//    
+//    // If there is a next page token, then get the next page of results
+//    for(i = 0; i < results.items.length; i++){
+//      userPlaylistResults.push(results.items[i]);
+//      userImportChoices.push(false);
+//      var div = document.createElement("div");
+//      var img = document.createElement("img");
+//      img.src = results.items[i].snippet.thumbnails.default.url;
+//      div.classList.add("display-all-selection-result");
+//      div.appendChild(img);
+//      div.id = offset + i;
+//      var span = document.createElement("span");
+//      span.classList.add("fa-stack");
+//      span.style.position = "absolute";
+//      span.style.top = "5px";
+//      span.style.left = "5px";
+//      span.style.display = "none";
+//      var innerCircle = document.createElement("i");
+//      innerCircle.classList.add("fa", "fa-circle", "fa-stack-2x");
+//      innerCircle.style.color = "#c0ffc0";
+//      var outerCircle = document.createElement("i");
+//      outerCircle.classList.add("fa", "fa-circle-thin", "fa-stack-2x");
+//      outerCircle.style.color = "#40c040";
+//      var check = document.createElement("i");
+//      check.classList.add("fa", "fa-check", "fa-stack-1x");
+//      span.appendChild(innerCircle);
+//      span.appendChild(outerCircle);
+//      span.appendChild(check);
+//      div.appendChild(span);
+//      
+//      div.onclick = function(e){
+//        var id = parseInt(e.path[1].id);
+//        if(window.getComputedStyle(e.path[1].childNodes[1]).display == "none"){
+//          e.path[1].childNodes[1].style.display = "block";
+//          userImportChoices[id] = true;
+//        }
+//        else{
+//          e.path[1].childNodes[1].style.display = "none";
+//          userImportChoices[id] = false;
+//        }        
+//      }
+//      
+//      container.appendChild(div);
+//    }
+//    document.getElementById("url-selection-load").style.display = "none";
+//    document.getElementById("display-all-selection-results-buttons").style.display = "block";
+//  }
+//  
+//  document.getElementById("display-all-selection-button").onclick = function(){
+//    document.getElementById("url-selection-button-container").style.display = "none";
+//    document.getElementById("display-all-selection-container").style.display = "block";
+//    document.getElementById("url-selection-load").style.display = "block";
+//    chrome.extension.getBackgroundPage().requestPlaylists(function(response){
+//      
+//      if(chrome.runtime.lastError){
+//        document.getElementById("url-selection-load").style.display = "none";
+//      }
+//      else{
+//        var results = [response];
+//        displayAllPlaylistResults(response, true);
+//      }
+//    });
+//  };
+//  
+//  document.getElementById("display-all-selection-import-all-button").onclick = function(){
+//    
+//  };
+//  
+//  document.getElementById("display-all-selection-import-button").onclick = function(){
+//    
+//    for(i = 0; i < userImportChoices.length; i++){
+//      if(userImportChoices[i]){
+//        document.getElementById("url-selection-load").style.display = "block";
+//        playlistGenerator.processRawPlaylistList(userPlaylistResults, userImportChoices, function(){
+//          document.getElementById("url-selection-load").style.display = "none";
+//          document.getElementById("url-selection-success").style.display = "block";
+//          var playlistNodes = document.getElementById("display-all-selection-results-container").childNodes;
+//          
+//          for(i = 0; i < playlistNodes.length; i++){
+//            playlistNodes[i].childNodes[1].style.display = "none";
+//          }
+//        });
+//        i = userImportChoices.length;
+//      }
+//    }
+//    
+//  };
+//  
+//  document.getElementById("url-selection-continue-button").onclick = function(){
+//    document.getElementById("url-selection-success").style.display = "none";
+//    for(i = 0; i < userImportChoices.length; i++){
+//      userImportChoices[i] = false;
+//    }
+//  }
+//  
+//  document.getElementById("display-all-selection-cancel-button").onclick = function(){
+//    playlistPopup.dispatchEvent(cancelEvent);
+//  };
+//  
+//  
+//  importOther.onmouseenter = function(){
+//    if(currSelection != 3){
+//      importOther.style.borderBottom = "2px solid gray";
+//    }
+//  }
+//  
+//  importOther.onmouseleave = function(){
+//    if(currSelection != 3){
+//      importOther.style.borderBottom = "0px solid gray";
+//    }
+//  }
+//  
+//  importOther.onclick = function(){
+//    if(currSelection != 3){
+//      currSelection = 3;
+//      setImportDisplay({border: "0px solid gray", display: "none"}, 
+//                       {border: "0px solid gray", display: "none"}, 
+//                       {border: "2px solid gray", display: "block"});
+//    }
+//  }
+//  
+//  function nextPlaylistPage(results, id, container, type){
+//    chrome.extension.getBackgroundPage().getPlaylistByIdNextPage(id, 
+//                                                                 results[results.length - 1].nextPageToken,
+//                                                                 function(response){
+//      if(response.error){
+//        if(type == "url-selection"){
+//          document.getElementById("url-selection-load").style.display = "none";
+//        }
+//        else if(type == "import-other"){
+//          document.getElementById("import-other-load").style.display = "none";
+//        }
+//      }
+//      else{
+//        results.push(response);
+//        if(response.nextPageToken){
+//          nextPlaylistPage(results, id, container, type);
+//        }
+//        else{
+//          displayPlaylistResults(results, container, type);
+//        }
+//      }
+//    });
+//  }
+//  
+//  var importList = [];
+//  var resultsList = [];
+//  function displayPlaylistResults(results, container, type){
+//    // Reset the importList and resultsList
+//    importList = [];
+//    resultsList = [];
+//    // Reset the results container so that the previous results aren't shown with the current results
+//    while(container.firstChild){
+//      container.removeChild(container.firstChild);
+//    }
+//    // Display the names of the videos along with a checkbox for the user to include it in the import or not
+//    for(i = 0; i < results.length; i++){
+//      var j;
+//      for(j = 0; j < results[i].items.length; j++){
+//        importList.push(true);
+//        resultsList.push(results[i].items[j]);
+//        var id = importList.length - 1;
+//        createResultDisplay(id, results[i].items[j].snippet.title, container);
+//      }
+//      
+//    }
+//    // Turn off the loading animation when done displaying the results
+//    container.style.display = "block";
+//    
+//    if(type == "url-selection"){
+//      
+//      document.getElementById("url-selection-load").style.display = "none";
+//    }
+//    else if(type == "import-other"){
+//      document.getElementById("import-other-results-button").style.display = "block";
+//      document.getElementById("import-other-results-cancel-button").style.display = "block";
+//      document.getElementById("import-other-load").style.display = "none";
+//    }
+//    
+//    
+//  }
+//  
+//  function createResultDisplay(id, videoTitle, container){
+//    var resultsDisplay = document.createElement("div");
+//    var checkBox = document.createElement("input");
+//    var title = document.createElement("div");
+//    title.style.height = "inherit";
+//    title.style.position = "absolute";
+//    title.style.left = "20px";
+//    resultsDisplay.classList.add("import-other-results-display-container");
+//    checkBox.classList.add("float-left");
+//    title.classList.add("float-left");
+//    checkBox.type = "checkbox";
+//    checkBox.id = id;
+//    checkBox.checked = true;
+//    checkBox.onchange = function(){
+//      if(checkBox.checked){
+//        importList[parseInt(checkBox.id)] = true;
+//      }
+//      else{
+//        importList[parseInt(checkBox.id)] = false;
+//      }
+//    }
+//    resultsDisplay.appendChild(checkBox);
+//    title.innerHTML = videoTitle;
+//    resultsDisplay.appendChild(title);
+//    container.appendChild(resultsDisplay);
+//    
+//    resultsDisplay.onclick = function(e){
+//      if(e.path[0] == this){
+//        checkBox.click();
+//      }
+//    }
+//    
+//  }
+//  
+//  document.getElementById("import-other-results-button").onclick = function(){
+//    document.getElementById("import-other-load").style.display = "block";
+//    document.getElementById("import-other-results-button").style.display = "none";
+//    document.getElementById("import-other-results-cancel-button").style.display = "none";
+//    document.getElementById("import-other-results").style.display = "none";
+//    var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
+//    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
+//      document.getElementById("import-other-load").style.display = "none";
+//      document.getElementById("import-other-success").style.display = "block";
+//      document.getElementById("import-other-url-input").style.display = "none";
+//    });
+//  }
+//  
+//  document.getElementById("url-selection-results-button").onclick = function(){
+//    document.getElementById("url-selection-load").style.display = "none";
+//    document.getElementById("url-selection-results-button").style.display = "none";
+//    document.getElementById("url-selection-results-cancel-button").style.display = "none";
+//    document.getElementById("url-selection-results-container").style.display = "none";
+//    var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
+//    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
+//      document.getElementById("url-selection-load").style.display = "none";
+//      document.getElementById("url-selection-success").style.display = "block";
+//    });
+//  }
+//  
+//  
+//  document.getElementById("import-other-results-cancel-button").onclick = function(){
+//    playlistPopup.dispatchEvent(cancelEvent);
+//  }
+//  
+//  document.getElementById("url-selection-results-cancel-button").onclick = function(){
+//    playlistPopup.dispatchEvent(cancelEvent);
+//  }
+//  
+//  function clearImportList(){
+//    var container = document.getElementById("import-other-results");
+//    while(container.firstChild){
+//      container.removeChild(container.firstChild);
+//    }
+//    document.getElementById("import-other-results-cancel-button").style.display = "none";
+//    document.getElementById("import-other-results-button").style.display = "none";
+//    container.style.display = "none";
+//  }
+//  
+//  document.getElementById("import-other-success-exit-button").onclick = function(){
+//    playlistPopup.dispatchEvent(cancelEvent);
+//  }
+//  
+//  document.getElementById("import-other-success-import-again-button").onclick = function(){
+//    var urlInput = document.getElementById("import-other-url-input");
+//    urlInput.style.display = "block";
+//    urlInput.value = "";
+//    urlInput.focus();
+//    document.getElementById("import-other-success").style.display = "none";
+//  }
+//  
+//  importOtherUrlInput.onkeyup = function(){
+//    if(event.keyCode == KEYCODE_ENTER){
+//      var input = importOtherUrlInput.value;
+//      var type = "list=";
+//      var startIndex = input.indexOf(type) + type.length;
+//      var id = input.slice(startIndex, startIndex + 34);
+//      if(startIndex != -1 && id.length == 34 && !id.includes("&")){
+//        if(window.getComputedStyle(document.getElementById("import-other-error")).display != "none"){
+//          document.getElementById("import-other-error").style.display = "none";
+//        }
+//        
+//        // Start the loading animation
+//        document.getElementById("import-other-load").style.display = "block";
+//        
+//        // If the given url is valid then make an api call for it
+//        chrome.extension.getBackgroundPage().getPlaylistById(id, function(response){
+//          // If there is an error, then display the error message for the user
+//          if(response.error){
+//            document.getElementById("import-other-error").style.display = "block";
+//            document.getElementById("invalid-url-error").style.display = "none";
+//            document.getElementById("import-other-api-error").style.display = "block";
+//            document.getElementById("import-other-load").style.display = "none";
+//            if(response.error.code == 403){
+//              document.getElementById("import-other-api-error-msg").innerHTML = "You do not have access to this private playlist";
+//            }
+//            else{
+//              document.getElementById("import-other-api-error-msg").innerHTML = response.error.message;
+//            }
+//            
+//          }
+//          // If there is no error then obtain all the videos in the playlist in order to display them for the
+//          // user to select 
+//          else{
+//            var results = [];
+//            results.push(response);
+//            if(response.nextPageToken){
+//              nextPlaylistPage(results, id, document.getElementById("import-other-results"), "import-other");
+//            }
+//            else{
+//              displayPlaylistResults(results, document.getElementById("import-other-results"), "import-other");
+//            }
+//          }
+//        });
+//      }
+//      else{
+//        // If the given url is invalid then display an error message
+//        document.getElementById("import-other-error").style.display = "block";
+//        document.getElementById("invalid-url-error").style.display = "block";
+//        document.getElementById("import-other-api-error").style.display = "none";
+//      }
+//    }
+//  }
+//  
+//  document.getElementById("url-selection-url-input").onkeyup = function(){
+//    if(event.keyCode == KEYCODE_ENTER){
+//      var input = document.getElementById("url-selection-url-input").value;
+//      var type = "list=";
+//      var startIndex = input.indexOf(type) + type.length;
+//      var id = input.slice(startIndex, startIndex + 34);
+//      if(startIndex != -1 && id.length == 34 && !id.includes("&")){
+//        if(window.getComputedStyle(document.getElementById("url-selection-error")).display != "none"){
+//          document.getElementById("url-selection-error").style.display = "none";
+//        }
+//        
+//        // Start the loading animation
+//        document.getElementById("url-selection-load").style.display = "block";
+//        
+//        // If the given url is valid then make an api call for it
+//        chrome.extension.getBackgroundPage().getPlaylistById(id, function(response){
+//          // If there is an error, then display the error message for the user
+//          if(response.error){
+//            document.getElementById("url-selection-error").style.display = "block";
+//            document.getElementById("url-selection-invalid-url-error").style.display = "none";
+//            document.getElementById("url-selection-api-error").style.display = "block";
+//            document.getElementById("url-selection-load").style.display = "none";
+//            if(response.error.code == 403){
+//              document.getElementById("url-selection-api-error-msg").innerHTML = "You do not have access to this private playlist";
+//            }
+//            else{
+//              document.getElementById("url-selection-api-error-msg").innerHTML = response.error.message;
+//            }
+//            
+//          }
+//          // If there is no error then obtain all the videos in the playlist in order to display them for the
+//          // user to select 
+//          else{
+//            var results = [];
+//            results.push(response);
+//            document.getElementById("url-selection-results-button").style.display = "block";
+//            document.getElementById("url-selection-results-cancel-button").style.display = "block";
+//            if(response.nextPageToken){
+//              nextPlaylistPage(results, id, document.getElementById("url-selection-results-container"), "url-selection");
+//            }
+//            else{
+//              displayPlaylistResults(results, document.getElementById("url-selection-results-container"), "url-selection");
+//            }
+//          }
+//        });
+//      }
+//      else{
+//        document.getElementById("url-selection-error").style.display = "block";
+//        document.getElementById("url-selection-invalid-url-error").style.display = "block";
+//        document.getElementById("url-selection-api-error").style.display = "none";
+//      }
+//    }
+//    
+//  }
+//  
   function hideModals(){
     var modals = document.getElementsByClassName("modal");
     for(i = 0; i < modals.length; i++){
@@ -1568,143 +1573,214 @@ function initListeners(){
   overlay.onclick = hideModals;
   
   document.getElementById("transparent-overlay").onclick = hideModals;
-  
-  playlistPopup.addEventListener("cancel", function(){
-    document.getElementById("import-other-url-input").style.display = "block";
-    document.getElementById("import-other-url-input").value = "";
-    document.getElementById("import-other-load").style.display = "none";
-    document.getElementById("import-other-success").style.display = "none";
-    setImportDisplay({border: "2px solid gray", display: "block"},
-                     {border: "0px solid gray", display: "none"},
-                     {border: "0px solid gray", display: "none"});
-    currSelection = 1;
-    clearImportList();
-    cancelCreateButton.click();
-  });
-  
-  addVideoModal.addEventListener("cancel", function(){
-    addVideoCancelButton.click();
-  });
-  
-  document.getElementById("settings-container").addEventListener("cancel", function(){
-    document.getElementById("settings-button").click();
-  });
-  
-  document.getElementById("edit-video-modal").addEventListener("cancel", function(){
-    cancelButton.click();
-  });
-  
-  document.getElementById("edit-video-modal").onkeypress = function(){
-    if(event.keyCode == KEYCODE_ENTER){
-      document.getElementById("edit-video-confirm-button").click();
-    }
-  };
-  
-  document.getElementById("edit-video-cancel-button").onclick = function(){
-    containerToRemove = undefined;
-    videoIndexToRemove = undefined;
-    settingsIndex = undefined;
-    overlay.style.display = "none";
-    document.getElementById("edit-video-modal").style.display = "none";
-  }
-  
-  document.getElementById("edit-video-confirm-button").onclick = function(){
-    var titleInput = document.getElementById("edit-title-input");
-    var artistInput = document.getElementById("edit-artist-input");
-    var startMin = document.getElementById("edit-start-input-min");
-    var startSec = document.getElementById("edit-start-input-sec");
-    var newStart = parseInt(startMin.value) * 60 + parseInt(startSec.value); 
-    var endMin = document.getElementById("edit-end-input-min");
-    var endSec = document.getElementById("edit-end-input-sec");
-    var newEnd = parseInt(endMin.value) * 60 + parseInt(endSec.value); 
-    containerToRemove.childNodes[1].innerHTML = titleInput.value;
-    containerToRemove.childNodes[2].innerHTML = artistInput.value;
-    var video = playlistPageManager.getVideoListManager().getVideoToBeEdited();
-    video.videoTitle = titleInput.value;
-    video.channelTitle = artistInput.value;
-
-    var start = video.duration.indexOf("PT") + 2;
-    var end = video.duration.indexOf("M");
-    var min = parseInt(video.duration.slice(start, end));
-    var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
-    var duration = min * 60 + sec;
-    
-    if(newStart > newEnd){
-      newStart = 0;
-      newEnd = duration;
-    }
-    
-    if(newStart > duration){
-      video.startTime = 0;
+//  
+//  playlistPopup.addEventListener("cancel", function(){
+//    document.getElementById("import-other-url-input").style.display = "block";
+//    document.getElementById("import-other-url-input").value = "";
+//    document.getElementById("import-other-load").style.display = "none";
+//    document.getElementById("import-other-success").style.display = "none";
+//    setImportDisplay({border: "2px solid gray", display: "block"},
+//                     {border: "0px solid gray", display: "none"},
+//                     {border: "0px solid gray", display: "none"});
+//    currSelection = 1;
+//    clearImportList();
+//    cancelCreateButton.click();
+//  });
+//  
+//  addVideoModal.addEventListener("cancel", function(){
+//    addVideoCancelButton.click();
+//  });
+//  
+//  document.getElementById("settings-container").addEventListener("cancel", function(){
+//    document.getElementById("settings-button").click();
+//  });
+//  
+//  document.getElementById("edit-video-modal").addEventListener("cancel", function(){
+//    cancelButton.click();
+//  });
+//  
+//  document.getElementById("edit-video-modal").onkeypress = function(){
+//    if(event.keyCode == KEYCODE_ENTER){
+//      document.getElementById("edit-video-confirm-button").click();
+//    }
+//  };
+//  
+//  document.getElementById("edit-video-cancel-button").onclick = function(){
+//    containerToRemove = undefined;
+//    videoIndexToRemove = undefined;
+//    settingsIndex = undefined;
+//    overlay.style.display = "none";
+//    document.getElementById("edit-video-modal").style.display = "none";
+//  }
+//  
+//  document.getElementById("edit-video-confirm-button").onclick = function(){
+//    var titleInput = document.getElementById("edit-title-input");
+//    var artistInput = document.getElementById("edit-artist-input");
+//    var startMin = document.getElementById("edit-start-input-min");
+//    var startSec = document.getElementById("edit-start-input-sec");
+//    var newStart = parseInt(startMin.value) * 60 + parseInt(startSec.value); 
+//    var endMin = document.getElementById("edit-end-input-min");
+//    var endSec = document.getElementById("edit-end-input-sec");
+//    var newEnd = parseInt(endMin.value) * 60 + parseInt(endSec.value); 
+//    containerToRemove.childNodes[1].innerHTML = titleInput.value;
+//    containerToRemove.childNodes[2].innerHTML = artistInput.value;
+//    var video = playlistPageManager.getVideoListManager().getVideoToBeEdited();
+//    video.videoTitle = titleInput.value;
+//    video.channelTitle = artistInput.value;
+//
+//    var start = video.duration.indexOf("PT") + 2;
+//    var end = video.duration.indexOf("M");
+//    var min = parseInt(video.duration.slice(start, end));
+//    var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
+//    var duration = min * 60 + sec;
+//    
+//    if(newStart > newEnd){
+//      newStart = 0;
+//      newEnd = duration;
+//    }
+//    
+//    if(newStart > duration){
+//      video.startTime = 0;
+//    }
+//    else{
+//      video.startTime = newStart;
+//    }
+//    
+//    if(newEnd > duration){
+//      video.endTime = duration;
+//    }
+//    else{
+//      video.endTime = newEnd;
+//    }
+//    playlistCollectionManager.editVideo(video);
+//    document.getElementById("edit-video-cancel-button").click();  
+//  }
+//  
+//  document.getElementById("edit-start-input-min").oninput = function(){
+//    if(document.getElementById("edit-start-input-min").value > document.getElementById("edit-start-input-min").max){
+//      document.getElementById("edit-start-input-min").value = document.getElementById("edit-start-input-min").max;
+//    }
+//  }
+//  
+//  document.getElementById("edit-start-input-sec").oninput = function(){
+//    if(document.getElementById("edit-start-input-sec").value > document.getElementById("edit-start-input-sec").max){
+//      document.getElementById("edit-start-input-sec").value = document.getElementById("edit-start-input-sec").max;
+//    }
+//  }
+//  
+//  document.getElementById("edit-end-input-min").oninput = function(){
+//    if(document.getElementById("edit-end-input-min").value > document.getElementById("edit-end-input-min").max){
+//      document.getElementById("edit-end-input-min").value = document.getElementById("edit-end-input-min").max;
+//    }
+//  }
+//  
+//  document.getElementById("edit-end-input-sec").oninput = function(){
+//    if(document.getElementById("edit-end-input-sec").value > document.getElementById("edit-end-input-sec").max){
+//      document.getElementById("edit-end-input-sec").value = document.getElementById("edit-end-input-sec").max;
+//    }
+//  }
+//  
+//  timeBar.onmousedown = function(){
+//    timeSliderDown = true;
+//  }
+//  
+//  timeBar.onmouseup = function(){
+//    timeSliderDown = false; 
+//    var player = videoPlayerManager.getBackgroundVideoPlayer();
+//    if(player.getPlayerState() != -1 && player.getVideoUrl() != "https://www.youtube.com/watch" &&
+//       typeof videoPlayerManager.getQueue() != "undefined"){
+//      videoPlayerManager.seekTo(this.value);
+//      var currMins = Math.floor(this.value / 60);
+//      var currSecs = Math.floor(this.value % 60);
+//      if(currSecs < 10){
+//        currTime.innerHTML = currMins + ":0" + currSecs;
+//      }
+//      else{
+//        currTime.innerHTML = currMins + ":" + currSecs;
+//      }
+//    }
+//    else{
+//      timeBar.value = 0;
+//      document.getElementById("control-time-bar-progress").style.width = "0%";
+//    }
+//  }
+//  
+//  timeBar.oninput = function(){
+//    var timeBarLength = 145 - ((1 - (this.value / this.max)) * 145) - (15 * (this.value / this.max)) + "px";
+//    
+//    document.getElementById("control-time-bar-progress").style.width = timeBarLength;
+//  }
+  var clicked = false;
+  var creatingPlaylist = false;
+  infoBarButton.onclick = function(){
+    if(clicked){
+      videoList.classList.remove("shift-to-right-animation");
+      playlistList.classList.remove("shift-to-left-animation");
+      videoList.classList.add("shift-to-left-animation");
+      playlistList.classList.add("shift-off-left-animation");
+      clicked = false;
+      if(window.getComputedStyle(document.getElementById("add-options")).display == "block"){
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("add-options").style.display = "none";
+      }
     }
     else{
-      video.startTime = newStart;
-    }
-    
-    if(newEnd > duration){
-      video.endTime = duration;
-    }
-    else{
-      video.endTime = newEnd;
-    }
-    playlistCollectionManager.editVideo(video);
-    document.getElementById("edit-video-cancel-button").click();  
+      videoList.classList.remove("shift-to-left-animation");
+      playlistList.classList.remove("shift-off-left-animation");
+      videoList.classList.add("shift-to-right-animation");
+      playlistList.classList.add("shift-to-left-animation");
+      clicked = true;
+    }  
   }
   
-  document.getElementById("edit-start-input-min").oninput = function(){
-    if(document.getElementById("edit-start-input-min").value > document.getElementById("edit-start-input-min").max){
-      document.getElementById("edit-start-input-min").value = document.getElementById("edit-start-input-min").max;
-    }
-  }
-  
-  document.getElementById("edit-start-input-sec").oninput = function(){
-    if(document.getElementById("edit-start-input-sec").value > document.getElementById("edit-start-input-sec").max){
-      document.getElementById("edit-start-input-sec").value = document.getElementById("edit-start-input-sec").max;
-    }
-  }
-  
-  document.getElementById("edit-end-input-min").oninput = function(){
-    if(document.getElementById("edit-end-input-min").value > document.getElementById("edit-end-input-min").max){
-      document.getElementById("edit-end-input-min").value = document.getElementById("edit-end-input-min").max;
-    }
-  }
-  
-  document.getElementById("edit-end-input-sec").oninput = function(){
-    if(document.getElementById("edit-end-input-sec").value > document.getElementById("edit-end-input-sec").max){
-      document.getElementById("edit-end-input-sec").value = document.getElementById("edit-end-input-sec").max;
-    }
-  }
-  
-  timeBar.onmousedown = function(){
-    timeSliderDown = true;
-  }
-  
-  timeBar.onmouseup = function(){
-    timeSliderDown = false; 
-    var player = videoPlayerManager.getBackgroundVideoPlayer();
-    if(player.getPlayerState() != -1 && player.getVideoUrl() != "https://www.youtube.com/watch" &&
-       typeof videoPlayerManager.getQueue() != "undefined"){
-      videoPlayerManager.seekTo(this.value);
-      var currMins = Math.floor(this.value / 60);
-      var currSecs = Math.floor(this.value % 60);
-      if(currSecs < 10){
-        currTime.innerHTML = currMins + ":0" + currSecs;
+  document.getElementById("add-playlist-options-button").onclick = function(e){
+    if(e.path[0].id == "add-playlist-options-button"){
+      if(window.getComputedStyle(document.getElementById("add-options")).display == "none"){
+        if(window.getComputedStyle(document.getElementById("add-new-playlist-div")).display == "block"){
+          document.getElementById("add-new-playlist-div").dispatchEvent(cancelEvent);
+        }
+        else{
+          document.getElementById("overlay").style.display = "block";
+          document.getElementById("add-options").style.display = "block";
+        }
       }
       else{
-        currTime.innerHTML = currMins + ":" + currSecs;
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("add-options").style.display = "none";
       }
     }
-    else{
-      timeBar.value = 0;
-      document.getElementById("control-time-bar-progress").style.width = "0%";
+  }
+  document.getElementById("add-options").addEventListener("cancel", function(){
+    document.getElementById("add-playlist-options-button").click();
+  });
+  document.getElementById("add-new-playlist").onclick = function(){
+    document.getElementById("add-options").style.display = "none";
+    document.getElementById("add-new-playlist-div").style.display = "block";
+    document.getElementById("add-new-playlist-title-input").focus();
+  };
+  document.getElementById("add-new-playlist-div").addEventListener("cancel", function(){
+    document.getElementById("add-new-playlist-div").style.display = "none";
+    document.getElementById("add-new-playlist-title-input").value = "New Playlist";
+    overlay.style.display = "none";
+  });
+  document.getElementById("add-new-playlist-title-input").onkeyup = function(e){
+    if(e.keyCode == KEYCODE_ENTER){
+      document.getElementById("add-new-playlist-button").click();
+    }
+  };
+  document.getElementById("add-new-playlist-button").onclick = function(){
+    var name = document.getElementById("add-new-playlist-title-input").value;
+    // Create a playlist only if the given name is not empty
+    if(name.replace(/\s/g, '').length){
+      playlistGenerator.generateNewPlaylist(undefined, name, undefined, function(){
+
+      });
+      document.getElementById("add-new-playlist-div").dispatchEvent(cancelEvent);
     }
   }
-  
-  timeBar.oninput = function(){
-    var timeBarLength = 145 - ((1 - (this.value / this.max)) * 145) - (15 * (this.value / this.max)) + "px";
+  document.getElementById("import-new-playlist").onclick = function(){
     
-    document.getElementById("control-time-bar-progress").style.width = timeBarLength;
-  }
+  };
 }
 
 function updateTimeBarValue(){
@@ -2052,6 +2128,7 @@ function displayPlaylists(){
 }
 
 function loadPlayerState(){
+  /*
   var state = videoPlayerManager.getBackgroundVideoPlayer().getPlayerState();
   if(state > 0 && state < 5){    
     if(state != 2){
@@ -2068,53 +2145,60 @@ function loadPlayerState(){
                   videoPlayerManager.getBackgroundVideoPlayer().getDuration());
     }
   }
+  */
+  if(typeof playlistCollectionManager.getViewingPlaylistUid() != "undefined"){
+    playlistPageManager.loadPlaylistPage(playlistCollectionManager.getViewingPlaylistUid());
+  }
   quality = chrome.extension.getBackgroundPage().getInfo({id:"quality"});
 }
 
 function loadDivs(){
-  addPlaylistButton = document.getElementById("add-playlist-button");
-  addVideoButton = document.getElementById("add-video-button");
-  addVideoModal = document.getElementById("addVideoModal");
-  addVideoCancelButton = document.getElementById("addVideoCancelButton");
-  addVideoConfirmButton = document.getElementById("addVideoConfirmButton");
-  
-  playlistPopup = document.getElementById("playlistPopup");
-  createPlaylistButton = document.getElementById("createPlaylistButton");
-  cancelCreateButton = document.getElementById("cancelPlaylistCreateButton");
-  
-  playlistInputField = document.getElementById("playlistInput");
-  searchInput = document.getElementById("searchInput");
-  searchButton = document.getElementById("searchButton");
-  deletePlaylistPopup = document.getElementById("deletePlaylistPopup");
-  deletePlaylistPopupCancelButton = document.getElementById("deletePlaylistPopupCancelButton");
-  deletePlaylistPopupConfirmButton = document.getElementById("deletePlaylistPopupConfirmButton");
+//  addPlaylistButton = document.getElementById("add-playlist-button");
+//  addVideoButton = document.getElementById("add-video-button");
+//  addVideoModal = document.getElementById("addVideoModal");
+//  addVideoCancelButton = document.getElementById("addVideoCancelButton");
+//  addVideoConfirmButton = document.getElementById("addVideoConfirmButton");
+//  
+//  playlistPopup = document.getElementById("playlistPopup");
+//  createPlaylistButton = document.getElementById("createPlaylistButton");
+//  cancelCreateButton = document.getElementById("cancelPlaylistCreateButton");
+//  
+//  playlistInputField = document.getElementById("playlistInput");
+//  searchInput = document.getElementById("searchInput");
+//  searchButton = document.getElementById("searchButton");
+//  deletePlaylistPopup = document.getElementById("deletePlaylistPopup");
+//  deletePlaylistPopupCancelButton = document.getElementById("deletePlaylistPopupCancelButton");
+//  deletePlaylistPopupConfirmButton = document.getElementById("deletePlaylistPopupConfirmButton");
   overlay = document.getElementById("overlay");
-  videoList = document.getElementById("videos");
-  
-  
-  videoUrlInput = document.getElementById("urlInput");
-  
-  playPlaylistButton = document.getElementById("playPlaylistButton");
-  setImageButton = document.getElementById("playlistSetImageButton");
-  controlPlayButton = document.getElementById("control-play-button");
-  controlPauseButton = document.getElementById("control-pause-button");
-  controlRewindButton = document.getElementById("control-rewind-button");
-  controlFastForwardButton = document.getElementById("control-fast-forward-button");
-  controlRepeatButton = document.getElementById("control-repeat-button");
-  controlShuffleButton = document.getElementById("control-shuffle-button");
-  volumeBar = document.getElementById("volume-bar");
-  
-  importDefault = document.getElementById("import-default-playlist");
-  importDefaultContainer = document.getElementById("import-default-playlist-container");
-  importUser = document.getElementById("import-your-playlist");
-  importUserContainer = document.getElementById("import-your-playlist-container");
-  importOther = document.getElementById("import-other-playlist");
-  importOtherContainer = document.getElementById("import-other-playlist-container");
-  importOtherUrlInput = document.getElementById("import-other-url-input");
-  
-  currTime = document.getElementById("control-time-curr");
-  endTime = document.getElementById("control-time-end");
-  timeBar = document.getElementById("control-time-bar");
+//  videoList = document.getElementById("videos");
+//  
+//  
+//  videoUrlInput = document.getElementById("urlInput");
+//  
+//  playPlaylistButton = document.getElementById("playPlaylistButton");
+//  setImageButton = document.getElementById("playlistSetImageButton");
+//  controlPlayButton = document.getElementById("control-play-button");
+//  controlPauseButton = document.getElementById("control-pause-button");
+//  controlRewindButton = document.getElementById("control-rewind-button");
+//  controlFastForwardButton = document.getElementById("control-fast-forward-button");
+//  controlRepeatButton = document.getElementById("control-repeat-button");
+//  controlShuffleButton = document.getElementById("control-shuffle-button");
+//  volumeBar = document.getElementById("volume-bar");
+//  
+//  importDefault = document.getElementById("import-default-playlist");
+//  importDefaultContainer = document.getElementById("import-default-playlist-container");
+//  importUser = document.getElementById("import-your-playlist");
+//  importUserContainer = document.getElementById("import-your-playlist-container");
+//  importOther = document.getElementById("import-other-playlist");
+//  importOtherContainer = document.getElementById("import-other-playlist-container");
+//  importOtherUrlInput = document.getElementById("import-other-url-input");
+//  
+//  currTime = document.getElementById("control-time-curr");
+//  endTime = document.getElementById("control-time-end");
+//  timeBar = document.getElementById("control-time-bar");
+  infoBarButton = document.getElementById("info-bar-button");
+  videoList = document.getElementById("video-list");
+  playlistList = document.getElementById("playlist-display");
 }
 
 function startPlaylist(video){
@@ -2265,12 +2349,13 @@ function play(video){
 function onload(){
   playlistCollectionManager = chrome.extension.getBackgroundPage().getPlaylistCollectionManager();
   videoPlayerManager = chrome.extension.getBackgroundPage().getVideoPlayerManager();
-  //loadDivs();
-  //initListeners();
+  loadDivs();
+  initListeners();
   //setupControlPanel();
-  //loadPlayerState();
-  //displayPlaylists();
+  loadPlayerState();
+  displayPlaylists();
   //setupPlaylistSelectionContainer();
+  
 }
 
 function checkPlayerLoaded(){

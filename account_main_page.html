@@ -1,530 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <!--link rel="stylesheet" type="text/css" href="stylesheet.css"-->
+    <link rel="stylesheet" type="text/css" href="main_stylesheet.css">
     <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
-    <style>
-      body{
-        min-height: 575px;
-        min-width: 780px;
-        margin: 0px;
-        user-select: none;
-      }
-     
-      #searchBar{
-        position: absolute;
-        width: 60%;
-        height: 25px;
-        top: 10px;
-        left: 21%;
-        background-color: white;
-      }
-      #searchButton{
-        position: absolute;
-        width: 25px;
-        height: 25px;
-        background-color: lightgray;
-        border: 1px solid lightgray;
-        left: 217px;
-      }
-      #searchInput{
-        position: absolute;
-        top: 0px;
-        width: 100%;
-        height: 90%;
-        font-size: 20px;
-        border: 1px solid lightgray;
-      }
-      #addVideoModal{
-        background-color: white;
-        z-index: 10;
-        position: absolute;
-        border: 2px solid black;
-        width: 75%;
-        height: 390px;
-        top: 12.5%;
-        left: 12.5%;
-        display: none;
-      }
-      #addVideoViaUrlTab{
-        border-bottom: 2px solid dodgerblue;
-        position: absolute;
-        width: 10%;
-        height: 10%;
-        text-align: center;
-        cursor: pointer;
-      }
-      #urlInput{
-        position: absolute;
-        width: 50%;
-        height: 5%;
-        top: 15%;
-        left: 25%;
-        font-size: 16px;
-      }
-      #videoModalResultDisplay{
-        position: absolute;
-        width: 426px;
-        height: 240px;
-        top: 26.5%;
-        left: 12.5%;
-        display: none;
-      }
-      #urlResultPreviewiframe{
-        width: 99%;
-        height: 99%;
-      }
-      #addVideoConfirmButton{
-        position: absolute;
-        border: 2px solid black;
-        width: 100px;
-        height: 25px;
-        top: 90%;
-        left: 52.5%;
-        text-align: center;
-        cursor: pointer;
-      }
-      #addVideoCancelButton{
-        position: absolute;
-        border: 2px solid black;
-        width: 100px;
-        height: 25px;
-        top: 90%;
-        left: 32.5%;
-        text-align: center;
-        cursor: pointer;
-      } 
-      #deletePlaylistPopup{
-        border: 2px solid black;
-        background-color: white;
-        position: absolute;
-        width: 250px;
-        height: 100px;
-        display: none;
-        top: 150px;
-        left: 250px;
-        z-index: 10;
-        cursor: default;
-      }
-      #deletePlaylistPopupConfirmButton{
-        border: 2px solid black;
-        position: absolute;
-        width: 75px;
-        height: 25px;
-        top: 50px;
-        left: 145px;
-        z-index: inherit;
-        cursor: pointer;
-      }
-      #deletePlaylistPopupCancelButton{
-        border: 2px solid black;
-        position: absolute;
-        width: 75px;
-        height: 25px;
-        top: 50px;
-        left: 25px;
-        z-index: inherit;
-        cursor: pointer;
-      }
-      #addPlaylistButton{
-        width: 170px;
-        height: 30px;
-        position: absolute;
-        top: 25px;     
-        left: 300px;
-        line-height: 25px;
-        border: 2px solid black;
-        background-color: dodgerblue;
-        cursor: pointer;
-        text-align: center;
-      }
-      addPlaylistText{
-        font-size: 23px;
-        font-weight: bold;
-        color: white;
-      }
-      #playlistPopup{
-        top: 140px;
-        left: 150px;
-        width: 500px;
-        height: 300px;
-        border: 1px solid gray;
-        position: absolute;
-        display: none;
-        cursor: default;
-        background-color: white;
-        z-index: 99;
-      }
-      #playlistTextbox{
-        position: absolute;
-        top: 45px;
-        left: 37px;
-        width:75px;
-        height: 25px;
-      }
-      #playlistTextboxCharCount{
-        position: absolute;
-        top: 45px;
-        left: 410px;
-        width: 50px;
-        height: 25px;
-      }
-      #playlistInput{
-        position: absolute;
-        top: 65px;
-        left: 37px;
-        width:425px;
-        height: 25px;
-        font-size: 20px;
-      }
-      #playlistSetImageTextbox{
-        position: absolute;
-        top: 100px;
-        left: 37px;
-        width: 50px;
-        height: 25px;
-      }
-      #playlistSetImageDisplay{
-        border: 1px solid lightgray;
-        position: absolute;
-        top: 120px;
-        left: 37px;
-        width: 240px;
-        height: 135px;
-        overflow: hidden;
-      }
-      #playlistSetImageImage{
-        height: inherit;
-        width: inherit;
-        position: absolute;
-      }
-      #playlistSetImageButton{
-        position: absolute;
-        width: 0.1px;
-        height: 0.1px;
-        opacity: 0;
-        overflow: hidden;
-        text-align: center;
-        cursor: pointer;
-      }
-      #playlistSetImageButtonLabel{
-        border: 1px solid lightgray;
-        position: absolute;
-        display: inline-block;
-        top: 125px;
-        left: 300px;
-        width: 125px;
-        height: 25px;
-        text-align: center;
-        cursor: pointer;
-      }
-      #createPlaylistButton{
-        text-align: center;
-        border: 1px solid gray;
-        position: absolute;
-        top: 265px;
-        left: 255px;
-        width: 75px;
-        height: 25px;
-        cursor: pointer;
-      }
-      #cancelPlaylistCreateButton{
-        text-align: center;
-        border: 1px solid gray;
-        position: absolute;
-        top: 265px;
-        left: 170px;
-        width: 75px;
-        height: 25px;
-        cursor: pointer;
-      }
-      #overlay{
-        position: fixed;
-        background-color: black;
-        opacity: 0.6;
-        width: 100%;
-        height: 100%; 
-        display: none;
-      }
-      #transparent-overlay{
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        display: none;
-      }
-      .controlAnimation{
-        animation-name: controlsAnimation;
-        animation-duration: .5s;
-        animation-iteration-count: 1;
-        animation-fill-mode: forwards;
-      }
-      @keyframes controlsAnimation{
-        from {top: 515px;}
-        to {top: 465px;}
-      }
-
-      #qualitySelectionContainer{
-        position: relative;
-        width: inherit;
-        height: 90%;
-      }
-      #qualitySelectionTextBox{
-        position: absolute;
-        width: 50px;
-        height: inherit;
-        border-right: 1px solid black;
-        text-align: center;
-      }
-      #qualityTitle{
-        position: absolute;
-        height: 25px;
-        text-align: center;
-      }
-      #smallQualitySelection{
-        position: absolute;
-        width: 100px;
-        height: 25px;
-        top: 45px;
-        left: 33%;
-        border: 1px solid gray;
-        text-align: center;
-        cursor: pointer;
-      }
-      #mediumQualitySelection{
-        position: absolute;
-        width: 100px;
-        height: 25px;
-        top: 75px;
-        left: 33%;
-        border: 1px solid gray;
-        text-align: center;
-        cursor: pointer;
-      }
-      #largeQualitySelection{
-        position: absolute;
-        width: 100px;
-        height: 25px;
-        top: 105px;
-        left: 33%;
-        border: 1px solid gray;
-        text-align: center;
-        cursor: pointer;
-      }
-      #hd720QualitySelection{
-        position: absolute;
-        width: 100px;
-        height: 25px;
-        top: 135px;
-        left: 33%;
-        border: 1px solid gray;
-        text-align: center;
-        cursor: pointer;
-      }
-      #defaultQualitySelection{
-        position: absolute;
-        width: 100px;
-        height: 25px;
-        top: 160px;
-        left: 33%;
-        border: 1px solid gray;
-        text-align: center;
-        cursor: pointer;
-      }
-      div#header{
-        position:absolute;
-        top: 0;
-        left: 0;
-        background-color: dodgerblue;
-        text-align: center;
-        width: 100%;
-        padding-top: 5px;
-      }
-      div#buttons{
-        padding-top: 55px
-      }
-
-      loginText{
-        color: white;
-        font-weight: bold;
-      }
-      .AccountButton{
-        background-color: white;
-        color: #039BE5;
-        border: none;
-        text-align: center;
-        width: 150px;
-        height: 35px;
-        
-        font-size: 14px;
-        font-weight: 500;
-        transition-duration: 0s;
-        box-shadow: 0 0px 20px 0 rgba(0,0,0,0.24);
-      }      
-      .AccountButton:hover{
-        background-color: #e1f3fc;
-        color: #039BE5;
-      }
-      .Bot10pxMargin{
-        margin-bottom: 10px;
-      }
-      .url-selection-load-container{
-        position: absolute;
-        top: 25px;
-        left: 100px;
-        height: 150px;
-        width: 140px;
-        font-family: sans-serif; 
-      }
-      .container{
-        height: 150px;
-        width: 140px;
-        font-family: sans-serif; 
-      }
-      .loader{
-        height: 150px;
-        width: 140px;
-      }
-      .sk-circle {
-        margin-left: 12px;
-        width: 115px;
-        height: 115px;
-        position: relative; 
-      }
-      .sk-circle .sk-child {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        left: 0;
-        top: 0; 
-      }
-      .sk-circle .sk-child:before {
-        content: '';
-        display: block;
-        margin: 0 auto;
-        width: 15%;
-        height: 15%;
-        /*background-color: #333;*/
-        background-color: dodgerblue;
-        border-radius: 100%;
-        animation: load-animation 1.2s infinite ease-in-out both; 
-      }
-      .sk-circle .sk-circle2 {
-        transform: rotate(30deg); 
-      }
-      .sk-circle .sk-circle3 {
-        transform: rotate(60deg); 
-      }
-      .sk-circle .sk-circle4 {
-        transform: rotate(90deg); 
-      }
-      .sk-circle .sk-circle5 {
-        transform: rotate(120deg); 
-      }
-      .sk-circle .sk-circle6 {
-        transform: rotate(150deg); 
-      }
-      .sk-circle .sk-circle7 {
-        transform: rotate(180deg); 
-      }
-      .sk-circle .sk-circle8 {
-        transform: rotate(210deg); 
-      }
-      .sk-circle .sk-circle9 {
-        transform: rotate(240deg); 
-      }
-      .sk-circle .sk-circle10 {
-        transform: rotate(270deg); 
-      }
-      .sk-circle .sk-circle11 {
-        transform: rotate(300deg); 
-      }
-      .sk-circle .sk-circle12 {
-        transform: rotate(330deg); 
-      }
-      .sk-circle .sk-circle2:before {
-        animation-delay: -1.1s; 
-      }
-      .sk-circle .sk-circle3:before {
-        animation-delay: -1s; 
-      }
-      .sk-circle .sk-circle4:before {
-        animation-delay: -0.9s; 
-      }
-      .sk-circle .sk-circle5:before {
-        animation-delay: -0.8s; 
-      }
-      .sk-circle .sk-circle6:before {
-        animation-delay: -0.7s; 
-      }
-      .sk-circle .sk-circle7:before {
-        animation-delay: -0.6s; 
-      }
-      .sk-circle .sk-circle8:before {
-        animation-delay: -0.5s; 
-      }
-      .sk-circle .sk-circle9:before {
-        animation-delay: -0.4s; 
-      }
-      .sk-circle .sk-circle10:before {
-        animation-delay: -0.3s; 
-      }
-      .sk-circle .sk-circle11:before {
-        animation-delay: -0.2s; 
-      }
-      .sk-circle .sk-circle12:before {
-        animation-delay: -0.1s; 
-      }
-      .loader--text{
-        position: absolute;
-        top: 140px;
-        left: 0;
-        right: 0;
-        width: 4rem;
-        margin: auto;
-      }
-      .loader--text:after{
-        content: "Loading";
-        font-weight: bold;
-        color: dodgerblue;
-        animation-name: loading-text;
-        animation-duration: 3s;
-        animation-iteration-count: infinite;
-      }
-      @keyframes load-animation{
-        20%{
-          opacity: .8;
-        }
-        40%{
-          opacity: .6;
-        }
-        60%{
-          opacity: .4;
-        }
-        80%{
-          opacity: .2;
-        }
-      }
-      @keyframes loading-text{
-        0%{
-          content: "Loading";
-        }
-        25%{
-          content: "Loading.";
-        }
-        50%{
-          content: "Loading..";
-        }
-        75%{
-          content: "Loading..."
-        }
-      }
-    </style>
-    
     <script type="text/javascript" src="https://apis.google.com/js/client.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
     <script src="account_main_page.js"></script>
   </head> 
-  <body>
+  <!--body>
     <div id="left-column" class="left-column">
       <div id="left-column-button-container" class="left-column button-container">
         <div class="border-bottom button-container button-container-buffer left-align">
@@ -566,7 +50,6 @@
     </div>
     <div id="right-column" class="right-column">
       <div id="playerContainer" class="player" >
-      <!--div id="player" class="player iframe"></div-->
       <div id="playerImage" class="player image-container">
         <img id="player-image-image" class="player image-image" src="images/blank.png"/>
       </div>
@@ -793,6 +276,85 @@
       <div id="edit-video-cancel-button" class="button small-font">Cancel</div>
       <div id="edit-video-confirm-button" class="button small-font">Confirm</div>
     </div>
+    <div id="overlay"></div>
+    <div id="transparent-overlay"></div>
+  </body-->
+  <body>
+    <div id="info-bar">
+      <div id="info-bar-title" class="border-bottom regular-font ellipsis">
+        <text id="playlist-name"></text>
+      </div>
+      <div id="info-bar-button" class="button white">
+        <i class="fa fa-bars fa-lg" aria-hidden="true"></i>
+      </div> 
+    </div>
+    <div id="left-column" class="border-right">
+      <div id="left-body">
+        <div id="no-playlist-page" style="display: none";>
+          <text id="no-playlist-page-msg" class="large-font">
+            You don't seem to have any playlists
+          </text>
+          <div id="create-playlist-button" class="button create-playlist-button no-playlist">
+            Create Playlist
+          </div>
+        </div>
+        <div id="video-list" class="scrollbar"></div>
+        <div id=playlist-display>
+          <text class="large-font playlist-list-description center">Playlists</text>
+          <div id="playlist-list" class="scrollbar"></div>
+          <div id="playlist-options">
+            <i id="add-playlist-options-button" 
+               class="fa fa-plus-circle fa-2x card-background white add-playlist button clickable-through-overlay" aria-hidden="true">
+              <div id="add-options" class="add-playlist-options border modal card-background">
+                <div id="add-new-playlist" class="small-font center border-bottom small-top-down-padding">New Playlist</div>
+                <div id="import-new-playlist" class="small-font center small-top-down-padding">Import From Youtube</div>
+              </div>
+              <div id="add-new-playlist-div" class="modal border card-background clickable-through-overlay">
+                <input id="add-new-playlist-title-input" class="card-background white" 
+                       type="text" placeholder="Playlist Name" value="New Playlist" maxlength="50"/>
+                <div id="add-new-playlist-button" class="button border center regular-font">Add</div>
+              </div>
+            </i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="right-column"></div>
+    <div id="control-panel">
+        <div id="control-play-pause-button" class="control-play-pause-button control-button button">
+          <i class="fa fa-play-circle-o fa-2x" aria-hidden="true" id="control-play-button" ></i>
+          <i class="fa fa-pause-circle-o fa-2x" aria-hidden="true" id="control-pause-button" style="display: none"></i>
+        </div>
+        <div id="control-rewind-button" class="control-rewind-button control-button button">
+          <i class="fa fa-backward fa-lg" aria-hidden="true" ></i>
+        </div>
+        <div id="control-fast-forward-button" class="control-fast-forward-button control-button button">
+          <i class="fa fa-forward fa-lg" aria-hidden="true" ></i>
+        </div>
+        <div id="control-shuffle-button" class="control-shuffle-button control-button button">
+          <i class="fa fa-random" aria-hidden="true"></i>
+        </div>
+        <div id="control-repeat-button" class="control-repeat-button control-button button">
+          <i class="fa fa-repeat" aria-hidden="true"></i>
+        </div>
+        <div id="volume-container" class="volume-container right-align border-left">
+          <div id="volume-icon" style="top:8px; width:19px; height: 15px; position:absolute;">
+            <i id="volume-on" class="fa fa-volume-up fa-lg" aria-hidden="true"></i>
+            <i id="volume-off" class="fa fa-volume-off fa-lg" style="display: none" aria-hidden="true"></i>
+          </div>
+          <div id="volume-bar" class="volume-bar">
+            <div id="volume-bar-fill" class="volume-bar-fill"></div>
+          </div>
+        </div>
+        <div id="control-time-container" class="control-time">
+          <div id="control-time-curr" class="control-time-curr left-align tiny-font"></div>
+          <div id="control-time-bar-container" class="control-time-bar-container">
+            <div id="control-time-bar-progress"></div>
+            <input type="range" min="0" max="100" value="0" class="slider" id="control-time-bar"/>
+          </div>
+          <div id="control-time-end" class="control-time-end right-align tiny-font"></div>
+        </div>
+      </div>
     <div id="overlay"></div>
     <div id="transparent-overlay"></div>
   </body>

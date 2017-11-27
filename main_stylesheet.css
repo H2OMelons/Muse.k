@@ -1,0 +1,538 @@
+body{
+  min-height: 575px;
+  min-width: 780px;
+  margin: 0px;
+  user-select: none;
+  background-color: #303030;
+}
+text{
+  color: white;
+  font-family: Verdana, Geneva, sans-serif;
+}
+/*
+ * Left column stuff
+ */
+#left-column{
+  position: absolute;
+  width: 40%;
+  height: 85%;
+  top: 7%;
+  left: 0;
+  overflow: hidden;
+}
+#info-bar{
+  position: absolute;
+  width: 100%;
+  height: 7%;
+  background-color: #000000;
+}
+#left-body{
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+#no-playlist-page{
+  width: 100%;
+  height: 100%;
+}
+#no-playlist-page-msg{
+  position: absolute;
+  top: 25%;
+  left: 12.5%;
+  width: 75%;
+  text-align: center;
+}
+#info-bar-button{
+  position: absolute;
+  top: 25%;
+  left: 2%;
+}
+#info-bar-search-button{
+  position: absolute;
+  top: 25%;
+  right: 2%;
+}
+#info-bar-title{
+  position: absolute;
+  top: 17.5%;
+  left: 10%;
+  max-width: 80%;
+}
+#video-list{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-x: none;
+  overflow-y: auto;
+}
+.video-container{
+  position: relative;
+  width: 95%;
+  height: 10%;
+  margin: 2.5%;
+  overflow: hidden;
+}
+.video-container:hover .video-img-overlay{
+  display: block;
+}
+.video-container:hover .video-play-pause-button{
+  display: block;
+}
+.video-container:hover .video-settings{
+  display: block;
+}
+.video-img{
+  position: absolute;
+  margin: .5%;
+  height: 95%;
+  width: 22.5%;
+}
+.video-img-overlay{
+  position: absolute;
+  display: none;
+  background-color: black;
+  opacity: .5;
+  z-index: 100;
+}
+.video-play-pause-button{
+  display: none;
+}
+.video-play-button{
+  position: absolute;
+  top: 25%;
+  left: 40%;
+  z-index: 1000;
+  color: white;
+}
+.video-pause-button{
+  position: absolute;
+  z-index: 1000;
+  top: 25%;
+  left: 35%;
+  color: white;
+  display: none;
+}
+.video-settings{
+  display: none;
+  background-color: #424242;
+  position: absolute;
+  right: 0;
+  top: 10%;
+  width: 8%;
+  height: 100%;
+}
+.video-delete{
+  width: 15px;
+  color: white;
+}
+.video-edit{
+  width: 15px;
+  color: white;
+}
+.left-column-video-title{
+  position: absolute;
+  height: 65%;
+  width: 76%;
+  top: 15%;
+  left: 25%;
+}
+.left-column-duration{
+  position: absolute;
+  top: 65%;
+  left: 25%;
+}
+#playlist-display{
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 75%;
+  height: 100%;
+}
+#playlist-list{
+  position: absolute;
+  top: 5%;
+  width: 100%;
+  height: 89%;
+  overflow-x: hidden;
+}
+.playlist-list-description{
+  position: absolute;
+  width: 100%;
+}
+.playlist-container{
+  position: relative;
+  margin-top: 1%;
+  width: 100%;
+  height: 7%;
+}
+.playlist-container:hover{
+  background-color: #424242;
+}
+.playlist-container:hover .playlist-settings{
+  display: block;
+}
+.playlist-container:hover .playlist-title{
+  background-color: #424242;
+}
+.playlist-title{
+  position: absolute;
+  width: 100%;
+  height: 60%;
+  background-color: #303030;
+}
+.playlist-length{
+  position: absolute;
+  width: 100%;
+  height: 40%;
+  top: 55%;
+}
+.playlist-settings{
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 12.5%;
+  width: 20%;
+  height: 70%;
+}
+.playlist-edit{
+  margin-right: 20%;
+  margin-top: 7%;
+  width: 15px;
+  color: white;
+}
+.playlist-delete{
+  width: 15px;
+  color: white;
+}
+#playlist-options{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6%;
+}
+.add-playlist-options{
+  position: absolute;
+  display: none;
+  width: 100px;
+  height: 70px;
+  top: -72px;
+  left: -35px;
+}
+#add-new-playlist:hover{
+  color: turquoise;
+}
+#add-new-playlist-div{
+  height: 60px;
+  width: 200px;
+  position: absolute;
+  display: none;
+  top: -63px;
+  left: -80px;
+}
+#add-new-playlist-button{
+  height: 20px;
+  width: 75px;
+  position: absolute;
+  left: 30%;
+  top: 60%;
+}
+#add-new-playlist-button:hover{
+  color: turquoise;
+}
+#add-new-playlist-title-input{
+  border: 1px solid lightgray;
+  position: absolute;
+  left: 10%;
+  top: 20%;
+}
+#import-new-playlist:hover{
+  color: turquoise;
+}
+/*
+ * Right column stuff
+ */
+#right-column{
+  position: absolute;
+  width: 60%;
+  height: 85%;
+  top: 7%;
+  right: 0;
+}
+
+/*
+ * Border stuff
+ */
+.border{
+  border: 1px solid gray;
+}
+.border-none{
+  border: 0;
+}
+.border-bottom{
+  border-bottom: 1px solid gray;
+}
+.border-top{
+  border-top: 1px solid gray;
+}
+.border-right{
+  border-right: 1px solid #474B4F;
+}
+.border-left{
+  border-left: 1px solid gray;
+}
+
+/*
+ * Button stuff
+ */
+.button{
+  cursor: pointer;
+}
+.add-playlist{
+  position: absolute;
+  left: 45%;
+  border-radius: 50%;
+}
+.create-playlist-button{
+  width: 125px;
+  font-size: 18px;
+}
+.playlist-option-create-playlist-button{
+  position: absolute;
+  
+}
+.create-playlist-button.no-playlist{
+  position: absolute;
+  top: 40%;
+  left: 30%;
+}
+
+/*
+ * Control panel stuff
+ */
+#control-panel{
+  position: absolute;
+  bottom: 0;
+  background-color: #212121;
+  width: 100%;
+  height: 8%;
+}
+
+.control-button{
+  line-height: 190%;
+}
+
+.control-play-pause-button{
+  left: 200px;
+}
+
+.control-rewind-button{
+  left: 175px;
+}
+
+.control-fast-forward-button{
+  left: 233px;
+}
+
+.control-repeat-button{
+  line-height: 200%;
+  left: 155px;
+}
+
+.control-shuffle-button{
+  line-height: 200%;
+  left: 260px;
+}
+
+.control-time{
+  bottom: 10px;
+  left: 115px;
+  position: absolute;
+  width: 225px;
+  height: 10px;
+}
+.control-time-bar-container{
+  width: 145px;
+  height: 3px;
+  position: absolute;
+  left: 40px;
+}
+.control-time-bar{
+  background-color: lightgray;
+  width: 0;
+  height: inherit;
+}
+#control-time-bar-progress{
+  position: absolute;
+  top: 9px;
+  left: 3px;
+  border-radius: 5px;
+  background-color: black;
+  width: 0;
+  height: 100%;
+}
+.control-time-curr{
+  position: absolute;
+  width: 35px;
+  height: inherit;
+  text-align: right;
+}
+.control-time-end{
+  position: absolute;
+  width: 35px;
+  height: inherit;
+  text-align: left;
+}
+
+/*
+ * Text stuff
+ */
+.tinier-font{
+  font-size: 2px;
+}
+.tiny-font{
+  font-size: 12px;
+}
+.small-font{
+  font-size: 16px;
+}
+.regular-font{
+  font-size: 18px;
+}
+.large-font{
+  font-size: 20px;
+}
+.larger-font{
+  font-size: 22px;
+}
+.center{
+  text-align: center;
+}
+.ellipsis{
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/*
+ * Color stuff
+ */
+.lightgray{
+  color: lightgray;
+}
+.gray{
+  color: gray;
+}
+.white{
+  color: white;
+}
+.card-background{
+  background-color: #424242;
+}
+
+/*
+ * Animation stuff
+ */
+.shift-to-left-animation{
+  animation-name: shiftLeft;
+  animation-duration: .1s;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+  animation-duration: normal;
+}
+
+.shift-off-left-animation{
+  animation-name: shiftOffLeft;
+  animation-duration: .1s;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+  animation-duration: normal;
+}
+
+.shift-to-right-animation{
+  animation-name: shiftRight;
+  animation-duration: .1s;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+  animation-duration: normal;
+}
+
+@keyframes shiftLeft{
+  to{
+    left: 0;
+  }
+}
+
+@keyframes shiftOffLeft{
+  to{
+    left: -75%;
+  }
+}
+
+@keyframes shiftRight{
+  to{
+    left: 74.5%;
+  }
+}
+
+/*
+ * Scrollbar stuff
+ */
+.scrollbar{
+  float: left;
+  height: 100%;
+  width: 65px;
+  overflow-y: auto;
+  margin-bottom: 25px;
+}
+.scrollbar::-webkit-scrollbar-track{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 10px;
+  background-color: #212121;
+}
+.scrollbar::-webkit-scrollbar
+{
+  border-radius: 10px;
+  width: 12px;
+  background-color: #000000;
+}
+.scrollbar::-webkit-scrollbar-thumb
+{
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  background-color: #000000;
+}
+
+/*
+ * Misc. stuff
+ */
+.float-left{
+  float: left;
+}
+.small-top-down-padding{
+  padding-top: 5%;
+  padding-bottom: 5%;
+}
+#overlay{
+  position: fixed;
+  background-color: black;
+  opacity: 0.6;
+  width: 100%;
+  height: 100%; 
+  display: none;
+}
+#transparent-overlay{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+.clickable-through-overlay{
+  z-index: 10;
+}

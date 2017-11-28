@@ -81,6 +81,12 @@ text{
 .video-container:hover .video-settings{
   display: block;
 }
+.video-container:hover .video-play-button{
+  color: turquoise;
+}
+.video-container:hover .video-pause-button{
+  color: turquoise;
+}
 .video-img{
   position: absolute;
   margin: .5%;
@@ -103,6 +109,8 @@ text{
   left: 40%;
   z-index: 1000;
   color: white;
+  width: 100%;
+  height: 100%;
 }
 .video-pause-button{
   position: absolute;
@@ -110,6 +118,8 @@ text{
   top: 25%;
   left: 35%;
   color: white;
+  width: 100%;
+  height: 100%;
   display: none;
 }
 .video-settings{
@@ -117,7 +127,7 @@ text{
   background-color: #424242;
   position: absolute;
   right: 0;
-  top: 10%;
+  top: 5%;
   width: 8%;
   height: 100%;
 }
@@ -195,8 +205,8 @@ text{
   height: 70%;
 }
 .playlist-edit{
+  line-height: 100%;
   margin-right: 20%;
-  margin-top: 7%;
   width: 15px;
   color: white;
 }
@@ -268,11 +278,13 @@ text{
   height: 25px;
   top: 50px;
   left: 145px;
+  line-height: 200%;
   z-index: inherit;
 }
 #delete-playlist-popup-confirm-button:hover{
   color: black;
   background-color: white;
+  font-weight: bold;
 }
 #delete-playlist-popup-cancel-button{
   position: absolute;
@@ -280,11 +292,13 @@ text{
   height: 25px;
   top: 50px;
   left: 25px;
+  line-height: 200%;
   z-index: inherit;
 }
 #delete-playlist-popup-cancel-button:hover{
   color: black;
   background-color: white;
+  font-weight: bold;
 }
 #delete-playlist-popup-text{
   position: absolute;
@@ -619,6 +633,134 @@ text{
 }
 
 /*
+ * Edit video modal stuff
+ */
+#edit-video-modal{
+  position: absolute;
+  display: none;
+  border: 1px solid lightgray;
+  width: 350px;
+  height: 250px;
+  top: 29%;
+  left: 25%;
+  background-color: #212121;
+  z-index: 1000;
+}
+
+#edit-title-label{
+  position: absolute;
+  top: 10px;
+  left: 6.5%;
+}
+
+#edit-title-input{
+  position: absolute;
+  border: 1px solid lightgray;
+  width: 300px;
+  height: 25px;
+  top: 30px;
+  left: 6.5%;
+}
+
+#edit-start-label{
+  position: absolute;
+  top: 25%;
+  left: 6.5%;
+}
+
+#edit-start-input-min{
+  position: absolute;
+  width: 50px;
+  left: 6.5%;
+  top: 33%;
+}
+
+#edit-start-input-min-label{
+  position: absolute;
+  left: 80px;
+  top: 33%;
+}
+
+#edit-start-input-sec{
+  position: absolute;
+  width: 50px;
+  left: 125px;
+  top: 33%;
+}
+
+#edit-start-input-sec-label{
+  position: absolute;
+  top: 33%;
+  left: 180px;
+}
+
+#edit-end-label{
+  position: absolute;
+  top: 44%;
+  left: 6.5%;
+}
+
+#edit-end-input-min{
+  position: absolute;
+  width: 50px;
+  left: 6.5%;
+  top: 52%;
+}
+
+#edit-end-input-min-label{
+  position: absolute;
+  left: 80px;
+  top: 52%;
+}
+
+#edit-end-input-sec{
+  position: absolute;
+  width: 50px;
+  left: 125px;
+  top: 52%;
+}
+
+#edit-end-input-sec-label{
+  position: absolute;
+  left: 180px;
+  top: 52%;
+}
+
+#edit-video-confirm-button{
+  position: absolute;
+  text-align: center;
+  line-height: 150%;
+  border: 1px solid lightgray;
+  height: 30px;
+  width: 75px;
+  top: 75%;
+  left: 50%;
+}
+
+#edit-video-confirm-button:hover{
+  color: black;
+  background-color: white;
+  font-weight: bold;
+}
+
+#edit-video-cancel-button{
+  position: absolute;
+  text-align: center;
+  line-height: 150%;
+  border: 1px solid lightgray;
+  height: 30px;
+  width: 75px;
+  top: 75%;
+  left: 25%;
+}
+
+#edit-video-cancel-button:hover {
+  color: black;
+  background-color: white;
+  font-weight: bold;
+}
+
+/*
  * Border stuff
  */
 .border{
@@ -677,55 +819,63 @@ text{
 }
 
 .control-button{
+  position: absolute;
   line-height: 190%;
 }
 
 .control-play-pause-button{
-  left: 200px;
+  position: absolute;
+  left: 45%;
 }
 
 .control-rewind-button{
-  left: 175px;
+  position: absolute;
+  left: 42%;
 }
 
 .control-fast-forward-button{
-  left: 233px;
+  position: absolute;
+  left: 48.7%;
 }
 
 .control-repeat-button{
+  position: absolute;
   line-height: 200%;
-  left: 155px;
+  left: 40%;
 }
 
 .control-shuffle-button{
+  position: absolute;
   line-height: 200%;
-  left: 260px;
+  left: 51.5%;
 }
 
 .control-time{
   bottom: 10px;
-  left: 115px;
+  left: 32%;
   position: absolute;
   width: 225px;
   height: 10px;
 }
 .control-time-bar-container{
   width: 145px;
-  height: 3px;
+  height: 5px;
   position: absolute;
   left: 40px;
 }
 .control-time-bar{
-  background-color: lightgray;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 0;
   height: inherit;
 }
 #control-time-bar-progress{
   position: absolute;
-  top: 9px;
-  left: 3px;
+  top: 150%;
+  left: 1%;
   border-radius: 5px;
-  background-color: black;
+  background-color: turquoise;
   width: 0;
   height: 100%;
 }
@@ -740,6 +890,55 @@ text{
   width: 35px;
   height: inherit;
   text-align: left;
+}
+.turquoise-hover:hover{
+  color: turquoise !important;
+}
+.slider{
+  -webkit-appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 5px;
+  background: lightgray;
+  outline: none;
+  opacity: .7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: turquoise;
+  cursor: pointer;
+}
+.volume-icon{
+  top:8px; 
+  width:19px; 
+  height: 15px; 
+  position:absolute;
+}
+.volume-container{
+  width: 100px;
+  height: 28px;
+  position: absolute;
+}
+
+.volume-bar{
+  position: absolute;
+  width: 50px;
+  height: 5px;
+  border: 1px solid lightgray;
+  top: 12px;
+  left: 25px;
+}
+
+.volume-bar-fill{
+  height: inherit;
+  background: gray;
 }
 
 /*
@@ -896,6 +1095,14 @@ text{
 }
 .clickable-through-overlay{
   z-index: 10;
+}
+.right-align{
+  position: absolute;
+  right: 0;
+}
+.left-align{
+  position: absolute;
+  left: 0;
 }
 
 /*

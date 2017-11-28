@@ -26,6 +26,7 @@ var playlistBeingPlayed = undefined;
 
 var repeatOn;
 var shuffleOn;
+var seeking = false;
 
 var orderToPlayVideos = [];
 //var playlistCollection = new Map();
@@ -395,6 +396,11 @@ VideoPlayerManager.prototype.seekTo = function(time){
   if(typeof this.queue == "undefined"){
     return;
   }
+  // Prevent fast forwarding to next video when video player is not playing and user seeks to 
+  // the end of the video
+  if(this.getBackgroundVideoPlayer().getPlayerState() != videoPlayerManager.PLAYING){
+    seeking = true;
+  }
   this.getBackgroundVideoPlayer().seekTo(time);
 }
 
@@ -414,10 +420,13 @@ VideoPlayerManager.prototype.fastForward = function(){
     if(playlistCollectionManager.getViewingPlaylistUid() == playlistCollectionManager.getPlayingPlaylistUid()){
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "block";
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "none";
+      this.playButtonsMap.get(this.queue[this.queueIndex].uid).parentNode.childNodes[3].style.color = "white";
     }
     playlistCollectionManager.setPlayingPlaylistUid(undefined);
     this.resetQueue();
-    chrome.runtime.sendMessage({request: "playlistEnded"});
+    if(popupOpen){
+      chrome.runtime.sendMessage({request: "playlistEnded"});
+    }
   }
   else if(this.queueIndex != this.queue.length - 1){
     this.queueIndex++;
@@ -430,9 +439,14 @@ VideoPlayerManager.prototype.fastForward = function(){
     if(prevIndex >= 0){
       this.playButtonsMap.get(this.queue[prevIndex].uid).childNodes[0].style.display = "block";
       this.playButtonsMap.get(this.queue[prevIndex].uid).childNodes[1].style.display = "none";
+      this.playButtonsMap.get(this.queue[prevIndex].uid).parentNode.childNodes[3].style.color = "white";
     }
     this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "none";
     this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "block";
+    this.playButtonsMap.get(this.queue[this.queueIndex].uid).parentNode.childNodes[3].style.color = "turquoise";
+  }
+  if(hasNext && popupOpen){
+    chrome.runtime.sendMessage({request: "updateControlButton", play: true});
   }
 }
 
@@ -448,10 +462,13 @@ VideoPlayerManager.prototype.rewind = function(){
       if(this.queueIndex + 1 < this.queue.length){
         this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).childNodes[0].style.display = "block";
         this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).childNodes[1].style.display = "none";
+        this.playButtonsMap.get(this.queue[this.queueIndex + 1].uid).parentNode.childNodes[3].style.color = "white";
       }
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "none";
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "block";
+      this.playButtonsMap.get(this.queue[this.queueIndex].uid).parentNode.childNodes[3].style.color = "turquoise";
     }
+    chrome.runtime.sendMessage({request: "updateControlButton", play: true});
   }
 }
 
@@ -627,7 +644,6 @@ function onBackgroundPlayerReady(event){
 }
 
 function onPlayerStateChange(event) {
-  //var pagePlayer = videoPlayerManager.getPageVideoPlayer();
   var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
   if(event.data == -1){
     
@@ -641,51 +657,18 @@ function onPlayerStateChange(event) {
     
   }
   else if(event.data == YT.PlayerState.BUFFERING){
-    // If the popup is open and the page player is playing, then pause it
-    //if(typeof pagePlayer != "undefined" && 
-    //   pagePlayer.getPlayerState() == YT.PlayerState.PLAYING){
-    //   pagePlayer.pause();    
-    //}
+    
   }
   else if(event.data == YT.PlayerState.CUED){
-    // If both videos are finished loading, then play both of them
-    /*if(typeof pagePlayer != "undefined" &&
-       pagePlayer.getPlayerState() == YT.PlayerState.CUED){
-      backgroundPlayer.play();
-      pagePlayer.play();
-    }
-    else if(typeof pagePlayer == "undefined"){
-      backgroundPlayer.play();
-    }
-    */
     backgroundPlayer.play();
   }
   else if(event.data == YT.PlayerState.ENDED){
-    if(!videoPlayerManager.fastForwarding){
+    if(!videoPlayerManager.fastForwarding && !seeking){
       videoPlayerManager.fastForward();
       videoPlayerManager.fastForwarding = true;
     }
-    
   }
-}
-
-function seekTo(time){
-  backgroundPlayerStatus = "seeking";
-  player.seekTo(time);
-}
-
-function loadVideo(video){
-  backgroundPlayerStatus = "waitingForSync";
-  if(typeof video.startTime == "undefined" || typeof video.endTime == "undefined"){
-    player.loadVideoById(video.videoId, 0, "small");
-  }
-  else{
-    player.loadVideoById({"videoId": video.videoId,
-                          "startSeconds": video.startTime,
-                          "endSeconds": video.endTime,
-                          "suggestedQuality": "small"});  
-  }
-  
+  seeking = false;
 }
 
 function createVideo(videoId, callback){
@@ -1068,13 +1051,11 @@ function resetAccount(){
 }
 
 chrome.runtime.onStartup.addListener(function(){
-  //userSetup();
   onStart();
 });
 
 chrome.runtime.onInstalled.addListener(function(details){
   if(details.reason == "install"){
-    //firstInstallSetup();
     onStart();
   }
   else if(details.reason == "update"){
@@ -1221,21 +1202,6 @@ function getPlaylistUsingDefaultImageByUid(uid, type){
   return playlistCollectionManager.getPlaylist(uid).usingDefaultImage;
 }
 
-/*
-function getPlaylistLength(playlistIndex){
-  var videos = playlistCollection.get(playlistUids[playlistIndex]).videos;
-  var length = videos.length;
-  
-  for(i = 0; i < length; i++){
-    if(videos[i] == -1){
-      length--;
-    }
-  }
-  
-  return length;
-}
-*/
-
 function getPlaylistLengthByUid(uid){
   if(typeof uid == "number"){
     uid = uid.toString();
@@ -1251,31 +1217,6 @@ function getPlaylistLengthByUid(uid){
   
   return length;
 }
-
-/*
-function getPlaylistCollectionLength(){
-  return playlistUids.length;
-}
-*/
-
-function getPlaylistByUid(uid){
-  
-  if(typeof uid == "number"){
-    uid = uid.toString();
-  }
-  
-  return playlistCollectionManager.getPlaylist(uid);
-}
-
-/*
-function getPlaylistCollection(){
-  var tempArr = [];
-  for(i = 0; i < playlistUids.length; i++){
-    tempArr.push(playlistCollection.get(playlistUids[i]));
-  }
-  return tempArr;
-}
-*/
 
 function getPlaylistCollectionManager(){
   return playlistCollectionManager;

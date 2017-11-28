@@ -321,24 +321,29 @@
     </div>
     <div id="right-column"></div>
     <div id="control-panel">
-        <div id="control-play-pause-button" class="control-play-pause-button control-button button">
+        <div id="control-play-pause-button" 
+             class="control-play-pause-button control-button button white turquoise-hover">
           <i class="fa fa-play-circle-o fa-2x" aria-hidden="true" id="control-play-button" ></i>
           <i class="fa fa-pause-circle-o fa-2x" aria-hidden="true" id="control-pause-button" style="display: none"></i>
         </div>
-        <div id="control-rewind-button" class="control-rewind-button control-button button">
+        <div id="control-rewind-button" 
+             class="control-rewind-button control-button button white turquoise-hover">
           <i class="fa fa-backward fa-lg" aria-hidden="true" ></i>
         </div>
-        <div id="control-fast-forward-button" class="control-fast-forward-button control-button button">
+        <div id="control-fast-forward-button" 
+             class="control-fast-forward-button control-button button white turquoise-hover">
           <i class="fa fa-forward fa-lg" aria-hidden="true" ></i>
         </div>
-        <div id="control-shuffle-button" class="control-shuffle-button control-button button">
+        <div id="control-shuffle-button" 
+             class="control-shuffle-button control-button button white turquoise-hover">
           <i class="fa fa-random" aria-hidden="true"></i>
         </div>
-        <div id="control-repeat-button" class="control-repeat-button control-button button">
+        <div id="control-repeat-button" 
+             class="control-repeat-button control-button button white turquoise-hover">
           <i class="fa fa-repeat" aria-hidden="true"></i>
         </div>
-        <div id="volume-container" class="volume-container right-align border-left">
-          <div id="volume-icon" style="top:8px; width:19px; height: 15px; position:absolute;">
+        <div id="volume-container" class="volume-container right-align">
+          <div id="volume-icon" class="white volume-icon turquoise-hover">
             <i id="volume-on" class="fa fa-volume-up fa-lg" aria-hidden="true"></i>
             <i id="volume-off" class="fa fa-volume-off fa-lg" style="display: none" aria-hidden="true"></i>
           </div>
@@ -347,16 +352,16 @@
           </div>
         </div>
         <div id="control-time-container" class="control-time">
-          <div id="control-time-curr" class="control-time-curr left-align tiny-font"></div>
+          <div id="control-time-curr" class="control-time-curr left-align tiny-font white"></div>
           <div id="control-time-bar-container" class="control-time-bar-container">
             <div id="control-time-bar-progress"></div>
             <input type="range" min="0" max="100" value="0" class="slider" id="control-time-bar"/>
           </div>
-          <div id="control-time-end" class="control-time-end right-align tiny-font"></div>
+          <div id="control-time-end" class="control-time-end right-align tiny-font white"></div>
         </div>
       </div>
     <div id="delete-playlist-popup" class="modal card-background border center white">
-      <text id="delete  -playlist-popup-text" class="regular-font">Delete this playlist forever</text>
+      <text id="delete-playlist-popup-text" class="regular-font">Delete this playlist forever</text>
       <div id="delete-playlist-popup-confirm-button" class="button border center">Confirm</div>
       <div id="delete-playlist-popup-cancel-button" class="button border center">Cancel</div>
     </div>
@@ -494,6 +499,22 @@
           </div>
         </div>
       </div>
+    </div>
+     <div id="edit-video-modal" class="modal">
+      <div id="edit-title-label" class="edit-video-label white">Title</div>
+      <input id="edit-title-input" maxlength="100" class="card-background white"/>
+      <div id="edit-start-label" class="edit-video-label white">Start Time</div>
+      <input id="edit-start-input-min" type="number" min="0" class="card-background white">
+      <div id="edit-start-input-min-label" class="white">mins</div>
+      <input id="edit-start-input-sec" type="number" min="0" max="59" class="card-background white"/>
+      <div id="edit-start-input-sec-label" class="white">secs</div>
+      <div id="edit-end-label" class="edit-video-label white">End Time</div>
+      <input id="edit-end-input-min" type="number" min="0" class="card-background white">
+      <div id="edit-end-input-min-label" class="white">mins</div>
+      <input id="edit-end-input-sec" type="number" min="0" max="59" class="card-background white"/>
+      <div id="edit-end-input-sec-label" class="white">secs</div>
+      <div id="edit-video-cancel-button" class="button small-font white">Cancel</div>
+      <div id="edit-video-confirm-button" class="button small-font white">Confirm</div>
     </div>
     <div id="overlay"></div>
     <div id="transparent-overlay"></div>

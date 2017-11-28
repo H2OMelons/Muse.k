@@ -794,7 +794,7 @@
   width: 100%;
   height: 5px;
   border-radius: 5px;
-  background: lightgray;
+  background: transparent;
   outline: none;
   opacity: .7;
   -webkit-transition: .2s;
@@ -810,7 +810,12 @@
   background: lightgreen;
   cursor: pointer;
 }
-
+.slider::-webkit-fill-lower{
+  background-color: turquoise;
+}
+input[type=range]::-webkit-slider-thumb:before{
+  background-color: turquoise;
+}
 .tiny-font{ 
   font-size: 12px;
 }

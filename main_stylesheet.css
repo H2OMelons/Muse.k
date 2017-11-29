@@ -10,38 +10,8 @@ text{
   font-family: Verdana, Geneva, sans-serif;
 }
 /*
- * Left column stuff
+ * Info bar stuff
  */
-#left-column{
-  position: absolute;
-  width: 40%;
-  height: 85%;
-  top: 7%;
-  left: 0;
-  overflow: hidden;
-}
-#info-bar{
-  position: absolute;
-  width: 100%;
-  height: 7%;
-  background-color: #000000;
-}
-#left-body{
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-#no-playlist-page{
-  width: 100%;
-  height: 100%;
-}
-#no-playlist-page-msg{
-  position: absolute;
-  top: 25%;
-  left: 12.5%;
-  width: 75%;
-  text-align: center;
-}
 #info-bar-button{
   position: absolute;
   top: 25%;
@@ -83,6 +53,51 @@ text{
   cursor: default;
   max-width: 70%;
   border: 0;
+}
+#search-input{
+  position: absolute;
+  right: 10%;
+  top: 20%;
+  width: 40%;
+}
+#search-button{
+  position: absolute;
+  right: 7%;
+  top: 33%;
+}
+
+/*
+ * Left column stuff
+ */
+#left-column{
+  position: absolute;
+  width: 40%;
+  height: 85%;
+  top: 7%;
+  left: 0;
+  overflow: hidden;
+}
+#info-bar{
+  position: absolute;
+  width: 100%;
+  height: 7%;
+  background-color: #000000;
+}
+#left-body{
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+#no-playlist-page{
+  width: 100%;
+  height: 100%;
+}
+#no-playlist-page-msg{
+  position: absolute;
+  top: 25%;
+  left: 12.5%;
+  width: 75%;
+  text-align: center;
 }
 #video-list{
   position: absolute;

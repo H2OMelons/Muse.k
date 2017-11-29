@@ -400,6 +400,13 @@ VideoPlayerManager.prototype.pauseVideo = function(){
   this.playButtonsMap.get(videoUid).childNodes[1].style.display = "none";
 }
 
+VideoPlayerManager.prototype.stopVideo = function(){
+  if(typeof this.queue == "undefined"){
+    return;
+  }
+  this.backgroundVideoPlayer.stop();
+}
+
 VideoPlayerManager.prototype.seekTo = function(time){
   if(typeof this.queue == "undefined"){
     return;
@@ -425,6 +432,12 @@ VideoPlayerManager.prototype.fastForward = function(){
     hasNext = true;
   }
   else if(this.queueIndex == (this.queue.length - 1) && !repeatOn){
+    if(this.getBackgroundVideoPlayer().getPlayerState() == this.PLAYING){
+      this.stopVideo();
+      if(popupOpen){
+        chrome.runtime.sendMessage({request: "resetTimeBar"});
+      }
+    }
     if(playlistCollectionManager.getViewingPlaylistUid() == playlistCollectionManager.getPlayingPlaylistUid()){
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[0].style.display = "block";
       this.playButtonsMap.get(this.queue[this.queueIndex].uid).childNodes[1].style.display = "none";
@@ -521,6 +534,7 @@ var videoPlayerManager = new VideoPlayerManager();
 function VideoPlayer(player){
   this.player = player;
   this.userPause = false;
+  this.stopped = false;
 }
 
 VideoPlayer.prototype.SYNC = 0;
@@ -585,11 +599,17 @@ VideoPlayer.prototype.getPlayerState = function(){
 }
 
 VideoPlayer.prototype.play = function(){
+  this.stopped = false;
   this.player.playVideo();
 }
 
 VideoPlayer.prototype.pause = function(){
   this.player.pauseVideo();
+}
+
+VideoPlayer.prototype.stop = function(){
+  this.stopped = true;
+  this.player.stopVideo();
 }
 
 VideoPlayer.prototype.seekTo = function(time){
@@ -653,6 +673,11 @@ function onBackgroundPlayerReady(event){
 
 function onPlayerStateChange(event) {
   var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
+  
+  if(backgroundPlayer.stopped){
+    return;
+  }
+  
   if(event.data == -1){
     
   }

@@ -819,24 +819,6 @@ function initListeners(){
       }
     }
   };
-//  playlistInputField.onkeyup = function(){
-//    var numChars = playlistInputField.value.length;
-//    document.getElementById("playlistTextboxCharCount").innerHTML = numChars + "/50";
-//  };
-//  setImageButton.addEventListener("change", function(){
-//    var file = setImageButton.files[0];
-//    var reader = new FileReader();
-//    reader.onloadend = function(){
-//      document.getElementById("playlistSetImageImage").src = reader.result;  
-//    }
-//    if(file){
-//      reader.readAsDataURL(file);
-//    }
-//    else{
-//      document.getElementById("playlistSetImageImage").src = defaultPlaylistImage;
-//    }
-//  }, true);
-//
   deletePlaylistPopup.addEventListener("cancel", function(){
     deletePlaylistPopupCancelButton.click();
   });
@@ -876,33 +858,35 @@ function initListeners(){
     deletePlaylistPopup.style.display = "none";
     overlay.style.display = "none";
   }
-//  
-//  // Clicks the create playlist button when user hits enter key
-//  searchInput.onkeyup = function(){
-//    if(event.keyCode == KEYCODE_ENTER){
-//      searchButton.click();
-//    }
-//  };
+  
+  // Clicks the create playlist button when user hits enter key
+  searchInput.onkeyup = function(){
+    if(event.keyCode == KEYCODE_ENTER){
+      searchButton.click();
+    }
+  };
 
-//  searchButton.onclick = function(){
-//    var keywords = searchInput.value;
-//    if(keywords.length != 0 && keywords.replace(/\s/g, '').length != 0){
-//      keywords = keywords.replace(/\s/g, '');
-//      
-//      var displayContainer = document.getElementById("search-results-display");
-//      
-//      while(displayContainer.firstChild){
-//        displayContainer.removeChild(displayContainer.firstChild);
-//      }
-//      
-//      chrome.extension.getBackgroundPage().search(keywords, function(item){
-//        for(i = 0; i < item.items.length; i++){
-//          createSearchResultDiv(item.items[i]);
-//        }
-//      });
-//    }
-//  };
-//
+  searchButton.onclick = function(){
+    var keywords = searchInput.value;
+    if(keywords.length != 0 && keywords.replace(/\s/g, '').length != 0){
+      keywords = keywords.replace(/\s/g, '');
+      
+      /*
+      var displayContainer = document.getElementById("search-results-display");
+      
+      while(displayContainer.firstChild){
+        displayContainer.removeChild(displayContainer.firstChild);
+      }
+      
+      chrome.extension.getBackgroundPage().search(keywords, function(item){
+        for(i = 0; i < item.items.length; i++){
+          createSearchResultDiv(item.items[i]);
+        }
+      });
+      */
+    }
+  };
+
   controlPlayButton.onclick = function(){
     if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
       updateControlPanelPlayButton(true);
@@ -929,7 +913,7 @@ function initListeners(){
       controlRepeatButton.style.color = "white";
     }
     else{
-      controlRepeatButton.style.color = "turquoise"
+      controlRepeatButton.style.color = "turquoise";
     }
     chrome.extension.getBackgroundPage().setRepeat(!repeatOn);
   }
@@ -1810,6 +1794,13 @@ function stopTimeBar(){
   timeBar.removeEventListener("input", updateTimeBarValue);
 }
 
+function resetTimeBar(){
+  stopTimeBar();
+  currTime.innerHTML = "";
+  endTime.innerHTML = "";
+  timeBar.value = 0;
+}
+
 function setImportDisplay(defaultDisplay, userDisplay, otherDisplay){
   importDefault.style.borderBottom = defaultDisplay.border;
   importDefaultContainer.style.display = defaultDisplay.display;
@@ -2122,26 +2113,18 @@ function loadPlayerState(){
 }
 
 function loadDivs(){
-//  addPlaylistButton = document.getElementById("add-playlist-button");
   addVideoButton = document.getElementById("info-bar-add-video-button");
   addVideoModal = document.getElementById("addVideoModal");
   addVideoCancelButton = document.getElementById("addVideoCancelButton");
   addVideoConfirmButton = document.getElementById("addVideoConfirmButton");
   
   playlistPopup = document.getElementById("playlist-popup");
-//  createPlaylistButton = document.getElementById("createPlaylistButton");
-//  cancelCreateButton = document.getElementById("cancelPlaylistCreateButton");
-//  
-//  playlistInputField = document.getElementById("playlistInput");
-//  searchInput = document.getElementById("searchInput");
-//  searchButton = document.getElementById("searchButton");
+  searchInput = document.getElementById("search-input");
+  searchButton = document.getElementById("search-button");
   deletePlaylistPopup = document.getElementById("delete-playlist-popup");
   deletePlaylistPopupCancelButton = document.getElementById("delete-playlist-popup-cancel-button");
   deletePlaylistPopupConfirmButton = document.getElementById("delete-playlist-popup-confirm-button");
-  overlay = document.getElementById("overlay");
-//  videoList = document.getElementById("videos");
-//  
-//  
+  overlay = document.getElementById("overlay"); 
   videoUrlInput = document.getElementById("urlInput");
 //  
 //  playPlaylistButton = document.getElementById("playPlaylistButton");
@@ -2329,6 +2312,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
   else if(message.request == "initTimeBar"){
     stopTimeBar();
     initTimeBar(message.startTime, message.endTime);
+  }
+  else if(message.request == "resetTimeBar"){
+    resetTimeBar();
   }
   else if(message.request == "playlistEnded"){
     updateControlPanelPlayButton(false);

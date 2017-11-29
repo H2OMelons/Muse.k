@@ -1682,7 +1682,7 @@ function initListeners(){
       document.getElementById("playlist-name").focus();
     }
     else{
-      document.getElementById("playlist-name").disabled = true;
+      document.getElementById("playlist-name").setAttribute("disabled", true);
       playlistCollectionManager.editViewingPlaylist(document.getElementById("playlist-name").value);
     }
   }

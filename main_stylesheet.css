@@ -55,8 +55,34 @@ text{
 #info-bar-title{
   position: absolute;
   top: 17.5%;
-  left: 10%;
-  max-width: 80%;
+  left: 7%;
+  height: 100%;
+  width: 37%;
+}
+#info-bar-title:hover #info-bar-playlist-options{
+  display: block;
+}
+#info-bar-edit-button{
+  position: absolute;
+  top: 8%;
+  left: 10%;  
+}
+#info-bar-add-video-button{
+  position: absolute;
+  top: 12.5%;
+  left: 60%;
+}
+#info-bar-playlist-options{
+  position: relative;
+  display: none;
+  width: 50px;
+  height: inherit;
+}
+#playlist-name{
+  position: relative;
+  cursor: default;
+  max-width: 70%;
+  border: 0;
 }
 #video-list{
   position: absolute;
@@ -258,6 +284,64 @@ text{
 }
 #import-new-playlist:hover{
   color: turquoise;
+}
+
+/*
+ * Add video modal stuff
+ */
+#addVideoModal{
+  z-index: 10;
+  position: absolute;
+  width: 75%;
+  height: 390px;
+  top: 12.5%;
+  left: 12.5%;
+  display: none;
+}
+#addVideoViaUrlTab{
+  position: absolute;
+  width: 10%;
+  height: 10%;
+  line-height: 200%;
+}
+#urlInput{
+  position: absolute;
+  width: 50%;
+  height: 5%;
+  top: 15%;
+  left: 25%;
+  font-size: 16px;
+}
+#videoModalResultDisplay{
+  position: absolute;
+  width: 426px;
+  height: 240px;
+  top: 26.5%;
+  left: 12.5%;
+  display: none;
+}
+#urlResultPreviewiframe{
+  width: 99%;
+  height: 99%;
+}
+#addVideoConfirmButton{
+  top: 90%;
+  left: 52.5%;
+}
+#addVideoCancelButton{
+  top: 90%;
+  left: 32.5%;
+} 
+.add-video-button{
+  position: absolute;
+  width: 100px;
+  height: 25px;
+  background-color: black;
+}
+.add-video-button:hover{
+  color: black;
+  background-color: white;
+  font-weight: bold;
 }
 /*
  * Delete playlist popup stuff
@@ -985,6 +1069,12 @@ text{
 }
 .card-background{
   background-color: #424242;
+}
+.black-background{
+  background-color: #000000;
+}
+.gray-background{
+  background-color: #212121;
 }
 .circle-background{
   border-radius: 50%;

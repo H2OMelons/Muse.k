@@ -281,12 +281,17 @@
   </body-->
   <body>
     <div id="info-bar">
-      <div id="info-bar-title" class="border-bottom regular-font ellipsis">
-        <text id="playlist-name"></text>
+      <div id="info-bar-title" class="regular-font">
+        <input id="playlist-name" class="regular-font border-bottom ellipsis float-left black-background white">
+        <div id="info-bar-playlist-options" class="float-left">
+          <i id="info-bar-edit-button" class="fa fa-pencil fa-lg button turquoise-hover white" aria-hidden="true"></i>
+          <i id="info-bar-add-video-button" class="fa fa-plus fa-lg button turquoise-hover white" aria-hidden="true"></i>
+        </div>
       </div>
       <div id="info-bar-button" class="button white">
         <i class="fa fa-bars fa-lg" aria-hidden="true"></i>
       </div> 
+      
     </div>
     <div id="left-column" class="border-right">
       <div id="left-body">
@@ -500,7 +505,14 @@
         </div>
       </div>
     </div>
-     <div id="edit-video-modal" class="modal">
+    <div id="addVideoModal" class="modal card-background">
+      <div id="addVideoViaUrlTab" class="regular-font border-bottom center white">Url</div>
+      <input id="urlInput" class="card-background border-none white border" autofocus/>
+      <div id="videoModalResultDisplay"></div>
+      <div id="addVideoCancelButton" class="regular-font center button add-video-button white">Cancel</div>
+      <div id="addVideoConfirmButton" class="regular-font center button add-video-button white">Confirm</div>
+    </div>
+    <div id="edit-video-modal" class="modal">
       <div id="edit-title-label" class="edit-video-label white">Title</div>
       <input id="edit-title-input" maxlength="100" class="card-background white"/>
       <div id="edit-start-label" class="edit-video-label white">Start Time</div>

@@ -110,6 +110,14 @@ PlaylistCollectionManager.prototype.editPlaylist = function(playlist){
   this.playlistManagers.get(playlist.uid).editPlaylist(playlist);
 }
 
+PlaylistCollectionManager.prototype.editViewingPlaylist = function(name){
+  var playlist = this.getViewingPlaylist();
+  if(playlist.name != name){
+    playlist.name = name;
+    this.playlistManagers.get(playlist.uid).editPlaylist(playlist);
+  }
+}
+
 PlaylistCollectionManager.prototype.deletePlaylist = function(){
   this.deletePlaylistByUid(this.editingPlaylistUid);
 }

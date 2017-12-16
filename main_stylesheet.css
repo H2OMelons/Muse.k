@@ -168,15 +168,17 @@ text{
   background-color: #424242;
   position: absolute;
   right: 0;
-  top: 5%;
+  top: 0;
   width: 8%;
   height: 100%;
 }
 .video-delete{
+  font-size: 20px;
   width: 15px;
   color: white;
 }
 .video-edit{
+  font-size: 20px;
   width: 15px;
   color: white;
 }
@@ -252,6 +254,8 @@ text{
   color: white;
 }
 .playlist-delete{
+  line-height: 100%;
+  font-size: 20px;
   width: 15px;
   color: white;
 }
@@ -414,7 +418,111 @@ text{
   top: 7%;
   right: 0;
 }
-
+#recommendations-container{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+#search-container{
+  position: absolute;
+  display: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #303030;
+}
+#search-results-container{
+  position: absolute;
+  width: 100%;
+  height: 92.5%;
+  overflow-x: hidden;
+}
+#search-cancel-button{
+  position: absolute;
+  display: none;
+  right: 1%;
+  top: 18%;
+}
+.video-result{
+  position: relative;
+  display: inline-block;
+  width: 210px;
+  height: 120px;
+  margin-left: 3%;
+  margin-top: 2%;
+  overflow: hidden;
+}
+.video-result:hover .video-result-description{
+  display: block;
+}
+.video-result-img{
+  display: inline-block;
+  position: absolute;
+  top: -15.5%;
+  width: 100%;
+}
+.video-result-check{
+  display: none;
+  position: absolute;
+  top: 1%;
+  left: 1%;
+}
+.video-result-x{
+  height: 25px;
+  width: 25px;
+}
+.video-result-description{
+  display: none;
+  position: absolute;
+  bottom: 0;
+  height: 25%;
+  width: 100%;
+  font-size: 12px;
+  overflow: hidden;
+  background-color: black;
+  opacity: .7;
+}
+#search-options{
+  position: absolute;
+  background-color: #303030;
+  top: 92.5%;
+  width: 100%;
+  height: 100%;
+}
+#view-all-selected-videos-button{
+  position: absolute;
+  left: 36%;
+  top: 6px; 
+}
+#view-all-selected-videos-up-button{
+  position: absolute;
+  top: 10%;
+  right: -14%;
+}
+#view-all-selected-videos-down-button{
+  display: none;
+  position: absolute;
+  top: 10%;
+  right: -14%;
+}
+#add-all-selected-videos-button{
+  position: absolute;
+  display: none;
+  right: 5%;
+  top: 6px;
+}
+#remove-all-selected-videos-button{
+  position: absolute;
+  display: none;
+  left: 3%;
+  top: 6px;
+}
+#selected-videos-display{
+  position: absolute;
+  top: 10%;
+  height: 90%;
+  width: 100%;
+}
 /*
  * Playlist popup stuff
  */
@@ -860,6 +968,40 @@ text{
 }
 
 /*
+ * Add video to playlist selection stuff
+ */
+#add-video-playlist-selection-modal{
+  display: none;
+  position: absolute;
+  top: 20%;
+  left: 35%;
+  height: 300px;
+  width: 250px;
+  z-index: 100;
+}
+#add-video-playlist-selection-display{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 270px;
+  width: 100%;
+}
+#add-video-to-new-playlist-button{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.add-video-to-playlist-button{
+  position: relative;
+  width: 100%;
+  height: 25px;
+}
+
+/*
  * Border stuff
  */
 .border{
@@ -993,6 +1135,11 @@ text{
 .turquoise-hover:hover{
   color: turquoise !important;
 }
+.bw-button-hover:hover{
+  color: black;
+  background-color: white;
+  font-weight: bold;
+}
 .slider{
   -webkit-appearance: none;
   width: 100%;
@@ -1082,11 +1229,20 @@ text{
 .white{
   color: white;
 }
+.turquoise{
+  color: turquoise;
+}
+.red{
+  color: orangered;
+}
 .card-background{
   background-color: #424242;
 }
 .black-background{
   background-color: #000000;
+}
+.white-background{
+  background-color: #ffffff;
 }
 .gray-background{
   background-color: #212121;
@@ -1128,6 +1284,26 @@ text{
   animation-duration: normal;
 }
 
+.shift-to-top-animation{
+  animation-name: shiftTop;
+  animation-duration: .5s;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+  animation-duration: normal;
+}
+
+.shift-to-bot-animation{
+  animation-name: shiftBot;
+  animation-duration: 1s;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+  animation-duration: normal;
+}
+
 @keyframes shiftLeft{
   to{
     left: 0;
@@ -1143,6 +1319,18 @@ text{
 @keyframes shiftRight{
   to{
     left: 74.5%;
+  }
+}
+
+@keyframes shiftTop{
+  to{
+    top: 0;
+  }
+}
+
+@keyframes shiftBot{
+  to{
+    top: 92.5%;
   }
 }
 
@@ -1208,6 +1396,9 @@ text{
 .left-align{
   position: absolute;
   left: 0;
+}
+.margin-none{
+  margin: 0;
 }
 
 /*

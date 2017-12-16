@@ -8,277 +8,6 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
     <script src="account_main_page.js"></script>
   </head> 
-  <!--body>
-    <div id="left-column" class="left-column">
-      <div id="left-column-button-container" class="left-column button-container">
-        <div class="border-bottom button-container button-container-buffer left-align">
-          <div id="settings-button" class="left-column settings-button button">
-            <i class="fa fa-cog" aria-hidden="true"></i>
-          </div>
-        </div>
-        <div class="border-bottom button-container button-container-buffer right-align"></div>
-        <div id="playlist-tab" class="border button-container playlist-button button">Playlists</div>
-        <div id="search-tab" class="border button-container search-button button">Search</div>
-      </div>
-      <div id="playlist-container" class="left-column playlist-container">
-        <div id="add-playlist-button" class="add-playlist-button border button">+New Playlist</div>
-        <div id="playlist-display" class="playlist-display border-top"></div>
-      </div>
-      <div id="search-container" class="left-column search-container">
-        <div id="searchBar">
-          <div id="searchButton" class="button">
-            <i class="fa fa-search" aria-hidden="true" style="position: absolute; left: 5px; top: 5px;"></i>
-          </div>
-          <input type="text" id="searchInput"/>
-        </div>
-        <div id="search-results-display" class="search-results-display"></div>
-        <div id="playlist-selection-container" class="playlist-selection-container">
-          
-        </div>
-      </div>
-      
-      <div id="settings-container" class="left-column settings-container border modal">
-        <div id="qualitySelectionContainer">
-          <div id="qualityTitle">Select Default Playing Quality For Your Videos</div>
-          <div id="smallQualitySelection">low</div>
-          <div id="mediumQualitySelection">medium</div>
-          <div id="largeQualitySelection">high</div>
-          <div id="hd720QualitySelection">hd</div>
-          <div id="defaultQualitySelection">auto</div>
-        </div>
-      </div>
-    </div>
-    <div id="right-column" class="right-column">
-      <div id="playerContainer" class="player" >
-      <div id="playerImage" class="player image-container">
-        <img id="player-image-image" class="player image-image" src="images/blank.png"/>
-      </div>
-      </div>
-      <div id="video-container" class="video-container right-align">
-        <div id="video-bar" class="video-bar border-bottom" style="display: none">
-          <div id="add-video-button" class="video-bar button float-left">+</div>
-          <div id="bar-title" class="video-bar title float-left">Title</div>
-          <div id="bar-artist" class="video-bar artist float-left">Artist</div>
-        </div>
-        <div id="videos" class="videos"></div>
-      </div>
-      <div id="control" class="control">
-        <div id="control-play-pause-button" class="control-play-pause-button control-button button">
-          <i class="fa fa-play-circle-o fa-2x" aria-hidden="true" id="control-play-button" ></i>
-          <i class="fa fa-pause-circle-o fa-2x" aria-hidden="true" id="control-pause-button" style="display: none"></i>
-        </div>
-        <div id="control-rewind-button" class="control-rewind-button control-button button">
-          <i class="fa fa-backward fa-lg" aria-hidden="true" ></i>
-        </div>
-        <div id="control-fast-forward-button" class="control-fast-forward-button control-button button">
-          <i class="fa fa-forward fa-lg" aria-hidden="true" ></i>
-        </div>
-        <div id="control-shuffle-button" class="control-shuffle-button control-button button">
-          <i class="fa fa-random" aria-hidden="true"></i>
-        </div>
-        <div id="control-repeat-button" class="control-repeat-button control-button button">
-          <i class="fa fa-repeat" aria-hidden="true"></i>
-        </div>
-        <div id="volume-container" class="volume-container right-align border-left">
-          <div id="volume-icon" style="top:8px; width:19px; height: 15px; position:absolute;">
-            <i id="volume-on" class="fa fa-volume-up fa-lg" aria-hidden="true"></i>
-            <i id="volume-off" class="fa fa-volume-off fa-lg" style="display: none" aria-hidden="true"></i>
-          </div>
-          <div id="volume-bar" class="volume-bar">
-            <div id="volume-bar-fill" class="volume-bar-fill"></div>
-          </div>
-        </div>
-        <div id="control-time-container" class="control-time">
-          <div id="control-time-curr" class="control-time-curr left-align tiny-font"></div>
-          <div id="control-time-bar-container" class="control-time-bar-container">
-            <div id="control-time-bar-progress"></div>
-            <input type="range" min="0" max="100" value="0" class="slider" id="control-time-bar"/>
-            
-          </div>
-          <div id="control-time-end" class="control-time-end right-align tiny-font"></div>
-        </div>
-      </div>
-    </div>
-    
-    <div id="playlistPopup" class="modal">
-      <div id="create-playlist-selections" class="import-container" style="height: 35px;">
-        <div id="import-default-playlist" class="float-left import-default-playlist small-font">Default</div>
-        <div id="import-your-playlist" class="float-left import-your-playlist small-font">Import Your Playlists</div>
-        <div id="import-other-playlist" class="float-left import-other-playlist small-font">Import Public Playlists</div>
-      </div>
-      <div id="import-default-playlist-container">
-        <input id="hidden-submit-button" type="button" style="visibility: hidden"/>
-        <div id=playlistTextbox>Name</div>
-        <div id="playlistTextboxCharCount">12/50</div>
-        <input type="text" maxlength="50" id="playlistInput" value="New Playlist"/>
-        <div id="playlistSetImageTextbox">Image</div>
-        <div id="playlistSetImageDisplay">
-          <img src="images/default_playlist_img.png" id="playlistSetImageImage"/>
-        </div>
-        <label id="playlistSetImageButtonLabel">Choose Image
-          <input type="file" id="playlistSetImageButton"/>
-        </label>
-        <div id="createPlaylistButton">Create</div>
-        <div id="cancelPlaylistCreateButton">Cancel</div>
-      </div>
-      <div id="import-your-playlist-container" style="display: none">
-        <div id="signin-ui" style="display: none;">
-          <div id="buttons" style="position: absolute; left: 175px; top: 75px;">
-            <div class="Bot10pxMargin">
-              <button class = "AccountButton" id="sign-in-button">LOG IN</button>
-            </div>
-          </div>
-          <div id="signin-warning" style="position: absolute; top: 175px; left: 40px;">
-            <i class="fa fa-info-circle" aria-hidden="true" style="float: left; line-height: 165%;"></i>
-            <div style="float: left; margin-left: 5px;"><Please>Please login to your Youtube account to access your playlists</Please></div>
-          </div>
-        </div>
-        <div id="try-again" style="display: none">
-          <div id="header" style="padding-bottom: 5px">
-              <loginText>Autherization Failed</loginText>
-          </div>
-          <div style="margin-top: 40px">
-            <button class = "AccountButton" id="try-again-button">TRY AGAIN</button>
-          </div>
-        </div>
-        <div id="url-or-display-all-selection-container">
-          <div id="url-selection-load">
-            <div class="url-selection-load-container" id="loadAnimation">
-              <div class="loader">
-                <div class="sk-circle" style="margin-left: 25px;">
-                  <div class="sk-circle1 sk-child"></div>
-                  <div class="sk-circle2 sk-child"></div>
-                  <div class="sk-circle3 sk-child"></div>
-                  <div class="sk-circle4 sk-child"></div>
-                  <div class="sk-circle5 sk-child"></div>
-                  <div class="sk-circle6 sk-child"></div>
-                  <div class="sk-circle7 sk-child"></div>
-                  <div class="sk-circle8 sk-child"></div>
-                  <div class="sk-circle9 sk-child"></div>
-                  <div class="sk-circle10 sk-child"></div>
-                  <div class="sk-circle11 sk-child"></div>
-                  <div class="sk-circle12 sk-child"></div>
-                </div>
-                <div class="loader--text" style="left: 50px;"></div>
-             </div>
-            </div>
-          </div>
-          <div id="url-selection-success">
-            <i class="fa fa-check fa-5x import-other-success-text" aria-hidden="true">Success!</i>
-            <div id="url-selection-continue-button" class="small-font button">Continue</div>
-          </div>
-          <div id="url-selection-button-container">
-            <div id="url-selection-button" class="button small-font">Enter URL</div>
-            <div id="display-all-selection-button" class="button small-font">Display My Playlists</div>
-          </div>
-          <div id="url-selection-container">
-            <input id="url-selection-url-input" autofocus class="url-selection-url-input"/>
-            <div id="url-selection-error" style="display: none;">
-              <div id="url-selection-invalid-url-error">
-                <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
-                Invalid URL. Please enter a playlist URL.
-              </div>
-              <div id="url-selection-api-error">
-                <i class="fa fa-exclamation-circle" aria-hidden="true" style="float: left; line-height: 145%;"></i>
-                <div id="url-selection-api-error-msg" style="float:left"></div>
-              </div>
-            </div>
-            <div id="url-selection-results-container"></div>
-            
-            <div id="url-selection-results-button" class="small-font import-other-button right button url-selection">Import</div>
-            <div id="url-selection-results-cancel-button" class="small-font import-other-button left button url-selection">Cancel</div>
-          </div>
-          <div id="display-all-selection-container">
-            <div id="display-all-selection-results-container"></div>
-            <div id="display-all-selection-buttons-container">
-              <div id="display-all-selection-results-buttons" style="display: none;">
-                <div id="display-all-selection-cancel-button" class="small-font display-all-selection-buttons button">Cancel</div>
-                <div id="display-all-selection-import-all-button" class="small-font display-all-selection-buttons button" style="display: none;">Import All</div>
-                <div id="display-all-selection-import-button" class="small-font display-all-selection-buttons button">Import</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="import-other-playlist-container" style="display: none">
-        <input id="import-other-url-input" autofocus class="import-other-url-input"/>
-        <div id="import-other-results-container">
-          <div id="import-other-error" style="display: none;">
-            <div id="invalid-url-error">
-              <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
-              Invalid URL. Please enter a playlist URL.
-            </div>
-            <div id="import-other-api-error">
-              <i class="fa fa-exclamation-circle" aria-hidden="true" style="float: left; line-height: 145%;"></i>
-              <div id="import-other-api-error-msg" style="float:left"></div>
-            </div>
-          </div>
-          <div id="import-other-load" style="display: none;">
-            <div class="container" id="loadAnimation">
-              <div class="loader">
-                <div class="sk-circle">
-                  <div class="sk-circle1 sk-child"></div>
-                  <div class="sk-circle2 sk-child"></div>
-                  <div class="sk-circle3 sk-child"></div>
-                  <div class="sk-circle4 sk-child"></div>
-                  <div class="sk-circle5 sk-child"></div>
-                  <div class="sk-circle6 sk-child"></div>
-                  <div class="sk-circle7 sk-child"></div>
-                  <div class="sk-circle8 sk-child"></div>
-                  <div class="sk-circle9 sk-child"></div>
-                  <div class="sk-circle10 sk-child"></div>
-                  <div class="sk-circle11 sk-child"></div>
-                  <div class="sk-circle12 sk-child"></div>
-                </div>
-                <div class="loader--text"></div>
-             </div>
-            </div>
-          </div>
-          <div id="import-other-results" style="display: none;"></div>
-          <div id="import-other-results-button" class="small-font import-other-button results right button">Import</div>
-          <div id="import-other-results-cancel-button" class="small-font import-other-button results left button">Cancel</div>
-          <div id="import-other-success">
-            <i class="fa fa-check fa-5x import-other-success-text" aria-hidden="true">Success!</i>
-            <div id="import-other-success-import-again-button" class="small-font import-other-button right button">Again</div>
-            <div id="import-other-success-exit-button" class="small-font import-other-button left button">Exit</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="deletePlaylistPopup">
-      <div id="deletePlaylistPopupConfirmButton">Confirm</div>
-      <div id="deletePlaylistPopupCancelButton">Cancel</div>
-      Delete this playlist forever
-    </div>
-    <div id="addVideoModal" class="modal">
-      <div id="addVideoViaUrlTab">Url</div>
-      <input id="urlInput" autofocus/>
-      <div id="videoModalResultDisplay">
-      </div>
-      <div id="addVideoCancelButton">Cancel</div>
-      <div id="addVideoConfirmButton">Confirm</div>
-    </div>
-    <div id="edit-video-modal" class="modal">
-      <div id="edit-title-label" class="edit-video-label">Title</div>
-      <input id="edit-title-input" maxlength="100"/>
-      <div id="edit-artist-label" class="edit-video-label">Artist</div>
-      <input id="edit-artist-input" maxlength="100"/>
-      <div id="edit-start-label" class="edit-video-label">Start Time</div>
-      <input id="edit-start-input-min" type="number" min="0">
-      <div id="edit-start-input-min-label">mins</div>
-      <input id="edit-start-input-sec" type="number" min="0" max="59"/>
-      <div id="edit-start-input-sec-label">secs</div>
-      <div id="edit-end-label" class="edit-video-label">End Time</div>
-      <input id="edit-end-input-min" type="number" min="0">
-      <div id="edit-end-input-min-label">mins</div>
-      <input id="edit-end-input-sec" type="number" min="0" max="59"/>
-      <div id="edit-end-input-sec-label">secs</div>
-      <div id="edit-video-cancel-button" class="button small-font">Cancel</div>
-      <div id="edit-video-confirm-button" class="button small-font">Confirm</div>
-    </div>
-    <div id="overlay"></div>
-    <div id="transparent-overlay"></div>
-  </body-->
   <body>
     <div id="info-bar">
       <div id="info-bar-title" class="regular-font">
@@ -293,8 +22,9 @@
       </div> 
       <input id="search-input" class="card-background border white regular-font" type="text">
       <i id="search-button" class="fa fa-search fa-lg button turquoise-hover white" aria-hidden="true"></i>
+      <i id="search-cancel-button" class="fa fa-times-circle-o fa-2x button turquois-hover white" aria-hidden="true"></i>
     </div>
-    <div id="left-column" class="border-right">
+    <div id="left-column">
       <div id="left-body">
         <div id="no-playlist-page" style="display: none";>
           <text id="no-playlist-page-msg" class="large-font">
@@ -325,9 +55,25 @@
         </div>
       </div>
     </div>
-    <div id="right-column">
-      
-      <div></div>
+    <div id="right-column" class="border-left">
+      <div id="recommendations-container"></div>
+      <div id="search-container">
+        <div id="search-results-container" class="scrollbar"></div>
+        <div id="search-options">
+          <div id="remove-all-selected-videos-button" class="button regular-font white turquoise-hover center">
+            Remove Selected
+          </div>
+          <div id="view-all-selected-videos-button" class="button regular-font white turquoise-hover center">
+            Video Selections
+            <i id="view-all-selected-videos-up-button" class="fa fa-caret-up" aria-hidden="true"></i>
+            <i id="view-all-selected-videos-down-button" class="fa fa-caret-down" aria-hidden="true"></i>
+          </div>
+          <div id="add-all-selected-videos-button" class="button regular-font white turquoise-hover center">
+            Add Selected
+          </div>
+          <div id="selected-videos-display" class="scrollbar"></div>
+        </div>
+      </div>
     </div>
     <div id="control-panel">
         <div id="control-play-pause-button" 
@@ -531,6 +277,13 @@
       <div id="edit-end-input-sec-label" class="white">secs</div>
       <div id="edit-video-cancel-button" class="button small-font white">Cancel</div>
       <div id="edit-video-confirm-button" class="button small-font white">Confirm</div>
+    </div>
+    <div id="add-video-playlist-selection-modal" class="modal card-background">
+      <div id="add-video-to-new-playlist-button" 
+            class="center button regular-font">
+        <text class="turquoise-hover">Add To New Playlist</text>
+      </div>
+      <div id="add-video-playlist-selection-display" class="scrollbar margin-none"></div>
     </div>
     <div id="overlay"></div>
     <div id="transparent-overlay"></div>

@@ -252,7 +252,7 @@ PlaylistManager.prototype.insertVideo = function(video){
   this.editPlaylist(this.playlist);
   var videoIndex = this.playlist.videos.length - 1;
   if(this.playlist.uid == playlistCollectionManager.getViewingPlaylistUid()){
-    chrome.runtime.sendMessage({request: "createVideoDiv", video: video, videoIndex: videoIndex});
+    chrome.runtime.sendMessage({request: "createVideoDiv", video: video});
   }
 }
 

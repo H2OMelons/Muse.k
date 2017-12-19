@@ -712,7 +712,7 @@ function createVideo(videoId, callback){
   var apiRequestRetVal = buildApiRequest("GET",
                                          "/youtube/v3/videos",
                                          {"id": videoId,
-                                          "part": "snippet,contentDetails"});
+                                          "part": "snippet,contentDetails,status"});
   executeRequest(apiRequestRetVal, "videoInfo", function(videoInfo){
     if(callback){
       callback(videoInfo);
@@ -806,7 +806,8 @@ function executeRequest(request, type, callback){
                      channelTitle: videoInfo.channelTitle,
                      tags: videoInfo.tags,
                      videoTitle: videoInfo.title,
-                     duration: response.items[0].contentDetails.duration};
+                     duration: response.items[0].contentDetails.duration,
+                     status: response.items[0].status};
         if(callback){
           callback(video);
         }

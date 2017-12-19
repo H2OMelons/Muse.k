@@ -1047,6 +1047,9 @@ function initListeners(){
       }
       document.getElementById("playlist-name").value = "";
     }
+    if(playlistCollectionManager.getPlaylistCollectionLength() == 0){
+      document.getElementById("no-playlist-page").style.display = "block";
+    }
     // Reset UI to normal
     playlistCollectionManager.setEditingPlaylistUid(undefined);
     editPlaylistId = undefined;
@@ -1411,6 +1414,9 @@ function initListeners(){
           document.getElementById("url-selection-load").style.display = "none";
           document.getElementById("display-all-selection-results-buttons").style.display = "none";
           document.getElementById("url-selection-success").style.display = "block";
+          if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
+            document.getElementById("no-playlist-page").style.display = "none";
+          }
           var playlistNodes = document.getElementById("display-all-selection-results-container").childNodes;
           
           for(i = 0; i < playlistNodes.length; i++){
@@ -1553,6 +1559,9 @@ function initListeners(){
       document.getElementById("import-other-load").style.display = "none";
       document.getElementById("import-other-success").style.display = "block";
       document.getElementById("import-other-url-input").style.display = "none";
+      if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
+        document.getElementById("no-playlist-page").style.display = "none";
+      }
     });
   }
   
@@ -1565,6 +1574,9 @@ function initListeners(){
     playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
       document.getElementById("url-selection-load").style.display = "none";
       document.getElementById("url-selection-success").style.display = "block";
+      if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
+        document.getElementById("no-playlist-page").style.display = "none";
+      }
     });
   }
   
@@ -1864,6 +1876,7 @@ function initListeners(){
   var clicked = false;
   var creatingPlaylist = false;
   infoBarButton.onclick = function(){
+    // Clicked means that the playlist display is displayed
     if(clicked){
       videoList.classList.remove("shift-to-right-animation");
       playlistList.classList.remove("shift-to-left-animation");
@@ -1918,6 +1931,12 @@ function initListeners(){
       }
     }
   }
+  document.getElementById("create-playlist-button").onclick = function(){
+    if(!clicked){
+      infoBarButton.click();
+    }
+    document.getElementById("add-playlist-options-button").click();  
+  }
   document.getElementById("add-options").addEventListener("cancel", function(){
     document.getElementById("add-playlist-options-button").click();
   });
@@ -1941,7 +1960,9 @@ function initListeners(){
     // Create a playlist only if the given name is not empty
     if(name.replace(/\s/g, '').length){
       playlistGenerator.generateNewPlaylist(undefined, name, undefined, function(){
-
+        if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
+          document.getElementById("no-playlist-page").style.display = "none";
+        }
       });
       document.getElementById("add-new-playlist-div").dispatchEvent(cancelEvent);
     }
@@ -2032,35 +2053,6 @@ function setImportDisplay(defaultDisplay, userDisplay, otherDisplay){
   importUserContainer.style.display = userDisplay.display;
   importOther.style.borderBottom = otherDisplay.border;
   importOtherContainer.style.display = otherDisplay.display;
-}
-
-
-
-function displayPlaylistPopup(edit, uid){
-  playlistPopup.style.display = "block"; 
-  overlay.style.display = "block";
-  playlistInputField.focus();
-  if(edit){
-    var playlist = playlistCollectionManager.getPlaylist(uid);
-    if(typeof playlist != "undefined" && playlist.videos.length > 0 && playlist.image.slice(-31) == defaultPlaylistImage){
-      document.getElementById("playlistSetImageImage").src = 
-        chrome.extension.getBackgroundPage().getPlaylistImageByUid(uid, MQ_DEFAULT_IMG);
-    }
-    else{
-      document.getElementById("playlistSetImageImage").src = playlist.image;
-    }
-    
-    playlistInputField.value = playlist.name;
-    importUser.style.display = "none";
-    importOther.style.display = "none";
-    createPlaylistButton.addEventListener("click", editPlaylistCreate);
-    cancelCreateButton.addEventListener("click", addPlaylistCancel);
-  }
-  else{
-    document.getElementById("playlistSetImageImage").src = defaultPlaylistImage;
-    createPlaylistButton.addEventListener("click", addPlaylistCreate);
-    cancelCreateButton.addEventListener("click", addPlaylistCancel);
-  }
 }
 
 function editPlaylistCreate(){

@@ -204,6 +204,10 @@ PlaylistCollectionManager.prototype.getPlaylistCollection = function(){
   return temp;
 }
 
+PlaylistCollectionManager.prototype.getPlaylistCollectionLength = function(){
+  return this.getPlaylistCollection().length;
+}
+
 PlaylistCollectionManager.prototype.size = function(){
   return this.playlistManagers.size;
 }

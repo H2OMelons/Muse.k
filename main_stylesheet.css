@@ -234,6 +234,7 @@ text{
   width: 100%;
   height: 60%;
   background-color: #303030;
+  cursor: default;
 }
 .playlist-length{
   position: absolute;

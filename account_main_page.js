@@ -397,6 +397,15 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
   editButtonImg.classList.add("fa", "fa-pencil-square-o");
   editButtonImg.setAttribute("aria-hidden", "true");
   editContainer.appendChild(editButtonImg);
+  
+  var playContainer = document.createElement("div");
+  playContainer.classList.add("playlist-play", "white");
+  var playImg = document.createElement("i");
+  playImg.classList.add("fa", "fa-volume-up");
+  playImg.setAttribute("aria-hidden", "true");
+  playContainer.appendChild(playImg);
+  
+  
   settings.appendChild(editContainer);
   settings.appendChild(deleteContainer);
   
@@ -406,6 +415,8 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
       if(titleContainer.value != playlist.name){
         playlist.name = titleContainer.value;
         playlistCollectionManager.editPlaylist(playlist);
+        tag = "Playlist " + playlistObj.uid + ":" + titleContainer.value;
+        div.id = tag;
         if(playlistCollectionManager.getViewingPlaylistUid() == playlistObj.uid){
           document.getElementById("playlist-name").value = titleContainer.value;
         }
@@ -432,7 +443,9 @@ PlaylistGenerator.prototype.displayPlaylist = function(playlistObj, callback){
   
   div.appendChild(titleContainer);
   div.appendChild(infoContainer);
+  div.appendChild(playContainer);
   div.appendChild(settings);
+  
   document.getElementById("playlist-list").appendChild(div);
   
   if(callback){
@@ -451,6 +464,7 @@ var playlistGenerator = new PlaylistGenerator();
 function PlaylistPageManager(){
   this.viewingVideoListManager = undefined;
   this.currPlaylist = undefined;
+  this.currPlayingPlaylist = undefined;
   this.videoBarDisplayed = false;
   this.videoStatus = this.VIDEO_NOT_LOADED;
 }
@@ -464,8 +478,24 @@ PlaylistPageManager.prototype.loadPlaylistPage = function(uid){
   // Get info about the current video being played from the background page
   var playlistLength = chrome.extension.getBackgroundPage().getQueueLength();
   
+  if(typeof this.currPlaylist != "undefined"){
+    var id = "Playlist " + this.currPlaylist.uid + ":" + this.currPlaylist.name;
+    var div = document.getElementById(id);
+    if(typeof div != undefined & div != null){
+      div.childNodes[0].style.color = "white";
+    }
+  }
+  
   var playlist = playlistCollectionManager.getViewingPlaylist();
   this.currPlaylist = playlist;
+  
+  if(typeof this.currPlaylist != "undefined"){
+    var id = "Playlist " + this.currPlaylist.uid + ":" + this.currPlaylist.name;
+    var div = document.getElementById(id);
+    if(typeof div != undefined && div != null){
+      div.childNodes[0].style.color = "turquoise";
+    }
+  }
   
   document.getElementById("playlist-name").value = playlist.name;
   
@@ -481,6 +511,22 @@ PlaylistPageManager.prototype.loadPlaylistPage = function(uid){
 
 PlaylistPageManager.prototype.getVideoListManager = function(){
   return this.viewingVideoListManager;
+}
+
+PlaylistPageManager.prototype.setPlayingPlaylist = function(playlist){
+  if(typeof this.currPlayingPlaylist != "undefined"){
+    var id = "Playlist " + this.currPlayingPlaylist.uid + ":" + this.currPlayingPlaylist.name;
+    var div = document.getElementById(id);
+    if(typeof div != undefined && div != null){
+      div.childNodes[2].style.display = "none";
+    }
+  }
+  this.currPlayingPlaylist = playlist;
+  var id = "Playlist " + playlist.uid + ":" + playlist.name;
+  var div = document.getElementById(id);
+  if(typeof div != "undefined" && div != null){
+    div.childNodes[2].style.display = "block";
+  }
 }
 
 var playlistPageManager = new PlaylistPageManager();
@@ -1752,14 +1798,6 @@ function initListeners(){
     overlay.style.display = "none";
   });
   
-//  addVideoModal.addEventListener("cancel", function(){
-//    addVideoCancelButton.click();
-//  });
-//  
-//  document.getElementById("settings-container").addEventListener("cancel", function(){
-//    document.getElementById("settings-button").click();
-//  });
-  
   document.getElementById("edit-video-modal").addEventListener("cancel", function(){
     cancelButton.click();
   });
@@ -2218,6 +2256,7 @@ function loadPlayerState(){
   var numPlaylists = playlistCollectionManager.getPlaylistCollection().length;
   if(typeof playlistCollectionManager.getPlayingPlaylistUid() != "undefined"){
     playlistPageManager.loadPlaylistPage(playlistCollectionManager.getPlayingPlaylistUid());
+    playlistPageManager.setPlayingPlaylist(playlistCollectionManager.getPlayingPlaylist());
     initTimeBar(videoPlayerManager.getBackgroundVideoPlayer().getCurrentTime(),
                 videoPlayerManager.getBackgroundVideoPlayer().getDuration());
   }
@@ -2321,17 +2360,9 @@ function updateControlPanelPlayButton(playing){
 }
 
 function updateControlPanel(video){
-  
   if(!controlLoaded){
     setupControlPanel();
   }
-
-}
-
-function updatePlaylistPageImage(){
-  document.getElementById("player-image-image").src = 
-    chrome.extension.getBackgroundPage().getPlaylistImageByUid(playlistCollectionManager.getViewingPlaylistUid(),
-                                                               SD_DEFAULT_IMG);
 }
 
 function onload(){
@@ -2340,10 +2371,8 @@ function onload(){
   loadDivs();
   initListeners();
   setupControlPanel();
-  loadPlayerState();
   displayPlaylists();
-  //setupPlaylistSelectionContainer();
-  
+  loadPlayerState();
 }
 
 function checkPlayerLoaded(){
@@ -2390,6 +2419,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 });
 
 function setPlayingPlaylist(){
+  playlistPageManager.setPlayingPlaylist(playlistCollectionManager.getViewingPlaylist());
   playlistCollectionManager.setPlayingPlaylistUid(playlistCollectionManager.getViewingPlaylistUid());
 }
 

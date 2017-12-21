@@ -174,7 +174,8 @@ PlaylistGenerator.prototype.processRawVideoList = function(videoResults, title, 
   var numCompleted = 0;
   for(i = 0; i < videoResults.length; i++){
     chrome.extension.getBackgroundPage().createVideo(videoResults[i].snippet.resourceId.videoId, function(video){
-      if(typeof video != "undefined" && video.status.embeddable && video.snippet.channelTitle.substr(-4) != "VEVO"){
+      log(video);
+      if(typeof video != "undefined" && video.status.embeddable && video.channelTitle.substr(-4) != "VEVO"){
         videos.push(video);
       }
       numCompleted++;
@@ -1202,6 +1203,7 @@ function initListeners(){
   });
   
   document.getElementById("search-cancel-button").onclick = function(){
+    document.getElementById("search-input").value = "";
     document.getElementById("search-container").style.display = "none";
     document.getElementById("search-cancel-button").style.display = "none";
     document.getElementById("view-all-selected-videos-up-button").style.display = "block";

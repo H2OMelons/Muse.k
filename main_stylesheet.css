@@ -450,7 +450,7 @@ text{
   position: absolute;
   display: none;
   right: 1%;
-  top: 18%;
+  top: -2.5%;
 }
 .video-result{
   position: relative;
@@ -499,7 +499,7 @@ text{
 }
 #view-all-selected-videos-button{
   position: absolute;
-  left: 36%;
+  left: 35%;
   top: 6px; 
 }
 #view-all-selected-videos-up-button{
@@ -516,7 +516,7 @@ text{
 #add-all-selected-videos-button{
   position: absolute;
   display: none;
-  right: 5%;
+  right: 7%;
   top: 6px;
 }
 #remove-all-selected-videos-button{
@@ -623,8 +623,7 @@ text{
 
 #url-selection-load{
   position: absolute;
-  top: 50px;
-  left: 20%;
+  top: -20px;
   z-index: 100;
   width: 100%;
   height: 125%;

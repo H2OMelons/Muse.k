@@ -659,6 +659,8 @@ function onPlaybackQualityChange(data){
   
 }
 
+
+
 function onBackgroundPlayerReady(event){
   backgroundPlayerStatus = "waitingForSync";
   
@@ -675,8 +677,25 @@ function onBackgroundPlayerReady(event){
   videoPlayerManager.setBackgroundVideoPlayer(new VideoPlayer(player));
 }
 
+var testForRestrictedVideo = [5, -1, 3, -1];
+var numInARow = 0;
+
 function onPlayerStateChange(event) {
   var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
+  
+  if(event.data == testForRestrictedVideo[numInARow]){
+    // Video is restricted so fast forward to the next song
+    if(numInARow == testForRestrictedVideo.length - 1){
+      videoPlayerManager.fastForward();
+      numInARow = 0;
+    }
+    else{
+      numInARow++;
+    }
+  }
+  else if(numInARow != 0){
+    numInARow = 0;
+  }
   
   if(backgroundPlayer.stopped){
     return;

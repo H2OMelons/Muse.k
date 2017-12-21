@@ -883,9 +883,10 @@ SearchManager.prototype.createSearchResultDiv = function(videoInfo){
   searchResultXContainer.classList.add("border", "video-result-check", "video-result-x", "red",
                                        "black-background", "circle-background");
   var searchResultX = document.createElement("i");
-  searchResultX.classList.add("fa", "fa-times", "large-font");
+  searchResultX.classList.add("fa", "fa-times-circle-o", "large-font", "black-background", "circle-background");
   searchResultX.style.position = "absolute";
-  searchResultX.style.left = "12%";
+  searchResultX.style.height = "18px";
+  searchResultX.style.fontSize = "20px";
   searchResultXContainer.appendChild(searchResultX);
   
   searchResultsContainer.appendChild(searchResultsImg);
@@ -1051,6 +1052,9 @@ function initListeners(){
     document.getElementById("videoModalResultDisplay").style.display = "none";
     overlay.style.display = "none";
   };
+  addVideoModal.addEventListener("cancel", function(){
+    addVideoCancelButton.click();
+  });
   videoUrlInput.onkeyup = function(){
     var enteredUrl = videoUrlInput.value;
     var key = "watch?v=";

@@ -390,7 +390,7 @@ text{
   height: 25px;
   top: 50px;
   left: 145px;
-  line-height: 200%;
+  line-height: 160%;
   z-index: inherit;
 }
 #delete-playlist-popup-confirm-button:hover{
@@ -404,7 +404,7 @@ text{
   height: 25px;
   top: 50px;
   left: 25px;
-  line-height: 200%;
+  line-height: 160%;
   z-index: inherit;
 }
 #delete-playlist-popup-cancel-button:hover{
@@ -477,8 +477,7 @@ text{
   left: 1%;
 }
 .video-result-x{
-  height: 25px;
-  width: 25px;
+
 }
 .video-result-description{
   display: none;

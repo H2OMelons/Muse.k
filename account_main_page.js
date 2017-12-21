@@ -595,12 +595,16 @@ VideoListManager.prototype.createVideoDiv = function(video){
   var manager = this;
   
   if((playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid())){
+    videoPlayerManager.setPlayButtons(manager.playButtons);
     var videoBeingPlayedUid = videoPlayerManager.getVideoBeingPlayed().uid;
     if((video.uid == videoBeingPlayedUid) &&
        (videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING)){
-      videoPlayerManager.setPlayButtons(manager.playButtons);
       playContainer.style.display = "none";
       pauseContainer.style.display = "block";
+      title.style.color = "turquoise";
+    }
+    else if((video.uid == videoBeingPlayedUid) &&
+       (videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED)){
       title.style.color = "turquoise";
     }
     else{

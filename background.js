@@ -126,6 +126,9 @@ PlaylistCollectionManager.prototype.deletePlaylistByUid = function(uid){
   if(this.viewingPlaylistUid == this.editingPlaylistUid){
     this.viewingPlaylistUid = undefined;
   }
+  if(this.editingPlaylistUid == this.playingPlaylistUid){
+    this.playingPlaylistUid = undefined;
+  }
   this.editingPlaylistUid = undefined;
   this.playlistManagers.delete(uid);
   var playlistUids = Array.from(this.playlistManagers.keys());

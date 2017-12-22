@@ -974,6 +974,47 @@ text{
   font-weight: bold;
 }
 
+/**
+ * Popup stuff
+ */
+.alert-popup{
+  position: absolute;
+  bottom: 46px;
+  right: 1%;
+  height: 75px;
+  width: 150px;
+}
+.dismiss-button{
+  position: absolute;
+  top: 2.5%;
+  right: 2.5%;
+}
+.alert-popup-result{
+  position: absolute;
+  width: 90%;
+  height: 25%;
+  color: white;
+}
+.alert-popup-result.success{
+  color: lime;
+}
+.alert-popup-result.error{
+  color: orangered;
+}
+.alert-popup-result.warning{
+  color: yellow;
+}
+.alert-popup-details{
+  position: absolute;
+  top: 25%;
+  height: 50%;
+  width: 100%;
+}
+.alert-popup-button{
+  position: absolute;
+  top: 75%;
+  left: 25%;
+}
 /*
  * Add video to playlist selection stuff
  */
@@ -1073,34 +1114,34 @@ text{
 
 .control-play-pause-button{
   position: absolute;
-  left: 45%;
+  left: 18%;
 }
 
 .control-rewind-button{
   position: absolute;
-  left: 42%;
+  left: 15%;
 }
 
 .control-fast-forward-button{
   position: absolute;
-  left: 48.7%;
+  left: 22%;
 }
 
 .control-repeat-button{
   position: absolute;
   line-height: 200%;
-  left: 40%;
+  left: 12.5%;
 }
 
 .control-shuffle-button{
   position: absolute;
   line-height: 200%;
-  left: 51.5%;
+  left: 25%;
 }
 
 .control-time{
   bottom: 10px;
-  left: 32%;
+  left: 5%;
   position: absolute;
   width: 225px;
   height: 10px;
@@ -1168,29 +1209,34 @@ text{
   cursor: pointer;
 }
 .volume-icon{
-  top:8px; 
+  bottom:8px; 
   width:19px; 
   height: 15px; 
   position:absolute;
 }
 .volume-container{
-  width: 100px;
-  height: 28px;
+  width: 28px;
+  height: 100px;
   position: absolute;
+  left: 35%;
+  bottom: 15%;
 }
 
 .volume-bar{
+  display: none;
   position: absolute;
-  width: 50px;
-  height: 5px;
+  width: 5px;
+  height: 50px;
   border: 1px solid lightgray;
-  top: 12px;
-  left: 25px;
+  bottom: 30px;
+  left: 5px;
 }
 
 .volume-bar-fill{
-  height: inherit;
+  width: inherit;
   background: gray;
+  position: absolute;
+  bottom: -0.5px;
 }
 
 /*

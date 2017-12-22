@@ -121,6 +121,7 @@ function PlaylistGenerator(){
  */
 PlaylistGenerator.prototype.processRawPlaylistList = function(playlistList, importChoices, callback){
   var numProcessedPlaylists = 0;
+  var totalVideosRemoved = 0;
   var totalPlaylists = 0;
   
   if(typeof importChoices == "undefined"){
@@ -136,10 +137,11 @@ PlaylistGenerator.prototype.processRawPlaylistList = function(playlistList, impo
   
   for(i = 0; i < playlistList.length; i++){
     if(typeof importChoices == "undefined" || importChoices[i]){
-      this.processRawPlaylist(playlistList[i], function(){
+      this.processRawPlaylist(playlistList[i], function(numRemoved){
+        totalVideosRemoved += numRemoved;
         numProcessedPlaylists++;
         if(numProcessedPlaylists == totalPlaylists){
-          callback();
+          callback(totalVideosRemoved);
         }
       });
     }
@@ -156,7 +158,9 @@ PlaylistGenerator.prototype.processRawPlaylistList = function(playlistList, impo
 
 PlaylistGenerator.prototype.processRawPlaylist = function(playlist, callback){
   chrome.extension.getBackgroundPage().retrieveFullPlaylist(playlist.id, function(videoResults){
-    playlistGenerator.processRawVideoList(videoResults, playlist.snippet.title, callback);
+    playlistGenerator.processRawVideoList(videoResults, playlist.snippet.title, function(numRemoved){
+      callback(numRemoved);
+    });
   });
 }
 
@@ -174,12 +178,14 @@ PlaylistGenerator.prototype.processRawVideoList = function(videoResults, title, 
   var numCompleted = 0;
   for(i = 0; i < videoResults.length; i++){
     chrome.extension.getBackgroundPage().createVideo(videoResults[i].snippet.resourceId.videoId, function(video){
-      if(typeof video != "undefined" && video.status.embeddable && video.channelTitle.substr(-4) != "VEVO"){
+      if(typeof video != "undefined" && video.status.embeddable){
         videos.push(video);
       }
       numCompleted++;
       if(numCompleted == videoResults.length){
-        playlistGenerator.generateNewPlaylist(videos, title, undefined, callback);
+        playlistGenerator.generateNewPlaylist(videos, title, undefined, function(){
+          callback(numCompleted - videos.length);
+        });
       }
     });
   }
@@ -964,6 +970,93 @@ SearchManager.prototype.getVideoIdList = function(){
   return keys;
 }
 
+function PopupManager(){
+  this.durationOpen = 5000;
+  this.popupsList = [];
+}
+PopupManager.prototype.MAX_POPUPS = 5;
+PopupManager.prototype.SUCCESS = "Success";
+PopupManager.prototype.WARNING = "Warning";
+PopupManager.prototype.ERROR = "Error";
+
+PopupManager.prototype.createPopup = function(type, details){
+  var container = document.createElement("div");
+  container.classList.add("alert-popup", "border", "card-background");
+  container.style.bottom = (46 + (75 * (this.popupsList.length))) + "px";
+  var date = new Date();
+  container.id = date.getTime();
+  var title = document.createElement("text");
+  title.classList.add("alert-popup-result", "center");
+  if(type == this.SUCCESS){
+    title.classList.add("success");
+  }
+  else if(type == this.ERROR){
+    title.classList.add("error");
+  }
+  else if(type == this.WARNING){
+    title.classList.add("warning");
+  }
+  title.innerHTML = type;
+  var closeButton = document.createElement("i");
+  closeButton.classList.add("fa", "fa-times", "dismiss-button", "button", "white", "turquoise-hover");
+  var timeout;
+  var tempThis = this;
+  closeButton.onclick = function(){
+    var i;
+    for(i = 0; i < tempThis.popupsList.length; i++){
+      tempThis.popupsList[i].style.bottom = (46 + (75 * i)) + "px";
+      if(tempThis.popupsList[i] == container){
+        tempThis.popupsList.splice(i, 1);
+        i--;
+      }
+    }
+    if(typeof timeout != "undefined" && timeout != null){
+      clearTimeout(timeout);
+    }
+    container.parentNode.removeChild(container);
+  }
+  container.onmouseover = function(){
+    clearTimeout(timeout);
+  }
+  container.onmouseleave = function(){
+    timeout = setTimeout(function(){
+      closeButton.click();
+    }, tempThis.durationOpen);
+  }
+  var detailsDisplay = document.createElement("text");
+  detailsDisplay.classList.add("alert-popup-details", "tiny-font", "center");
+  detailsDisplay.innerHTML = details;
+  container.appendChild(title);
+  container.appendChild(closeButton);
+  container.appendChild(detailsDisplay);
+  document.body.appendChild(container);
+  this.popupsList.push(container);
+  timeout = setTimeout(function(){
+    closeButton.click();
+  }, this.durationOpen);
+}
+PopupManager.prototype.createSuccessPopup = function(details){
+  this.createPopup(this.SUCCESS, details);
+}
+
+PopupManager.prototype.createErrorPopup = function(details){
+  this.createPopup(this.ERROR, details);
+}
+
+PopupManager.prototype.createWarningPopup = function(details){
+  this.createPopup(this.WARNING, details);
+}
+
+PopupManager.prototype.addButtonToPopup = function(buttonText, buttonOnclick){
+  var button = document.createElement("div");
+  button.classList.add("alert-popup-button", "tiny-font", "border", "white", "center", "button", "black-white-button-hover");
+  button.innerHTML = buttonText;
+  button.onclick = buttonOnclick;
+  this.popupsList[this.popupsList.length - 1].appendChild(button);
+}
+
+var popupManager = new PopupManager();
+
 var searchManager = new SearchManager();
 
 var modalPlayer = undefined;
@@ -1042,6 +1135,7 @@ function initListeners(){
       var videoDisplay = document.getElementById(id).childNodes[1];
       var numVideos = parseInt(videoDisplay.innerHTML.substr(0, videoDisplay.innerHTML.indexOf("V") - 1)) + 1;
       videoDisplay.innerHTML = numVideos + " Videos";
+      popupManager.createSuccessPopup("Video successfully added");
     }
     addVideoCancelButton.click();
   };
@@ -1177,6 +1271,13 @@ function initListeners(){
               playlistPageManager.getVideoListManager().createVideoDiv(videos[i]);
             }
           }
+          var numRemoved = videoResults.length - videos.length;
+          if(numRemoved > 0){
+            popupManager.createSuccessPopup("Videos successfully added but " + numRemoved + " videos were removed");
+          }
+          else{
+            popupManager.createSuccessPopup("Videos successfully added");
+          }
         });
         searchManager.clearAddedSelections();
       }
@@ -1186,8 +1287,13 @@ function initListeners(){
   document.getElementById("add-video-to-new-playlist-button").onclick = function(){
     var videoResults = playlistGenerator.idToRawVideoListAdapter(searchManager.getVideoIdList());
     document.getElementById("add-video-playlist-selection-modal").dispatchEvent(cancelEvent);
-    playlistGenerator.processRawVideoList(videoResults, undefined, function(){
-      
+    playlistGenerator.processRawVideoList(videoResults, undefined, function(numRemoved){
+      if(numRemoved > 0){
+        popupManager.createSuccessPopup("Videos successfully added but " + numRemoved + " videos were removed");
+      }
+      else{
+        popupManager.createSuccessPopup("Videos successfully added");
+      }
     });
     searchManager.clearAddedSelections();
   };
@@ -1278,19 +1384,27 @@ function initListeners(){
   
   volumeBar.onclick = function(e){
     if(document.getElementById("volume-on").style.display != "none"){
-      var volume = e.offsetX;
+      var volume = Math.abs(e.pageY - 536);
 
-      document.getElementById("volume-bar-fill").style.width = volume + "px";
+      document.getElementById("volume-bar-fill").style.height = volume + "px";
       // Convert volume to be in range 0-100
       volume = Math.round((volume / 50) * 100);
       chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
     }
   }
   
+  document.getElementById("volume-container").onmouseleave = function(){
+    volumeBar.style.display = "none";
+  }
+  
+  document.getElementById("volume-icon").onmouseover = function(){
+    volumeBar.style.display = "block";
+  }
+  
   document.getElementById("volume-on").onclick = function(){
     document.getElementById("volume-on").style.display = "none";
     document.getElementById("volume-off").style.display = "block";
-    document.getElementById("volume-bar-fill").style.width = "0px";
+    document.getElementById("volume-bar-fill").style.height = "0px";
     var volume = chrome.extension.getBackgroundPage().getVolume().volume;
     chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": true});
   }
@@ -1300,7 +1414,7 @@ function initListeners(){
     document.getElementById("volume-off").style.display = "none";
     var volume = chrome.extension.getBackgroundPage().getVolume().volume;
     chrome.extension.getBackgroundPage().setVolume({"volume": volume, "mute": false});
-    document.getElementById("volume-bar-fill").style.width = (volume / 2) + "px";
+    document.getElementById("volume-bar-fill").style.height = (volume / 2) + "px";
   }
   
   document.getElementById("sign-in-button").onclick = function(){
@@ -1465,7 +1579,13 @@ function initListeners(){
     for(i = 0; i < userImportChoices.length; i++){
       if(userImportChoices[i]){
         document.getElementById("url-selection-load").style.display = "block";
-        playlistGenerator.processRawPlaylistList(userPlaylistResults, userImportChoices, function(){
+        playlistGenerator.processRawPlaylistList(userPlaylistResults, userImportChoices, function(numRemoved){
+          if(numRemoved > 0){
+            popupManager.createSuccessPopup("Playlists successfully added but " + numRemoved + " videos were removed");
+          }
+          else{
+            popupManager.createSuccessPopup("Playlists successfully added");
+          }
           document.getElementById("url-selection-load").style.display = "none";
           document.getElementById("display-all-selection-results-buttons").style.display = "none";
           document.getElementById("url-selection-success").style.display = "block";
@@ -1610,12 +1730,18 @@ function initListeners(){
     document.getElementById("import-other-results-cancel-button").style.display = "none";
     document.getElementById("import-other-results").style.display = "none";
     var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
-    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
+    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(numRemoved){
       document.getElementById("import-other-load").style.display = "none";
       document.getElementById("import-other-success").style.display = "block";
       document.getElementById("import-other-url-input").style.display = "none";
       if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
         document.getElementById("no-playlist-page").style.display = "none";
+      }
+      if(numRemoved > 0){
+        popupManager.createSuccessPopup("Videos successfully added but " + numRemoved + " videos added");
+      }
+      else{
+        popupManager.createSuccessPopup("Videos successfully added");
       }
     });
   }
@@ -1626,11 +1752,17 @@ function initListeners(){
     document.getElementById("url-selection-results-cancel-button").style.display = "none";
     document.getElementById("url-selection-results-container").style.display = "none";
     var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
-    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(){
+    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(numRemoved){
       document.getElementById("url-selection-load").style.display = "none";
       document.getElementById("url-selection-success").style.display = "block";
       if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
         document.getElementById("no-playlist-page").style.display = "none";
+      }
+      if(numRemoved > 0){
+        popupManager.createSuccessPopup("Videos successfully added but " + numRemoved + " videos removed");
+      }
+      else{
+        popupManager.createSuccessPopup("Videos successfully added");
       }
     });
   }
@@ -2007,6 +2139,7 @@ function initListeners(){
     // Create a playlist only if the given name is not empty
     if(name.replace(/\s/g, '').length){
       playlistGenerator.generateNewPlaylist(undefined, name, undefined, function(){
+        popupManager.createSuccessPopup("Playlist successfully created");
         if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
           document.getElementById("no-playlist-page").style.display = "none";
         }
@@ -2126,30 +2259,6 @@ function editPlaylistCreate(){
     playlistCollectionManager.editPlaylist(currPlaylistLoaded);
   }
   cancelCreateButton.click();
-}
-
-function addPlaylistCreate(){
-  var name = playlistInputField.value;
-  var image = document.getElementById("playlistSetImageImage").src;
-  var usingDefaultImage = (image.slice(-defaultPlaylistImage.length) == defaultPlaylistImage);
-  if(usingDefaultImage){
-    playlistGenerator.generateNewPlaylist(undefined, name, undefined, undefined);
-  }
-  else{
-    playlistGenerator.generateNewPlaylist(undefined, name, image, undefined);
-  }
-  cancelCreateButton.click();
-}
-
-function addPlaylistCancel(){
-  playlistPopup.style.display = "none";
-  playlistInputField.value = "New Playlist";
-  overlay.style.display = "none";
-  importUser.style.display = "block";
-  importOther.style.display = "block";
-  createPlaylistButton.removeEventListener("click", addPlaylistCreate);
-  createPlaylistButton.removeEventListener("click", editPlaylistCreate);
-  cancelCreateButton.removeEventListener("click", addPlaylistCancel);
 }
 
 function removeVideo(){
@@ -2344,12 +2453,12 @@ function setupControlPanel(){
   if(volume.mute){
     document.getElementById("volume-on").style.display = "none";
     document.getElementById("volume-off").style.display = "block";
-    document.getElementById("volume-bar-fill").style.width = "0px";
+    document.getElementById("volume-bar-fill").style.height = "0px";
   }
   else{
     document.getElementById("volume-on").style.display = "block";
     document.getElementById("volume-off").style.display = "none";
-    document.getElementById("volume-bar-fill").style.width = (volume.volume / 2) + "px";
+    document.getElementById("volume-bar-fill").style.height = (volume.volume / 2) + "px";
   }
 }
 

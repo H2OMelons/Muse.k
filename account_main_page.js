@@ -982,7 +982,7 @@ PopupManager.prototype.ERROR = "Error";
 PopupManager.prototype.createPopup = function(type, details){
   var container = document.createElement("div");
   container.classList.add("alert-popup", "border", "card-background");
-  container.style.bottom = (46 + (75 * (this.popupsList.length))) + "px";
+  container.style.bottom = (46 + (100 * (this.popupsList.length))) + "px";
   var date = new Date();
   container.id = date.getTime();
   var title = document.createElement("text");
@@ -1004,7 +1004,7 @@ PopupManager.prototype.createPopup = function(type, details){
   closeButton.onclick = function(){
     var i;
     for(i = 0; i < tempThis.popupsList.length; i++){
-      tempThis.popupsList[i].style.bottom = (46 + (75 * i)) + "px";
+      tempThis.popupsList[i].style.bottom = (46 + (100 * i)) + "px";
       if(tempThis.popupsList[i] == container){
         tempThis.popupsList.splice(i, 1);
         i--;
@@ -1051,7 +1051,11 @@ PopupManager.prototype.addButtonToPopup = function(buttonText, buttonOnclick){
   var button = document.createElement("div");
   button.classList.add("alert-popup-button", "tiny-font", "border", "white", "center", "button", "black-white-button-hover");
   button.innerHTML = buttonText;
-  button.onclick = buttonOnclick;
+  var tempThis = this;
+  button.onclick = function(){
+    buttonOnclick();
+    tempThis.popupsList[tempThis.popupsList.length - 1].childNodes[1].click();
+  };
   this.popupsList[this.popupsList.length - 1].appendChild(button);
 }
 
@@ -2533,6 +2537,24 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
   }
   else if(message.request == "updateControlButton"){
     updateControlPanelPlayButton(message.play);
+  }
+  else if(message.request == "videoNotPlayablePopup"){
+    var title = message.video.videoTitle;
+    var button = undefined;
+    if(message.remove){
+      button = videoPlayerManager.getPlayButton(message.id);
+    }
+    if(title.length > 20){
+      title = title.slice(0, 20);
+      title += "...";
+    }
+    popupManager.createErrorPopup(title + "<br> not available for playback on extension");
+    popupManager.addButtonToPopup("Delete Video", function(){
+      if(typeof button != "undefined"){
+        button.parentNode.parentNode.removeChild(button.parentNode);
+      }
+      playlistCollectionManager.deleteVideoFromPlaying(message.video.uid);
+    });
   }
 });
 

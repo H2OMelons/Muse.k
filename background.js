@@ -174,6 +174,11 @@ PlaylistCollectionManager.prototype.deleteVideo = function(videoUid){
   this.playlistManagers.get(this.getViewingPlaylistUid()).deleteVideo(videoUid);
 }
 
+PlaylistCollectionManager.prototype.deleteVideoFromPlaying = function(videoUid){
+  videoPlayerManager.removeFromQueue(videoUid);
+  this.playlistManagers.get(this.getPlayingPlaylistUid()).deleteVideo(videoUid);
+}
+
 PlaylistCollectionManager.prototype.insertVideo = function(playlistUid, videoId){
   if(typeof playlistUid == "number"){
     playlistUid = playlistUid.toString();
@@ -511,6 +516,21 @@ VideoPlayerManager.prototype.getVideoBeingPlayed = function(){
   return this.queue[this.queueIndex];
 }
 
+VideoPlayerManager.prototype.getPlayButton = function(id){
+  var returnVal = undefined;
+  this.playButtonsMap.forEach(function(value, key){
+    if(value.parentNode.id == id){
+      returnVal = value;
+    }
+  });
+  return returnVal;
+}
+
+VideoPlayerManager.prototype.getCurrPlayButtonId = function(){
+  var temp = this.playButtonsMap.get(this.getVideoBeingPlayed().uid).parentNode.id;
+  return temp;
+}
+
 VideoPlayerManager.prototype.getPrevVideoBeingPlayed = function(){
   if(typeof this.queue == "undefined" || this.queue.length == 0){
     return undefined;
@@ -689,6 +709,13 @@ function onPlayerStateChange(event) {
   if(event.data == testForRestrictedVideo[numInARow]){
     // Video is restricted so fast forward to the next song
     if(numInARow == testForRestrictedVideo.length - 1){
+      if(popupOpen){
+        chrome.runtime.sendMessage({request: "videoNotPlayablePopup", 
+                                    video: videoPlayerManager.getVideoBeingPlayed(),
+                                    id: videoPlayerManager.getCurrPlayButtonId(),
+                                    remove: playlistCollectionManager.getViewingPlaylistUid() == 
+                                            playlistCollectionManager.getPlayingPlaylistUid()});
+      }
       videoPlayerManager.fastForward();
       numInARow = 0;
     }

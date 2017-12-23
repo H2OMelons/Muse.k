@@ -836,6 +836,14 @@ text{
   color: turquoise;
 }
 
+#back-button{
+  display: none;
+  position: absolute;
+  top: 15%;
+  left: 3%;
+  font-size: 30px;
+}
+
 .import-other-playlist{
   line-height: 200%;
   margin-left: 5%;

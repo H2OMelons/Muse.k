@@ -1492,6 +1492,7 @@ function initListeners(){
   
   document.getElementById("url-selection-button").onclick = function(){
     document.getElementById("url-selection-button-container").style.display = "none";
+    document.getElementById("back-button").style.display = "block";
     document.getElementById("url-selection-container").style.display = "block";
     document.getElementById("url-selection-url-input").focus();
   };
@@ -1564,6 +1565,7 @@ function initListeners(){
   
   document.getElementById("display-all-selection-button").onclick = function(){
     document.getElementById("url-selection-button-container").style.display = "none";
+    document.getElementById("back-button").style.display = "block";
     document.getElementById("display-all-selection-container").style.display = "block";
     document.getElementById("url-selection-load").style.display = "block";
     chrome.extension.getBackgroundPage().requestPlaylists(function(response){
@@ -1630,6 +1632,7 @@ function initListeners(){
       importOther.style.borderBottom = "1px solid lightgray";
       importOtherContainer.style.display = "block";
       document.getElementById("import-other-url-input").focus();
+      document.getElementById("back-button").style.display = "none";
     }
   }
   
@@ -1908,6 +1911,13 @@ function initListeners(){
       }
     }
     
+  }
+  
+  document.getElementById("back-button").onclick = function(){
+    document.getElementById("back-button").style.display = "none";
+    document.getElementById("url-selection-button-container").style.display = "block";
+    document.getElementById("url-selection-container").style.display = "none";
+    document.getElementById("display-all-selection-container").style.display = "none";
   }
   
   function hideModals(){

@@ -505,6 +505,10 @@ PlaylistPageManager.prototype.loadPlaylistPage = function(uid){
   
   document.getElementById("playlist-name").value = playlist.name;
   
+  if(window.getComputedStyle(document.getElementById("info-bar-title")).display == "none"){
+    document.getElementById("info-bar-title").style.display = "block";
+  }
+  
   this.viewingVideoListManager = new VideoListManager(playlist);
   
   if(typeof playlist != "undefined"){

@@ -23,6 +23,7 @@ text{
   right: 2%;
 }
 #info-bar-title{
+  display: none;
   position: absolute;
   top: 17.5%;
   left: 7%;

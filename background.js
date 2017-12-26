@@ -13,6 +13,8 @@ var topMargin = 100;
 var x_spacing = 245;
 var y_spacing = 125;
 
+var currCycle = 0;
+
 var backgroundPlayerStatus;
 
 var videoIsPlaying = false;
@@ -353,6 +355,7 @@ VideoPlayerManager.prototype.initQueue = function(startUid){
 }
 
 VideoPlayerManager.prototype.startQueue = function(){
+  currCycle = 0;
   this.cueVideo();
 }
 
@@ -705,18 +708,25 @@ var numInARow = 0;
 
 function onPlayerStateChange(event) {
   var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
-  
   if(event.data == testForRestrictedVideo[numInARow]){
     // Video is restricted so fast forward to the next song
     if(numInARow == testForRestrictedVideo.length - 1){
-      if(popupOpen){
+      if(popupOpen && currCycle < videoPlayerManager.getQueue().length){
+        currCycle++;
         chrome.runtime.sendMessage({request: "videoNotPlayablePopup", 
                                     video: videoPlayerManager.getVideoBeingPlayed(),
                                     id: videoPlayerManager.getCurrPlayButtonId(),
                                     remove: playlistCollectionManager.getViewingPlaylistUid() == 
                                             playlistCollectionManager.getPlayingPlaylistUid()});
       }
-      videoPlayerManager.fastForward();
+      if(currCycle < videoPlayerManager.getQueue().length){
+        videoPlayerManager.fastForward();
+      }
+      else{
+        videoPlayerManager.pauseVideo();
+        chrome.runtime.sendMessage({request: "playlistEnded"});
+        currCycle = 0;
+      }
       numInARow = 0;
     }
     else{

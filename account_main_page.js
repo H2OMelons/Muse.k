@@ -82,13 +82,6 @@ var pagePlayerReady = false;
 var currTime, endTime, timeBar, timeInterval;
 var timeSliderDown = false;
 
-var playlistInfo = {playingPlaylist: -1,
-                    viewingPlaylist: -1,
-                    editingPlaylist: -1,
-                    playingPlaylistTag: undefined};
-
-//var playlistSelectionContainerList = [];
-
 var playlistCollectionManager; // Object gotten from background page to control playlists
 var videoPlayerManager;
 
@@ -830,8 +823,13 @@ SearchManager.prototype.search = function(keyword){
   }
   this.clearSearchDisplay();
   chrome.extension.getBackgroundPage().search(keyword, function(item){
-    for(i = 0; i < item.items.length; i++){
-      tempThis.createSearchResultDiv(item.items[i]);
+    if(typeof item.items != "undefined"){ 
+      for(i = 0; i < item.items.length; i++){
+        tempThis.createSearchResultDiv(item.items[i]);
+      }
+    }
+    else if(typeof item.error != "undefined"){
+      popupManager.createErrorPopup(item.error.message);
     }
   });
 }

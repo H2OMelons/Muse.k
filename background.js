@@ -22,16 +22,11 @@ var currPlaylistPage = undefined;
 var videoBeingPlayed = undefined;
 var playlistBeingPlayed = undefined;
 
-/*var playlistInfo = {playingPlaylist: undefined,
-                    viewingPlaylist: undefined,
-                    playlist: undefined};*/
-
 var repeatOn;
 var shuffleOn;
 var seeking = false;
 
 var orderToPlayVideos = [];
-//var playlistCollection = new Map();
 var playlistUids = [];
 
 var queue = {playlist: [],
@@ -44,6 +39,7 @@ var queue = {playlist: [],
 var tag = document.createElement('script');
 
 tag.src = "https://www.youtube.com/iframe_api";
+
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
@@ -571,7 +567,6 @@ VideoPlayer.prototype.SYNC = 0;
 VideoPlayer.prototype.SEEK = 1;
 
 VideoPlayer.prototype.loadVideo = function(video){
-  //backgroundPlayerStatus = "waitingForSync";
   if(typeof video.startTime == "undefined" || typeof video.endTime == "undefined"){
     this.player.loadVideoById(video.videoId, 0, "small");
   }
@@ -987,7 +982,6 @@ function getPlaylistByIdNextPage(id, nextPageToken, callback){
 }
 
 function search(keywords, callback){
-  //gapi.client.setApiKey("AIzaSyBGdafgREooeIB9WYU3B_0_-n6yvzLhyds"); 
   executeRequest(buildApiRequest(
     "GET",
     "/youtube/v3/search",

@@ -1768,7 +1768,7 @@ function initListeners(){
         document.getElementById("no-playlist-page").style.display = "none";
       }
       if(numRemoved > 0){
-        popupManager.createSuccessPopup("Videos successfully added but " + numRemoved + " videos added");
+        popupManager.createSuccessPopup("Videos successfully added but " + numRemoved + " videos removed");
       }
       else{
         popupManager.createSuccessPopup("Videos successfully added");

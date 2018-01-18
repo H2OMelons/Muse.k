@@ -4,10 +4,7 @@
     <!--link rel="stylesheet" type="text/css" href="stylesheet.css"-->
     <link rel="stylesheet" type="text/css" href="main_stylesheet.css">
     <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
-    <!--script type="text/javascript" src="https://apis.google.com/js/client.js"></script-->
-    <script type="text/javascript" src="client.js"></script>
-    <!--script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script-->
-    <script type="text/javascript" src="account_main_page.js"></script>
+    
   </head> 
   <body>
     <div id="info-bar">
@@ -182,7 +179,7 @@
           </div>
           <div id="url-selection-container">
             <input id="url-selection-url-input" class="url-selection-url-input card-background border white"/>
-            <div id="url-selection-error" style="display: none;">
+            <div id="url-selection-error" style="display: none;" class="white">
               <div id="url-selection-invalid-url-error">
                 <i class="fa fa-exclamation-circle" aria-hidden="true" ></i>
                 Invalid URL. Please enter a playlist URL.
@@ -292,5 +289,8 @@
     </div>
     <div id="overlay"></div>
     <div id="transparent-overlay"></div>
+    <script type="text/javascript" src="client.js"></script>
+    <script type="text/javascript" src="playlist_generator.js"></script>
+    <script type="text/javascript" src="account_main_page.js"></script>
   </body>
 </html>

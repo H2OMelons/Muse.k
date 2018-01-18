@@ -462,13 +462,14 @@ function SearchManager(){
 
 SearchManager.prototype.search = function(keyword){
   var tempThis = this;
-  if(window.getComputedStyle(document.getElementById("search-container")).display == "none"){
-    document.getElementById("search-container").style.display = "block";
-    document.getElementById("search-cancel-button").style.display = "block";
-  }
+  
   this.clearSearchDisplay();
   chrome.extension.getBackgroundPage().search(keyword, function(item){
     if(typeof item.items != "undefined"){ 
+      if(window.getComputedStyle(document.getElementById("search-container")).display == "none"){
+        document.getElementById("search-container").style.display = "block";
+        document.getElementById("search-cancel-button").style.display = "block";
+      }
       for(i = 0; i < item.items.length; i++){
         tempThis.createSearchResultDiv(item.items[i]);
       }
@@ -1180,6 +1181,10 @@ function initListeners(){
       while(container.firstChild){
         container.removeChild(container.firstChild);
       }
+    }
+    
+    if(typeof results.items == "undefined"){
+      return;
     }
     
     var offset = userPlaylistResults.length;

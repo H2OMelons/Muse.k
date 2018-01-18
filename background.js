@@ -1,4 +1,5 @@
 var popupOpen;
+var online = navigator.onLine;
 
 var defaultIcon = "images/default_user.png"
 
@@ -42,7 +43,6 @@ tag.src = "https://www.youtube.com/iframe_api";
 
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
 
 var playlistCollectionManager;
 function PlaylistCollectionManager(playlistCollection){
@@ -1150,60 +1150,7 @@ chrome.runtime.onInstalled.addListener(function(details){
     onStart();
   }
   else if(details.reason == "update"){
-    if(details.previousVersion == "0.0.0.6"){
-      chrome.storage.local.get("playlistUids", function(item){
-        if(typeof item.playlistUids != "undefined"){
-          var updateUids = item.playlistUids;
-
-          for(i = updateUids.length - 1; i >= 0; i--){
-            if(updateUids[i] == -1){
-              updateUids.splice(i, 1);
-            }
-          }
-
-          for(i = 0; i < updateUids.length; i++){
-            chrome.storage.local.get(updateUids[i], function(item){
-              if(chrome.runtime.lastError){
-                console.warn("playlist could not be loaded");
-              }
-              else{
-                var uid = Object.keys(item)[0];
-                var playlist = item[uid];
-                if(typeof playlist.videoUidGenerator == "undefined"){
-                  var videoUid = 0;
-                  while(videoUid < playlist.videos.length){
-                    playlist.videos[videoUid].uid = videoUid;
-                    videoUid++;
-                  }
-                  playlist.videoUidGenerator = videoUid;
-                  var obj = {};
-                  obj[uid] = playlist;
-                  chrome.storage.local.set(obj, function(){
-                    if(chrome.runtime.lastError){
-                      console.warn(chrome.runtime.lastError.message);
-                    }
-                  });
-                }
-                else if(playlist.videoUidGenerator == 0 && playlist.videos.length > 0){
-                  var i;
-                  for(i = 0; i < playlist.videos.length; i++){
-                    playlist.videos[i].uid = playlist.videoUidGenerator;
-                    playlist.videoUidGenerator++;
-                  }
-                  var obj = {};
-                  obj[uid] = playlist;
-                  chrome.storage.local.set(obj, function(){
-                    if(chrome.runtime.lastError){
-                      console.warn(chrome.runtime.lastError.message);
-                    }
-                  });
-                }
-              }
-            });
-          }
-        }
-      });
-    }
+    
     
     onStart();
     //resetAccount();
@@ -1259,7 +1206,6 @@ function getPlaylistImageByUid(uid, type){
   }
   
   if(!playlistCollectionManager.getPlaylist(uid).usingDefaultImage){
-  //if(!playlistCollection.get(uid).usingDefaultImage){
     return playlistCollectionManager.getPlaylist(uid).image; 
   }
   
@@ -1313,12 +1259,6 @@ function getPlaylistCollectionManager(){
   return playlistCollectionManager;
 }
 
-/*
-function getPlaylistInfo(){
-  return playlistInfo;
-}
-*/
-
 function getPlayerState(){
   return player.getPlayerState();
 }
@@ -1328,19 +1268,6 @@ function getVideoPlayerManager(){
 }
 
 function getUnfilteredPlaylistCollection(){
-  /*
-  var tempArr = [];
-  for(i = 0; i < playlistUids.length; i++){
-    if(playlistUids[i] != -1){
-      tempArr.push(playlistCollection.get(playlistUids[i]));
-    }
-    else{
-      tempArr.push(-1);
-    }
-  }
-  
-  return tempArr;
-  */
   return playlistCollectionManager.getPlaylistCollection();
 }
 
@@ -1437,3 +1364,24 @@ function getInfo(data){
     console.error("Stupid developer can't spell correctly and made a bug: " + data.id);
   }
 }
+
+window.addEventListener('online', function(){
+  online = navigator.onLine;
+  
+  if(popupOpen){
+    chrome.runtime.sendMessage({request: "network_status",
+                                status: online});
+  }
+});
+
+window.addEventListener('offline', function(){
+  online = navigator.online;
+  
+  if(popupOpen){
+    chrome.runtime.sendMessage({request: "network_status",
+                                status: online});
+    chrome.runtime.sendMessage({request: "error_popup",
+                                error: "You are not connected to the internet"});
+  }
+  
+});

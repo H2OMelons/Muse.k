@@ -447,6 +447,24 @@ text{
   height: 92.5%;
   overflow-x: hidden;
 }
+#no-internet-error-display{
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 92.5%;
+  overflow-y: hidden;
+}
+#reconnect-button{
+  position: absolute;
+  left: 40%;
+  top: 45%;
+  padding: 5px;
+}
+#reconnect-text{
+  position: absolute;
+  left: 10%;
+  top: 25%;
+}
 #search-cancel-button{
   position: absolute;
   display: none;

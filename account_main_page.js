@@ -2248,6 +2248,18 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
       playlistCollectionManager.deleteVideoFromPlaying(message.video.uid);
     });
   }
+  else if(message.request == "error_popup"){
+    popupManager.createErrorPopup(message.error);
+  }
+  else if(message.request == "network_status"){
+    // If online
+    if(message.status){
+      document.getElementById("no-internet-error-display").style.display = "none";
+    }
+    else{
+      document.getElementById("no-internet-error-display").style.display = "block";
+    }
+  }
 });
 
 function setPlayingPlaylist(){

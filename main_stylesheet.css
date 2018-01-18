@@ -559,18 +559,26 @@ text{
   top: 60px;
 }
 
+#import-other-name-input{
+  position: absolute;
+  left: 95px;
+  top: 92px;
+  height: 30px;
+  width: 300px;
+}
+
 #import-other-results-container{
   position: absolute;
-  height: 200px;
+  height: 155px;
   width: 400px;
   left: 50px;
-  top: 90px;
+  top: 135px;
 }
 
 #import-other-results{
   position: absolute;
   border: 1px solid lightgray;
-  height: 175px;
+  height: 125px;
   width: 100%;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -759,7 +767,7 @@ text{
 #import-other-success{
   position: absolute;
   border: 1px solid lightgray;
-  height: 175px;
+  height: 125px;
   width: 100%;
   display: none;
 }
@@ -769,7 +777,7 @@ text{
   height: 25px;
   width: 75px;
   text-align: center;
-  top: 102%;
+  top: 106%;
   background-color: #212121;
 }
 
@@ -818,7 +826,6 @@ text{
   position: absolute;
   height: 150px;
   width: 150px;
-  top: 25px;
   left: 125px;
 }
 

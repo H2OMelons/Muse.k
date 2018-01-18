@@ -1760,7 +1760,11 @@ function initListeners(){
     document.getElementById("import-other-results-cancel-button").style.display = "none";
     document.getElementById("import-other-results").style.display = "none";
     var filteredVideoList = playlistGenerator.filterVideoList(resultsList, importList);
-    playlistGenerator.processRawVideoList(filteredVideoList, undefined, function(numRemoved){
+    var playlistName = document.getElementById("import-other-name-input").value;
+    if(playlistName.replace(/\s/g, '').length == 0){
+      playlistName = "New Playlist";
+    }
+    playlistGenerator.processRawVideoList(filteredVideoList, playlistName, function(numRemoved){
       document.getElementById("import-other-load").style.display = "none";
       document.getElementById("import-other-success").style.display = "block";
       document.getElementById("import-other-url-input").style.display = "none";
@@ -1773,6 +1777,7 @@ function initListeners(){
       else{
         popupManager.createSuccessPopup("Videos successfully added");
       }
+      document.getElementById("import-other-name-input").value = "New Playlist";
     });
   }
   

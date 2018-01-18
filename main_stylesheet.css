@@ -28,7 +28,7 @@ text{
   top: 17.5%;
   left: 7%;
   height: 100%;
-  width: 37%;
+  width: 225px;
 }
 #info-bar-title:hover #info-bar-playlist-options{
   display: block;
@@ -52,8 +52,17 @@ text{
 #playlist-name{
   position: relative;
   cursor: default;
-  max-width: 70%;
+  width: 175px;
   border: 0;
+}
+.expand-collapse{
+  position: absolute;
+  left: 255px;
+  top: 10%;
+}
+
+#expand-button{
+  display: none;
 }
 #search-input{
   position: absolute;
@@ -1143,6 +1152,13 @@ text{
   height: 8%;
 }
 
+#control-button-container{
+  position: absolute;
+  left: 0;
+  height: 100%;
+  width: 40%;
+}
+
 .control-button{
   position: absolute;
   line-height: 190%;
@@ -1150,34 +1166,34 @@ text{
 
 .control-play-pause-button{
   position: absolute;
-  left: 18%;
+  left: 40%;
 }
 
 .control-rewind-button{
   position: absolute;
-  left: 15%;
+  left: 33%;
 }
 
 .control-fast-forward-button{
   position: absolute;
-  left: 22%;
+  left: 48%;
 }
 
 .control-repeat-button{
   position: absolute;
   line-height: 200%;
-  left: 12.5%;
+  left: 27%;
 }
 
 .control-shuffle-button{
   position: absolute;
   line-height: 200%;
-  left: 25%;
+  left: 55%;
 }
 
 .control-time{
   bottom: 10px;
-  left: 5%;
+  left: 10%;
   position: absolute;
   width: 225px;
   height: 10px;
@@ -1254,13 +1270,14 @@ text{
   width: 28px;
   height: 100px;
   position: absolute;
-  left: 35%;
+  right: 5%;
   bottom: 15%;
 }
 
 .volume-bar{
   display: none;
   position: absolute;
+  background: #303030;
   width: 5px;
   height: 50px;
   border: 1px solid lightgray;

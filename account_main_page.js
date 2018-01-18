@@ -4,6 +4,9 @@ const DEFAULT_IMG = -1;
 const MQ_DEFAULT_IMG = 0;
 const SD_DEFAULT_IMG = 1;
 const KEYCODE_ENTER = 13;
+const LEFT_COL_WIDTH = "40%";
+const EXPAND_BODY_WIDTH = "780px";
+const COLLAPSE_BODY_WIDTH = "312px";
 
 var defaultPlaylistImage = "images/default_playlist_img.png";
 var i;
@@ -1851,6 +1854,36 @@ function initListeners(){
     document.getElementById("playlist-popup").style.display = "block";
     document.getElementById("import-other-url-input").focus();
   };
+  
+  document.getElementById("expand-button").onclick = function(){
+    this.style.display = "none";
+    document.getElementById("collapse-button").style.display = "block";
+    expandExtension();
+  };
+  
+  document.getElementById("collapse-button").onclick = function(){
+    this.style.display = "none";
+    document.getElementById("expand-button").style.display = "block";
+    collapseExtension();
+  };
+}
+
+function collapseExtension(){
+  document.getElementsByTagName("body")[0].style.minWidth = COLLAPSE_BODY_WIDTH;
+  document.getElementById("search-input").style.display = "none";
+  document.getElementById("search-button").style.display = "none";
+  document.getElementById("right-column").style.display = "none";
+  document.getElementById("left-column").style.width = "100%";
+  document.getElementById("control-button-container").style.width = "100%";
+}
+
+function expandExtension(){
+  document.getElementsByTagName("body")[0].style.minWidth = EXPAND_BODY_WIDTH;
+  document.getElementById("search-input").style.display = "block";
+  document.getElementById("search-button").style.display = "block";
+  document.getElementById("right-column").style.display = "block";
+  document.getElementById("left-column").style.width = LEFT_COL_WIDTH;
+  document.getElementById("control-button-container").style.width = LEFT_COL_WIDTH;
 }
 
 function updateTimeBarValue(){

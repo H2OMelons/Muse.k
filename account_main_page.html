@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <!--link rel="stylesheet" type="text/css" href="stylesheet.css"-->
     <link rel="stylesheet" type="text/css" href="main_stylesheet.css">
     <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
     
@@ -14,6 +13,12 @@
           <i id="info-bar-edit-button" class="fa fa-pencil fa-lg button turquoise-hover white" aria-hidden="true"></i>
           <i id="info-bar-add-video-button" class="fa fa-plus fa-lg button turquoise-hover white" aria-hidden="true"></i>
         </div>
+        <i id="collapse-button" 
+           class="expand-collapse fa fa-arrow-circle-o-right fa-lg button turquoise-hover white" 
+           aria-hidden="true"></i>
+        <id id="expand-button" 
+            class="expand-collapse fa fa-arrow-circle-o-left fa-lg button turquoise-hover white" 
+            aria-hidden="true"></id>
       </div>
       <div id="info-bar-button" class="button white">
         <i class="fa fa-bars fa-lg" aria-hidden="true"></i>
@@ -78,10 +83,10 @@
         <text id="reconnect-text" class="center large-font white">
           You are not connected to the internet. Muse.k will automatically reconnect when it receives a signal
         </text>
-        <!--div id="reconnect-button" class="border large-font button white black-white-button-hover">Reconnect</div-->
       </div>
     </div>
     <div id="control-panel">
+      <div id="control-button-container">
         <div id="control-play-pause-button" 
              class="control-play-pause-button control-button button white turquoise-hover">
           <i class="fa fa-play-circle-o fa-2x" aria-hidden="true" id="control-play-button" ></i>
@@ -121,6 +126,7 @@
           <div id="control-time-end" class="control-time-end right-align tiny-font white"></div>
         </div>
       </div>
+    </div>
     <div id="delete-playlist-popup" class="modal card-background center white">
       <text id="delete-playlist-popup-text" class="regular-font">Delete this playlist forever</text>
       <div id="delete-playlist-popup-confirm-button" class="button black-background center">Confirm</div>

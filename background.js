@@ -37,12 +37,17 @@ var queue = {playlist: [],
              tempNext: false,
              tempPrev: false};
 
-var tag = document.createElement('script');
+var tag;
+var firstScriptTag;
 
-tag.src = "https://www.youtube.com/iframe_api";
 
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+function loadIframeAPI(){
+  tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
 
 var playlistCollectionManager;
 function PlaylistCollectionManager(playlistCollection){
@@ -684,7 +689,7 @@ function onPlaybackQualityChange(data){
 
 function onBackgroundPlayerReady(event){
   backgroundPlayerStatus = "waitingForSync";
-  
+  console.log("ready");
   chrome.storage.sync.get("volume", function(item){
     if(typeof item.volume == "undefined"){
       volume = {"volume": 25, "mute": false};
@@ -1067,6 +1072,7 @@ function onInstall(){
 }
 
 function onStart(){
+  loadIframeAPI();
   chrome.storage.sync.get("repeat", function(item){
     repeatOn = item.repeat;
   });
@@ -1367,7 +1373,7 @@ function getInfo(data){
 
 window.addEventListener('online', function(){
   online = navigator.onLine;
-  
+  loadIframeAPI();
   if(popupOpen){
     chrome.runtime.sendMessage({request: "network_status",
                                 status: online});

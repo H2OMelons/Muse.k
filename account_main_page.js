@@ -90,12 +90,17 @@ var currSelection = 1;
 var cancelEvent = new Event("cancel");
 
 
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+var tag;
+var firstScriptTag;
 
 
+
+function loadIframeAPI(){
+  tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
 
 var playlistGenerator = new PlaylistGenerator();
 
@@ -733,9 +738,11 @@ var popupManager = new PopupManager();
 var searchManager = new SearchManager();
 
 var modalPlayer = undefined;
+var iframeLoaded = false;
 var pagePlayer = undefined;
 
 function onYouTubeIframeAPIReady() {
+  iframeLoaded = true;
   modalPlayer = new YT.Player('videoModalResultDisplay', {
     playerVars:{
       enablejsapi: 1
@@ -2180,6 +2187,12 @@ function updateControlPanel(video){
 }
 
 function onload(){
+  loadIframeAPI();
+  
+  if(!navigator.onLine){
+    document.getElementById("no-internet-error-display").style.display = "block";
+  }
+  
   playlistCollectionManager = chrome.extension.getBackgroundPage().getPlaylistCollectionManager();
   videoPlayerManager = chrome.extension.getBackgroundPage().getVideoPlayerManager();
   loadDivs();
@@ -2254,6 +2267,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
   else if(message.request == "network_status"){
     // If online
     if(message.status){
+      if(!iframeLoaded){
+        loadIframeAPI();
+      }
       document.getElementById("no-internet-error-display").style.display = "none";
     }
     else{

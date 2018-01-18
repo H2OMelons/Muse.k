@@ -450,6 +450,7 @@ text{
 #no-internet-error-display{
   display: none;
   position: absolute;
+  background: #303030;
   width: 100%;
   height: 92.5%;
   overflow-y: hidden;

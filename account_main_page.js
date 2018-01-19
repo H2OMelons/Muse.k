@@ -1639,6 +1639,10 @@ function initListeners(){
     clearImportList();
     playlistPopup.style.display = "none";
     overlay.style.display = "none";
+    
+    if(window.getComputedStyle(document.getElementById("expand-button")).display == "block"){
+      collapseExtension();
+    }
   });
   
   document.getElementById("edit-video-modal").addEventListener("cancel", function(){
@@ -1850,6 +1854,9 @@ function initListeners(){
     }
   }
   document.getElementById("import-new-playlist").onclick = function(){
+    if(window.getComputedStyle(document.getElementById("expand-button")).display == "block"){
+      expandExtension();
+    }
     document.getElementById("add-options").style.display = "none";
     document.getElementById("playlist-popup").style.display = "block";
     document.getElementById("import-other-url-input").focus();

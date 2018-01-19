@@ -1982,113 +1982,6 @@ function setImportDisplay(defaultDisplay, userDisplay, otherDisplay){
   importOtherContainer.style.display = otherDisplay.display;
 }
 
-function editPlaylistCreate(){
-  var name = playlistInputField.value;
-  var image = document.getElementById("playlistSetImageImage").src;
-  var playlistUpdated = false;
-  if(name != currPlaylistLoaded.name){
-    playlistUpdated = true;
-    currPlaylistLoaded.name = name;
-    document.getElementById(editPlaylistId).childNodes[0].innerHTML = name;
-  }
-  if(image != currPlaylistLoaded.image && currPlaylistLoaded.videos.length > 0 &&
-     image != "https://img.youtube.com/vi/"+currPlaylistLoaded.videos[0].videoId+"/mqdefault.jpg"){
-    playlistUpdated = true;
-    currPlaylistLoaded.image = image;
-    currPlaylistLoaded.usingDefaultImage = false;
-    if(document.getElementById("player-image-image")){
-      document.getElementById("player-image-image").src = image;
-    }
-    
-    document.getElementById(editPlaylistId).childNodes[0].childNodes[0].src = image;
-  }
-  if(playlistUpdated){
-    playlistCollectionManager.editPlaylist(currPlaylistLoaded);
-  }
-  cancelCreateButton.click();
-}
-
-function removeVideo(){
-  var length = playlistCollectionManager.getPlaylistLength(playlistCollectionManager.getViewingPlaylistUid());
-  
-  // If removing a video means that there will be no more videos in the playlist, reset the playlist image
-  // to be the default one if the user didnt give the playlist a custom image
-  if(length == 1){   
-    if(!chrome.extension.getBackgroundPage().getPlaylistUsingDefaultImageByUid(
-       playlistCollectionManager.getViewingPlaylistUid())){
-      document.getElementById("player-image-image").src = defaultPlaylistImage;
-    }
-  }
-  
-  // Find the first available videoListPlayButton
-  var firstAvailableIndex = -1;
-  if(typeof playlistPageManager.viewingVideoListManager != "undefined"){
-    var buttonsMap = playlistPageManager.viewingVideoListManager.playButtons;
-    buttonsMap.forEach(function(value, key){
-      if(value != null && firstAvailableIndex == -1){
-        firstAvailableIndex = i;
-      }
-    })
-  }
-
-  var videoListManager = playlistPageManager.getVideoListManager();
-  if(typeof videoListManager.getVideoToBeRemoved() != "undefined"){
-    playlistCollectionManager.deleteVideo(videoListManager.getVideoToBeRemoved().uid);
-    videoListManager.setVideoToBeRemoved(undefined);
-  }
-  
-  var playlistName = playlistCollectionManager.getViewingPlaylist().name;
-  containerToRemove.parentNode.removeChild(containerToRemove);
-  var viewingPlaylist = playlistCollectionManager.getViewingPlaylistUid();
-  var videoDisplay = document.getElementById("Playlist " + viewingPlaylist + ":" + playlistName).childNodes[1];
-  var numVideos = chrome.extension.getBackgroundPage().getNumVideosByUid(viewingPlaylist);
-  videoDisplay.innerHTML = numVideos + " Videos";
-  videoIndexToRemove = undefined;
-  containerToRemove = undefined;
-  
-}
-
-function editVideo(){
-  overlay.style.display = "block";
-  var video = playlistPageManager.getVideoListManager().getVideoToBeEdited();
-  var editVideoDiv = document.getElementById("edit-video-modal");
-  editVideoDiv.style.display = "block";
-  var titleInput = document.getElementById("edit-title-input");
-  titleInput.value = video.videoTitle;
-  var artistInput = document.getElementById("edit-artist-input");
-  artistInput.value = video.channelTitle;
-  var startTimeMin = document.getElementById("edit-start-input-min");
-  var startTimeSec = document.getElementById("edit-start-input-sec");
-  if(typeof video.startTime == "undefined"){
-    startTimeMin.value = 0;
-    startTimeSec.value = 0;
-  }
-  else{
-    startTimeMin.value = Math.floor(video.startTime / 60);
-    startTimeSec.value = video.startTime % 60;
-  }
-  var endTimeMin = document.getElementById("edit-end-input-min");
-  var endTimeSec = document.getElementById("edit-end-input-sec");
-  if(typeof video.endTime == "undefined"){
-    var start = video.duration.indexOf("PT") + 2;
-    var end = video.duration.indexOf("M");
-    var min = parseInt(video.duration.slice(start, end));
-    var sec = parseInt(video.duration.slice(end + 1, video.duration.indexOf("S")));
-    endTimeMin.value = min;
-    endTimeSec.value = sec;
-    endTimeMin.max = min;
-    startTimeMin.max = min;
-  }
-  else{
-    endTimeMin.value = Math.floor(video.endTime / 60);
-    endTimeSec.value = video.endTime % 60;
-    endTimeMin.max = Math.floor(video.endTime / 60);
-    startTimeMin.max = Math.floor(video.endTime / 60);
-  }
-  
-  titleInput.focus();
-}
-
 function displayPlaylists(){
   var numPlaylists = playlistCollectionManager.size();
   var playlistCollection = playlistCollectionManager.getPlaylistCollection();
@@ -2211,10 +2104,6 @@ function setupControlPanel(){
     document.getElementById("volume-off").style.display = "none";
     document.getElementById("volume-bar-fill").style.height = (volume.volume / 2) + "px";
   }
-}
-
-function updateVideoListPlayButtons(updateToPlay, updateToPause){
-  var buttons = playlistPageManager.viewingVideoListManager.playButtons;
 }
 
 function updateControlPanelPlayButton(playing){

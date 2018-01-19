@@ -707,33 +707,35 @@ var numInARow = 0;
 
 function onPlayerStateChange(event) {
   var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
-  if(event.data == testForRestrictedVideo[numInARow]){
-    // Video is restricted so fast forward to the next song
-    if(numInARow == testForRestrictedVideo.length - 1){
-      if(popupOpen && currCycle < videoPlayerManager.getQueue().length){
-        currCycle++;
-        chrome.runtime.sendMessage({request: "videoNotPlayablePopup", 
-                                    video: videoPlayerManager.getVideoBeingPlayed(),
-                                    id: videoPlayerManager.getCurrPlayButtonId(),
-                                    remove: playlistCollectionManager.getViewingPlaylistUid() == 
-                                            playlistCollectionManager.getPlayingPlaylistUid()});
-      }
-      if(currCycle < videoPlayerManager.getQueue().length){
-        videoPlayerManager.fastForward();
+  if(navigator.onLine){
+    if(event.data == testForRestrictedVideo[numInARow]){
+      // Video is restricted so fast forward to the next song
+      if(numInARow == testForRestrictedVideo.length - 1){
+        if(popupOpen && currCycle < videoPlayerManager.getQueue().length){
+          currCycle++;
+          chrome.runtime.sendMessage({request: "videoNotPlayablePopup", 
+                                      video: videoPlayerManager.getVideoBeingPlayed(),
+                                      id: videoPlayerManager.getCurrPlayButtonId(),
+                                      remove: playlistCollectionManager.getViewingPlaylistUid() == 
+                                              playlistCollectionManager.getPlayingPlaylistUid()});
+        }
+        if(currCycle < videoPlayerManager.getQueue().length){
+          videoPlayerManager.fastForward();
+        }
+        else{
+          videoPlayerManager.pauseVideo();
+          chrome.runtime.sendMessage({request: "playlistEnded"});
+          currCycle = 0;
+        }
+        numInARow = 0;
       }
       else{
-        videoPlayerManager.pauseVideo();
-        chrome.runtime.sendMessage({request: "playlistEnded"});
-        currCycle = 0;
+        numInARow++;
       }
+    }
+    else if(numInARow != 0){
       numInARow = 0;
     }
-    else{
-      numInARow++;
-    }
-  }
-  else if(numInARow != 0){
-    numInARow = 0;
   }
   
   if(backgroundPlayer.stopped){
@@ -774,23 +776,6 @@ function createVideo(videoId, callback){
   executeRequest(apiRequestRetVal, "videoInfo", function(videoInfo){
     if(callback){
       callback(videoInfo);
-    }
-  });
-}
-
-function cleanVideoArray(playlistIndex){
-  for(i = 0; i < playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]).videos.length; i++){
-    if(playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]).videos[i] == -1){
-      playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]).videos.splice(i, 1);
-      i--;
-    }
-  }
-  
-  var obj = {};
-  obj[playlistUids[playlistIndex]] = playlistCollectionManager.getPlaylist(playlistUids[playlistIndex]);
-  chrome.storage.local.set(obj, function(){
-    if(chrome.runtime.lastError){
-      console.warn(chrome.runtime.lastError.message);
     }
   });
 }
@@ -1049,20 +1034,6 @@ function firstInstallSetup(){
 function userSetup(){
   chrome.identity.getAuthToken({'interactive' : false}, function(token){
     gapi.load("client", undefined);
-    if(chrome.runtime.lastError){
-      profileIcon = "images/default_user.png";
-      username = "user";
-      updateUserAccountStatus("pending");
-    }
-    else{
-      chrome.storage.sync.get("profileIcon", function(item){
-        profileIcon = item.profileIcon;
-      });
-      chrome.storage.sync.get("username", function(item){
-        username = item.username;
-      });
-      updateUserAccountStatus("true");
-    }
   });
 }
 
@@ -1256,36 +1227,12 @@ function getPlaylistUsingDefaultImageByUid(uid, type){
   return playlistCollectionManager.getPlaylist(uid).usingDefaultImage;
 }
 
-function getPlaylistLengthByUid(uid){
-  if(typeof uid == "number"){
-    uid = uid.toString();
-  }
-  var videos = playlistCollectionManager.getPlaylist(uid).videos;
-  var length = videos.length;
-  
-  for(i = 0; i < length; i++){
-    if(videos[i] == -1){
-      length--;
-    }
-  }
-  
-  return length;
-}
-
 function getPlaylistCollectionManager(){
   return playlistCollectionManager;
 }
 
-function getPlayerState(){
-  return player.getPlayerState();
-}
-
 function getVideoPlayerManager(){
   return videoPlayerManager;
-}
-
-function getUnfilteredPlaylistCollection(){
-  return playlistCollectionManager.getPlaylistCollection();
 }
 
 function setQuality(qual){

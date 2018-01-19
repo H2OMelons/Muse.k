@@ -57,8 +57,9 @@ text{
 }
 .expand-collapse{
   position: absolute;
-  left: 255px;
-  top: 10%;
+  left: 280px;
+  top: 12%;
+  font-size: 30px !important;
 }
 
 #expand-button{

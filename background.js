@@ -1061,7 +1061,7 @@ function userSetup(){
       });
       chrome.storage.sync.get("username", function(item){
         username = item.username;
-      })
+      });
       updateUserAccountStatus("true");
     }
   });
@@ -1188,6 +1188,18 @@ function setRepeat(status){
 function setShuffle(status){
   shuffleOn = status;
   chrome.storage.sync.set({"shuffle": status}, undefined);
+}
+
+function saveToLocal(obj, callback){
+  chrome.storage.local.set(obj, callback);
+}
+
+function loadFromLocal(name, callback){
+  chrome.storage.local.get(name, function(item){
+    if(callback){
+      callback(item);
+    }
+  });
 }
 
 function setVolume(vol){

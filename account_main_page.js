@@ -1875,6 +1875,7 @@ function collapseExtension(){
   document.getElementById("right-column").style.display = "none";
   document.getElementById("left-column").style.width = "100%";
   document.getElementById("control-button-container").style.width = "100%";
+  chrome.extension.getBackgroundPage().saveToLocal({"collapsed": true}, undefined);
 }
 
 function expandExtension(){
@@ -1884,6 +1885,7 @@ function expandExtension(){
   document.getElementById("right-column").style.display = "block";
   document.getElementById("left-column").style.width = LEFT_COL_WIDTH;
   document.getElementById("control-button-container").style.width = LEFT_COL_WIDTH;
+  chrome.extension.getBackgroundPage().saveToLocal({"collapsed": false}, undefined);
 }
 
 function updateTimeBarValue(){
@@ -2228,6 +2230,13 @@ function onload(){
   
   playlistCollectionManager = chrome.extension.getBackgroundPage().getPlaylistCollectionManager();
   videoPlayerManager = chrome.extension.getBackgroundPage().getVideoPlayerManager();
+  
+  chrome.extension.getBackgroundPage().loadFromLocal("collapsed", function(item){
+    if(item.collapsed){
+      document.getElementById("collapse-button").click();
+    }
+  });
+  
   loadDivs();
   initListeners();
   setupControlPanel();

@@ -15,7 +15,7 @@ text{
 #info-bar-button{
   position: absolute;
   top: 25%;
-  left: 2%;
+  left: 10px;
 }
 #info-bar-search-button{
   position: absolute;
@@ -26,9 +26,9 @@ text{
   display: none;
   position: absolute;
   top: 17.5%;
-  left: 7%;
+  left: 40px;
   height: 100%;
-  width: 225px;
+  width: 235px;
 }
 #info-bar-title:hover #info-bar-playlist-options{
   display: block;

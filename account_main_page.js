@@ -795,6 +795,9 @@ function onModalPlayerReady(event){
 function initListeners(){
   addVideoButton.onclick = function(){
     if(window.getComputedStyle(addVideoModal).display == "none"){
+      if(window.getComputedStyle(document.getElementById("expand-button")).display == "block"){
+        expandExtension();
+      }
       addVideoModal.style.display = "block";
       overlay.style.display = "block";
       videoUrlInput.focus();
@@ -828,6 +831,9 @@ function initListeners(){
     modalPlayer.stopVideo();
     document.getElementById("videoModalResultDisplay").style.display = "none";
     overlay.style.display = "none";
+    if(window.getComputedStyle(document.getElementById("expand-button")).display == "block"){
+      collapseExtension();
+    }
   };
   addVideoModal.addEventListener("cancel", function(){
     addVideoCancelButton.click();

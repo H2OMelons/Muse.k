@@ -689,7 +689,6 @@ function onPlaybackQualityChange(data){
 
 function onBackgroundPlayerReady(event){
   backgroundPlayerStatus = "waitingForSync";
-  console.log("ready");
   chrome.storage.sync.get("volume", function(item){
     if(typeof item.volume == "undefined"){
       volume = {"volume": 25, "mute": false};

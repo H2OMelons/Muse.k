@@ -254,7 +254,11 @@ VideoListManager.prototype.createVideoDiv = function(video){
     videoPlayerManager.setPlayButtons(manager.playButtons);
     var videoBeingPlayedUid = videoPlayerManager.getVideoBeingPlayed().uid;
     if((video.uid == videoBeingPlayedUid) &&
-       (videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING)){
+       (typeof videoPlayerManager.getBackgroundVideoPlayer() == "undefined")){
+      title.style.color = "turquoise";
+    }
+    else if((video.uid == videoBeingPlayedUid) &&
+           (videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING)){
       playContainer.style.display = "none";
       pauseContainer.style.display = "block";
       title.style.color = "turquoise";
@@ -276,36 +280,40 @@ VideoListManager.prototype.createVideoDiv = function(video){
   
   playContainer.onclick = function(e){
 
-      if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
-        manager.playButtons.forEach(function(value, key){
-          if(value.childNodes[0].style.display != "block"){
-            value.childNodes[0].style.display = "block";
-            value.childNodes[1].style.display = "none";
-            value.parentNode.childNodes[3].style.color = "white";
-          }
-        });
-      }
-      setPlayingPlaylist();
-      videoPlayerManager.setPlayButtons(manager.playButtons);
-      if(typeof manager.videoBeingPlayed != "undefined" &&
-         manager.videoBeingPlayed != null){
-        // If another video is currently playing then change the button status
-        manager.videoBeingPlayed.childNodes[0].style.display = "block";
-        manager.videoBeingPlayed.childNodes[1].style.display = "none";
-        manager.videoBeingPlayed.parentNode.childNodes[3].style.color = "white";
-      }
-      if(manager.videoBeingPlayed == this.parentNode &&
-         videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
-        videoPlayerManager.playVideo();
-      }
-      else{
-        startPlaylist(video);
-        manager.videoBeingPlayed = playButton;
-      }
+    if(playlistCollectionManager.getPlayingPlaylistUid() == playlistCollectionManager.getViewingPlaylistUid()){
+      manager.playButtons.forEach(function(value, key){
+        if(value.childNodes[0].style.display != "block"){
+          value.childNodes[0].style.display = "block";
+          value.childNodes[1].style.display = "none";
+          value.parentNode.childNodes[3].style.color = "white";
+        }
+      });
+    }
+    setPlayingPlaylist();
+    videoPlayerManager.setPlayButtons(manager.playButtons);
+    if(typeof manager.videoBeingPlayed != "undefined" &&
+       manager.videoBeingPlayed != null){
+      // If another video is currently playing then change the button status
+      manager.videoBeingPlayed.childNodes[0].style.display = "block";
+      manager.videoBeingPlayed.childNodes[1].style.display = "none";
+      manager.videoBeingPlayed.parentNode.childNodes[3].style.color = "white";
+    }
+    if(manager.videoBeingPlayed == this.parentNode &&
+       (typeof videoPlayerManager.getBackgroundVideoPlayer() != "undefined") &&
+       videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
+      videoPlayerManager.playVideo();
+    }
+    else{
+      startPlaylist(video);
+      manager.videoBeingPlayed = playButton;
+    }
+    
+    if(navigator.onLine){
       updateControlPanelPlayButton(true);
       playContainer.style.display = "none";
       pauseContainer.style.display = "block";
-      title.style.color = "turquoise";
+    }
+    title.style.color = "turquoise";
   };
   
   pauseContainer.onclick = function(e){
@@ -758,14 +766,16 @@ function initListeners(){
   }
   
   controlPlayButton.onclick = function(){
-    if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
+    if((typeof videoPlayerManager.getBackgroundVideoPlayer != "undefined") &&
+       videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PAUSED){
       updateControlPanelPlayButton(true);
       videoPlayerManager.playVideo();
     }
   }
   controlPauseButton.onclick = function(){
-    if(videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING ||
-       videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.BUFFERING){
+    if((typeof videoPlayerManager.getBackgroundVideoPlayer() != "undefined") &&
+      (videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.PLAYING ||
+       videoPlayerManager.getBackgroundVideoPlayer().getPlayerState() == videoPlayerManager.BUFFERING)){
       updateControlPanelPlayButton(false);
       videoPlayerManager.pauseVideo();
     }
@@ -1468,7 +1478,9 @@ function initListeners(){
   timeBar.onmouseup = function(){
     timeSliderDown = false; 
     var player = videoPlayerManager.getBackgroundVideoPlayer();
-    if(player.getPlayerState() != -1 && player.getVideoUrl() != "https://www.youtube.com/watch" &&
+    if(typeof player != "undefined" &&
+       player.getPlayerState() != -1 && 
+       player.getVideoUrl() != "https://www.youtube.com/watch" &&
        typeof videoPlayerManager.getQueue() != "undefined"){
       videoPlayerManager.seekTo(this.value);
       var currMins = Math.floor(this.value / 60);
@@ -1669,7 +1681,9 @@ function initTimeBar(curr, end){
   
   timeInterval = setInterval(function(){
     var player = videoPlayerManager.getBackgroundVideoPlayer();
-    if(!timeSliderDown && player.getPlayerState() != videoPlayerManager.PAUSED){
+    if(typeof player != "undefined" &&
+       !timeSliderDown && 
+       player.getPlayerState() != videoPlayerManager.PAUSED){
       var timeElapsed = player.getCurrentTime();
       if(typeof timeElapsed == "number"){
         currMins = Math.floor(timeElapsed / 60);
@@ -1729,7 +1743,7 @@ function loadPlayerState(){
   var playerObj = videoPlayerManager.getBackgroundVideoPlayer();
   var state = -1; 
   if(typeof playerObj != "undefined"){
-    playerObj.getPlayerState();
+    state = playerObj.getPlayerState();
   }
   if(state > 0 && state < 5){    
     if(state != 2){
@@ -1746,8 +1760,10 @@ function loadPlayerState(){
   if(typeof playlistCollectionManager.getPlayingPlaylistUid() != "undefined"){
     playlistPageManager.loadPlaylistPage(playlistCollectionManager.getPlayingPlaylistUid());
     playlistPageManager.setPlayingPlaylist(playlistCollectionManager.getPlayingPlaylist());
-    initTimeBar(videoPlayerManager.getBackgroundVideoPlayer().getCurrentTime(),
-                videoPlayerManager.getBackgroundVideoPlayer().getDuration());
+    if(typeof videoPlayerManager.getBackgroundVideoPlayer() != "undefined"){
+      initTimeBar(videoPlayerManager.getBackgroundVideoPlayer().getCurrentTime(),
+                  videoPlayerManager.getBackgroundVideoPlayer().getDuration());
+    }
   }
   else if(typeof playlistCollectionManager.getViewingPlaylistUid() != "undefined"){
     playlistPageManager.loadPlaylistPage(playlistCollectionManager.getViewingPlaylistUid());
@@ -1799,9 +1815,11 @@ function loadDivs(){
 }
 
 function startPlaylist(video){
-  videoPlayerManager.initQueue(video.uid);
-  videoPlayerManager.startQueue();
-  updateControlPanel(video);
+  if(typeof videoPlayerManager != "undefined" && navigator.onLine){
+    videoPlayerManager.initQueue(video.uid);
+    videoPlayerManager.startQueue();
+    updateControlPanel(video);
+  }
 }
 
 function setupControlPanel(){
@@ -1859,7 +1877,6 @@ function onload(){
   
   playlistCollectionManager = chrome.extension.getBackgroundPage().getPlaylistCollectionManager();
   videoPlayerManager = chrome.extension.getBackgroundPage().getVideoPlayerManager();
-  
   chrome.extension.getBackgroundPage().loadFromLocal("collapsed", function(item){
     if(item.collapsed){
       document.getElementById("collapse-button").click();

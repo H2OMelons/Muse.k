@@ -102,7 +102,7 @@ VideoPlayerManager.prototype.removeFromQueue = function(videoUid){
 }
 
 VideoPlayerManager.prototype.cueVideo = function(){
-  if(typeof this.queue == "undefined"){
+  if(typeof this.queue == "undefined" && typeof this.backgroundVideoPlayer == "undefined"){
     return;
   }
   this.backgroundVideoPlayer.cueVideo(this.queue[this.queueIndex]);

@@ -64,18 +64,12 @@ function onYouTubeIframeAPIReady() {
     },
     events: {
       'onReady': onBackgroundPlayerReady,
-      'onStateChange': onPlayerStateChange,
-      'onPlaybackQualityChange': onPlaybackQualityChange
+      'onStateChange': onPlayerStateChange
     }
   });
 }
 
-function onPlaybackQualityChange(data){
-  
-}
-
 function onBackgroundPlayerReady(event){
-  backgroundPlayerStatus = "waitingForSync";
   chrome.storage.sync.get("volume", function(item){
     if(typeof item.volume == "undefined"){
       volume = {"volume": 25, "mute": false};
@@ -90,31 +84,46 @@ function onBackgroundPlayerReady(event){
 }
 
 var testForRestrictedVideo = [5, -1, 3, -1];
+var testForPlayable = [];
+var startTestForPlayable = false;
 var numInARow = 0;
 
 function onPlayerStateChange(event) {
   var backgroundPlayer = videoPlayerManager.getBackgroundVideoPlayer();
   if(navigator.onLine){
+    if(startTestForPlayable){
+      testForPlayable.push(event.data);
+    }
     if(event.data == testForRestrictedVideo[numInARow]){
       // Video is restricted so fast forward to the next song
       if(numInARow == testForRestrictedVideo.length - 1){
-        if(popupOpen && currCycle < videoPlayerManager.getQueue().length){
-          currCycle++;
-          chrome.runtime.sendMessage({request: "videoNotPlayablePopup", 
-                                      video: videoPlayerManager.getVideoBeingPlayed(),
-                                      id: videoPlayerManager.getCurrPlayButtonId(),
-                                      remove: playlistCollectionManager.getViewingPlaylistUid() == 
-                                              playlistCollectionManager.getPlayingPlaylistUid()});
-        }
-        if(currCycle < videoPlayerManager.getQueue().length){
-          videoPlayerManager.fastForward();
-        }
-        else{
-          videoPlayerManager.pauseVideo();
-          chrome.runtime.sendMessage({request: "playlistEnded"});
-          currCycle = 0;
-        }
-        numInARow = 0;
+        startTestForPlayable = true;
+        setTimeout(function(){
+          // If testForPlayable is empty then that means that the video is not playable
+          if(testForPlayable.length == 0){
+            if(popupOpen && currCycle < videoPlayerManager.getQueue().length){
+              currCycle++;
+              chrome.runtime.sendMessage({request: "videoNotPlayablePopup", 
+                                          video: videoPlayerManager.getVideoBeingPlayed(),
+                                          id: videoPlayerManager.getCurrPlayButtonId(),
+                                          remove: playlistCollectionManager.getViewingPlaylistUid() == 
+                                                  playlistCollectionManager.getPlayingPlaylistUid()});
+            }
+            if(currCycle < videoPlayerManager.getQueue().length){
+              videoPlayerManager.fastForward();
+            }
+            else{
+              videoPlayerManager.pauseVideo();
+              chrome.runtime.sendMessage({request: "playlistEnded"});
+              currCycle = 0;
+            }
+          }
+          else{
+            testForPlayable = [];
+          }
+          startTestForPlayable = false;
+          numInARow = 0;
+        }, 250);
       }
       else{
         numInARow++;

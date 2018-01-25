@@ -465,6 +465,7 @@ function onStart(){
   chrome.storage.local.get("playlistUids", function(item){
     if(typeof item.playlistUids == "undefined"){
       playlistUids = [];
+      playlistCollectionManager = new PlaylistCollectionManager(new Map());
     }
     else{
       playlistUids = item.playlistUids;
@@ -489,6 +490,7 @@ function onStart(){
             var uid = Object.keys(playlist)[0];
             playlistCollection.set(uid, playlist[uid]);
           }
+          
           if(numPlaylistsLoaded + numLoadErrors == playlistUids.length){
             playlistCollectionManager = new PlaylistCollectionManager(playlistCollection);
           }

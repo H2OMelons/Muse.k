@@ -6,11 +6,20 @@
   "version": "0.0.0.9",
 
   "browser_action":{
-    "default_icon": "images/icon.png",
+    "default_icon": {
+      "16": "images/musek-icon-16.png",
+      "24": "images/musek-icon-24.png",
+      "36": "images/musek-icon-36.png"
+    },
     "default_popup": "account_main_page.html",
     "default_title": "Muse.k"
   },
 
+  "icons":{
+    "16": "images/musek-icon-16.png",
+    "48": "images/musek-icon-48.png",
+    "128": "images/musek-icon-128-v2.png"
+  },
   
   "background":{
     "persistent": true,

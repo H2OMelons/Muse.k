@@ -1021,7 +1021,7 @@ function initListeners(){
           document.getElementById("url-selection-load").style.display = "none";
           document.getElementById("display-all-selection-results-buttons").style.display = "none";
           document.getElementById("url-selection-success").style.display = "block";
-          if(playlistCollectionManager.getPlaylistCollectionLength() == 1){
+          if(playlistCollectionManager.getPlaylistCollectionLength() >= 1){
             document.getElementById("no-playlist-page").style.display = "none";
           }
           var playlistNodes = document.getElementById("display-all-selection-results-container").childNodes;

@@ -116,7 +116,7 @@ text{
   position: absolute;
   width: 100%;
   height: 100%;
-  overflow-x: none;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .video-container{
@@ -1160,36 +1160,47 @@ text{
   width: 40%;
 }
 
+#inner-control-panel{
+  width: 50%;
+  text-align: center;
+  margin: 0 auto;
+}
+
 .control-button{
-  position: absolute;
+  position: relative;
+  float: left;
+  padding-left: 5px;
   line-height: 190%;
 }
 
 .control-play-pause-button{
-  position: absolute;
-  left: 40%;
+  /*position: absolute;
+  left: 40%;*/
 }
 
 .control-rewind-button{
-  position: absolute;
-  left: 33%;
+  /*position: absolute;
+  left: 33%;*/
 }
 
 .control-fast-forward-button{
-  position: absolute;
-  left: 48%;
+  /*position: absolute;
+  left: 48%;*/
+  padding-right: 5px;
 }
 
 .control-repeat-button{
-  position: absolute;
+  /*position: absolute;*/
   line-height: 200%;
-  left: 27%;
+  margin-left: 10%;
+  padding-right: 5px;
+  /*left: 27%;*/
 }
 
 .control-shuffle-button{
-  position: absolute;
+  /*position: absolute;*/
   line-height: 200%;
-  left: 55%;
+  /*left: 55%;*/
 }
 
 .control-time{

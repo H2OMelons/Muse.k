@@ -88,27 +88,31 @@
     </div>
     <div id="control-panel">
       <div id="control-button-container">
-        <div id="control-play-pause-button" 
-             class="control-play-pause-button control-button button white turquoise-hover">
-          <i class="fa fa-play-circle-o fa-2x" aria-hidden="true" id="control-play-button" ></i>
-          <i class="fa fa-pause-circle-o fa-2x" aria-hidden="true" id="control-pause-button" style="display: none"></i>
+        <div id="inner-control-panel">
+          <div id="control-repeat-button"
+               class="control-button control-repeat-button  button white turquoise-hover">
+            <i class="fa fa-repeat" aria-hidden="true"></i>
+          </div>
+          <div id="control-rewind-button"
+               class="control-rewind-button control-button button white turquoise-hover">
+            <i class="fa fa-backward fa-lg" aria-hidden="true" ></i>
+          </div>
+          <div id="control-play-pause-button"
+               class="control-play-pause-button control-button button white turquoise-hover">
+            <i class="fa fa-play-circle-o fa-2x" aria-hidden="true" id="control-play-button" ></i>
+            <i class="fa fa-pause-circle-o fa-2x" aria-hidden="true" id="control-pause-button" style="display: none"></i>
+          </div>
+          <div id="control-fast-forward-button"
+               class="control-fast-forward-button control-button button white turquoise-hover">
+            <i class="fa fa-forward fa-lg" aria-hidden="true" ></i>
+          </div>
+          <div id="control-shuffle-button"
+               class="control-shuffle-button control-button button white turquoise-hover">
+            <i class="fa fa-random" aria-hidden="true"></i>
+          </div>
+
         </div>
-        <div id="control-rewind-button" 
-             class="control-rewind-button control-button button white turquoise-hover">
-          <i class="fa fa-backward fa-lg" aria-hidden="true" ></i>
-        </div>
-        <div id="control-fast-forward-button" 
-             class="control-fast-forward-button control-button button white turquoise-hover">
-          <i class="fa fa-forward fa-lg" aria-hidden="true" ></i>
-        </div>
-        <div id="control-shuffle-button" 
-             class="control-shuffle-button control-button button white turquoise-hover">
-          <i class="fa fa-random" aria-hidden="true"></i>
-        </div>
-        <div id="control-repeat-button" 
-             class="control-repeat-button control-button button white turquoise-hover">
-          <i class="fa fa-repeat" aria-hidden="true"></i>
-        </div>
+
         <div id="volume-container" class="volume-container">
           <div id="volume-icon" class="white volume-icon turquoise-hover">
             <i id="volume-on" class="fa fa-volume-up fa-lg" aria-hidden="true"></i>

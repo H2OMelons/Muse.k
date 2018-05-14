@@ -7,18 +7,33 @@
 4. [Restricted Videos](#restricted-videos)
 5. [Troubleshooting](#troubleshooting)
 
-##<a name="getting-started"></a>Getting Started
-Coming soon
+## <a name="getting-started"></a>Getting Started
 
-##<a name="playlists"></a>Playlists
-Coming soon
+<p>
+  Coming soon
+</p>
 
-##<a name="searching"></a>Searching
-Coming soon
+## <a name="playlists"></a>Playlists
 
-##<a name="restricted-videos"></a>Restricted Videos
-Coming soon
+<p>
+  Coming soon
+</p>
 
-##<a name="troubleshooting"></a>Troubleshooting
-If you find a bug, feel free to email me a description of the bug and how
-you triggered it: rycintech@gmail.com 
+## <a name="searching"></a>Searching
+
+<p>
+  Coming soon
+</p>
+
+## <a name="restricted-videos"></a>Restricted Videos
+
+<p>
+  Coming soon
+</p>
+
+## <a name="troubleshooting"></a>Troubleshooting
+
+<p>
+  If you find a bug, feel free to email me a description of the bug and how
+  you triggered it: rycintech@gmail.com 
+</p>

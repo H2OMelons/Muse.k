@@ -33,6 +33,7 @@
 </p>
 
 <br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/>
 
 <img src="./images/Selected-Video.PNG" align="left" width="35%">
 <p>
@@ -67,6 +68,7 @@
 
 <br/><br/><br/><br/>
 <br/><br/><br/>
+<br/><br/>
 
 # <a name="restricted-videos"></a>Restricted Videos
 

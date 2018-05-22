@@ -1,4 +1,4 @@
-## <div align="center">Play Youtube videos in the comfort of your extensions bar</div>
+<div align="center">Play Youtube videos in the comfort of your extensions bar</div>
 
 # Table of Contents
 1. [Getting Started](#getting-started) 

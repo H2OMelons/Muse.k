@@ -90,7 +90,10 @@ When you search for something, the results will be displayed below in a list for
 
 # <a name="restricted-videos"></a>Restricted Videos
 
-<img src="./images/Restricted-Videos.PNG" wisth="75%">
+<div align="center">
+  <img src="./images/Restricted-Videos.PNG" width="75%">
+</div>
+
 A restricted video is a video that a channel/company does not allow to be played
 outside of Youtube or if the video is not available in your region.
 
